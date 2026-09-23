@@ -221,6 +221,10 @@ const FAMILY_FRIENDLY_NAMES: Record<string, { label: string; desc: string }> = {
     label: "Xâu chuỗi đa đợt khám",
     desc: "Tổng hợp thông tin từ nhiều buổi hẹn điều trị trước đây",
   },
+  CROSS_SESSION_PERSONALIZATION: {
+    label: "Xâu chuỗi đa đợt khám",
+    desc: "Tổng hợp thông tin từ nhiều buổi hẹn điều trị trước đây",
+  },
   CONFLICT_UNCERTAINTY: {
     label: "Mâu thuẫn hoặc chưa rõ ràng",
     desc: "Có sự bất nhất giữa các lần khám, cần làm rõ lại triệu chứng",
@@ -229,6 +233,12 @@ const FAMILY_FRIENDLY_NAMES: Record<string, { label: string; desc: string }> = {
     label: "Phân định nguồn dữ liệu",
     desc: "Phân biệt rõ lời người bệnh tự kể và kết quả khám trực tiếp của bác sĩ",
   },
+};
+
+const STATUS_FRIENDLY_NAMES: Record<string, string> = {
+  KNOWN: "Đã xác định trong hồ sơ",
+  UNCERTAIN: "Mâu thuẫn / Cần làm rõ",
+  UNKNOWN: "Chưa ghi nhận (Cần hỏi thêm)",
 };
 
 let cachedAllCases: CaseDetail[] | null = null;
@@ -1575,7 +1585,7 @@ export default function LabelDataPage() {
                         <div className={styles.factorItemHeader}>
                           <span className={styles.factorNumber}>Dữ kiện {idx + 1}</span>
                           <span className={styles.factorBadge}>
-                            {factor.expected_status || "ĐANG HIỆU LỰC"}
+                            {STATUS_FRIENDLY_NAMES[factor.expected_status] || factor.expected_status || "ĐÃ XÁC ĐỊNH"}
                           </span>
                         </div>
 

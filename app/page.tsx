@@ -1528,33 +1528,132 @@ export default function LabelDataPage() {
 
             {/* Right Column: Clinical Judgment */}
             <section className={styles.rightSidebar} aria-label="Biện giải lâm sàng và xác nhận">
-
               {/* Review Save Section */}
               <div className={styles.reviewSection}>
                 <div className={styles.reviewSectionHeader}>
-                  <h2 className={styles.sectionTitle}>
-                    Biện giải chuyên môn & Xác nhận thẩm định
-                  </h2>
+                  <div className={styles.reviewTitleRow}>
+                    <h2 className={styles.sectionTitle}>
+                      Biện giải & Xác nhận thẩm định
+                    </h2>
+                    {activeCase && confirmedCaseIds.has(activeCase.case_id) ? (
+                      <span className={styles.confirmedBadge}>
+                        <svg
+                          width="12"
+                          height="12"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="3"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        Đã xác nhận
+                      </span>
+                    ) : (
+                      <span className={styles.pendingBadge}>Chưa xác nhận</span>
+                    )}
+                  </div>
                   <p className={styles.sectionSubtitle}>
-                    Nhập nhận xét lâm sàng chi tiết (bắt buộc) nêu rõ cơ sở chấp thuận hoặc lý do hiệu chỉnh
+                    Nêu rõ nhận xét y khoa về tính an toàn, ngữ cảnh tiền sử và độ chuẩn xác của câu từ
                   </p>
                 </div>
 
-                <textarea
-                  value={clinicalNotes}
-                  onChange={(e) => setClinicalNotes(e.target.value)}
-                  placeholder="Biện giải chuyên môn: Nêu rõ đánh giá an toàn, tính chính xác của chẩn đoán và căn cứ đối chiếu tiền sử..."
-                  className={styles.notesTextarea}
-                />
+                {/* Quick Feedback Templates */}
+                <div className={styles.quickTemplatesBox}>
+                  <span className={styles.quickTemplateLabel}>Gợi ý nhận xét nhanh:</span>
+                  <div className={styles.quickTemplateList}>
+                    <button
+                      type="button"
+                      className={styles.quickTemplateBtn}
+                      onClick={() =>
+                        setClinicalNotes(
+                          "Đã đối chiếu các lần khám: Câu hỏi và diễn tiến hoàn toàn phù hợp với tiền sử bệnh nhân."
+                        )
+                      }
+                    >
+                      Đúng diễn tiến tiền sử
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.quickTemplateBtn}
+                      onClick={() =>
+                        setClinicalNotes(
+                          "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân."
+                        )
+                      }
+                    >
+                      Kiến thức đại cương chuẩn
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.quickTemplateBtn}
+                      onClick={() =>
+                        setClinicalNotes(
+                          "Đã trau chuốt câu từ và thuật ngữ chuyên ngành Răng Hàm Mặt, bảo toàn nguyên vẹn ý nghĩa lâm sàng."
+                        )
+                      }
+                    >
+                      Đã trau chuốt câu từ
+                    </button>
+                  </div>
+                </div>
+
+                <div className={styles.textareaWrapper}>
+                  <textarea
+                    value={clinicalNotes}
+                    onChange={(e) => setClinicalNotes(e.target.value)}
+                    placeholder="Biện giải chuyên môn: Nêu rõ đánh giá an toàn, tính chính xác của chẩn đoán và căn cứ đối chiếu tiền sử..."
+                    className={styles.notesTextarea}
+                    rows={4}
+                  />
+                  <div className={styles.charCountRow}>
+                    <span
+                      className={
+                        clinicalNotes.trim().length >= 20
+                          ? styles.charCountValid
+                          : styles.charCountWarning
+                      }
+                    >
+                      {clinicalNotes.trim().length}/20 ký tự tối thiểu
+                    </span>
+                  </div>
+                </div>
 
                 <button
                   type="button"
-                  className={styles.saveBtn}
+                  className={[
+                    styles.saveBtn,
+                    activeCase && confirmedCaseIds.has(activeCase.case_id)
+                      ? styles.saveBtnConfirmed
+                      : "",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
                   disabled={saving}
                   onClick={handleSaveAnnotation}
                   title="Xác nhận ca bệnh này và đưa vào tập kết quả thẩm định"
                 >
-                  {saving ? "Đang xác nhận..." : "Xác nhận thẩm định ca này"}
+                  <svg
+                    width="15"
+                    height="15"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  <span>
+                    {saving
+                      ? "Đang lưu..."
+                      : activeCase && confirmedCaseIds.has(activeCase.case_id)
+                      ? "Cập nhật xác nhận ca này"
+                      : "Xác nhận thẩm định ca này"}
+                  </span>
                 </button>
 
                 {saveMessage && (
@@ -1567,6 +1666,16 @@ export default function LabelDataPage() {
                     {saveMessage.text}
                   </div>
                 )}
+              </div>
+
+              {/* Clinical Verification Reminder Card */}
+              <div className={styles.reminderCard}>
+                <h4 className={styles.reminderTitle}>Nguyên tắc thẩm định bắt buộc</h4>
+                <ul className={styles.reminderList}>
+                  <li>Tuyệt đối không thay đổi cốt lõi tình huống bệnh lý của đoạn hội thoại.</li>
+                  <li>Phân định rõ tiền sử còn hiệu lực với thủ thuật đã xong.</li>
+                  <li>Bắt buộc bấm "Lưu" sau khi hoàn tất đủ 10 ca của đợt để chuyển tiếp.</li>
+                </ul>
               </div>
             </section>
           </div>

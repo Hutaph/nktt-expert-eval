@@ -69,7 +69,7 @@ function AutoExpandingTextarea({
       className={className}
       title={title}
       spellCheck={spellCheck}
-      style={{ overflow: "hidden" }}
+      style={{ overflow: "hidden", width: "100%", display: "block" }}
     />
   );
 }

@@ -1640,26 +1640,30 @@
 }
 
 .chatBubble {
-  max-width: 90%;
-  min-width: 220px;
+  width: calc(100% - 24px);
+  max-width: calc(100% - 24px);
+  min-width: 0;
   border-radius: 8px;
-  padding: 0.35rem 0.7rem;
+  padding: 0.4rem 0.85rem;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
   border: 1px solid transparent;
+  box-sizing: border-box;
 }
 
 .bubblePatient {
   background-color: #ffffff;
   border-color: #e2e8f0;
+  border-left: 3px solid #94a3b8;
   border-top-left-radius: 2px;
 }
 
 .bubbleDoctor {
   background-color: #eaf5f4;
   border-color: #bce1dd;
+  border-right: 3px solid #146b68;
   border-top-right-radius: 2px;
 }
 

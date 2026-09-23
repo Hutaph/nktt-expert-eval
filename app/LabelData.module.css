@@ -1668,7 +1668,13 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.4rem;
-  margin-bottom: 0.05rem;
+  margin-bottom: 0.1rem;
+}
+
+.bubbleSpeakerRow {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 .bubbleSpeaker {
@@ -1686,6 +1692,47 @@
   color: #146b68;
 }
 
+.pencilHint {
+  display: inline-flex;
+  align-items: center;
+  color: #94a3b8;
+  opacity: 0.5;
+  transition: opacity 0.15s ease, color 0.15s ease;
+  cursor: pointer;
+}
+
+.chatBubble:hover .pencilHint {
+  opacity: 0.85;
+  color: var(--color-primary);
+}
+
+.pencilIcon {
+  width: 11px;
+  height: 11px;
+}
+
+.bubbleHeaderRight {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.bubbleRevertBtn {
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: #b45309;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  line-height: 1;
+}
+
+.bubbleRevertBtn:hover {
+  color: #92400e;
+}
+
 .modifiedTag {
   font-size: 0.62rem;
   font-weight: 600;
@@ -1695,6 +1742,11 @@
   border-radius: var(--radius-pill);
 }
 
+.chatBubbleEdited {
+  border-color: #f59e0b !important;
+  box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.3);
+}
+
 .bubbleTextarea {
   width: 100%;
   min-width: 100%;
@@ -1702,17 +1754,25 @@
   line-height: 1.4;
   color: #1e293b;
   background: transparent;
-  border: none;
+  border: 1px dashed transparent;
   outline: none;
   resize: none;
-  padding: 0.15rem;
+  padding: 0.15rem 0.25rem;
   font-family: inherit;
   box-sizing: border-box;
+  border-radius: 4px;
+  transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.bubbleTextarea:hover {
+  border-color: rgba(20, 107, 104, 0.25);
+  background-color: rgba(255, 255, 255, 0.6);
 }
 
 .bubbleTextarea:focus {
-  background-color: rgba(255, 255, 255, 0.7);
-  border-radius: 4px;
+  background-color: #ffffff;
+  border: 1px solid var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(20, 107, 104, 0.12);
 }
 
 .bubbleTextReadonly {
@@ -1724,6 +1784,88 @@
   white-space: pre-wrap;
   word-break: break-word;
   user-select: text;
+}
+
+/* Session Footer Action (Under Bubbles) */
+.sessionFooterAction {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  padding: 0.45rem 0.75rem;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.sessionFooterInfo {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.sessionFooterBtns {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sessionPrevBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.sessionPrevBtn:hover {
+  background-color: var(--color-surface-muted);
+  border-color: var(--color-border-strong);
+}
+
+.sessionNextConfirmBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #ffffff;
+  background-color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(20, 107, 104, 0.15);
+}
+
+.sessionNextConfirmBtn:hover {
+  background-color: #0f5451;
+  border-color: #0f5451;
+  transform: translateY(-1px);
+}
+
+.sessionFinalConfirmBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #166534;
+  background-color: #dcfce7;
+  border: 1px solid #bbf7d0;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
 }
 
 /* Right Sidebar & Clinical Factor Cards */

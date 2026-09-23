@@ -22,6 +22,8 @@ interface AutoExpandingTextareaProps {
   placeholder?: string;
   readOnly?: boolean;
   className?: string;
+  title?: string;
+  spellCheck?: boolean;
 }
 
 function AutoExpandingTextarea({
@@ -30,6 +32,8 @@ function AutoExpandingTextarea({
   placeholder,
   readOnly,
   className,
+  title,
+  spellCheck = false,
 }: AutoExpandingTextareaProps) {
   const ref = useRef<HTMLTextAreaElement>(null);
 
@@ -37,7 +41,7 @@ function AutoExpandingTextarea({
     const el = ref.current;
     if (!el) return;
     el.style.height = "auto";
-    el.style.height = `${Math.max(el.scrollHeight, 28)}px`;
+    el.style.height = `${Math.max(el.scrollHeight, 22)}px`;
   }, []);
 
   useEffect(() => {
@@ -63,6 +67,8 @@ function AutoExpandingTextarea({
       readOnly={readOnly}
       rows={1}
       className={className}
+      title={title}
+      spellCheck={spellCheck}
       style={{ overflow: "hidden" }}
     />
   );
@@ -999,6 +1005,22 @@ export default function LabelDataPage() {
       forbidden_event_ids: editedForbiddenEvents.split(",").map((s) => s.trim()).filter(Boolean),
     };
 
+    const editedTurnsList: TurnRecord[] = [];
+    if (timeline && timeline.sessions) {
+      for (const sess of timeline.sessions) {
+        for (const t of sess.turns) {
+          if (editedTurns[t.turn_id] !== undefined && editedTurns[t.turn_id] !== t.text) {
+            editedTurnsList.push({
+              turn_id: t.turn_id,
+              speaker: t.speaker,
+              text: editedTurns[t.turn_id],
+              turn_timestamp: t.turn_timestamp,
+            });
+          }
+        }
+      }
+    }
+
     const record: ExpertAnnotationRecord = {
       case_id: activeCase.case_id,
       user_id: activeCase.user_id,
@@ -1007,6 +1029,7 @@ export default function LabelDataPage() {
       original_query: activeCase.current_query,
       edited_query: editedQuery.trim() !== activeCase.current_query.trim() ? editedQuery.trim() : undefined,
       query_change_percent: queryChangePercent > 0 ? queryChangePercent : undefined,
+      edited_turns: editedTurnsList.length > 0 ? editedTurnsList : undefined,
       factors: editedFactors,
       memory_events: parsedMemoryEvents,
       annotator: activeDoctor.name,
@@ -1825,6 +1848,13 @@ export default function LabelDataPage() {
                               const isDoctor =
                                 turn.speaker?.toLowerCase().includes("doctor") ||
                                 turn.speaker?.toLowerCase().includes("assistant");
+                              const currentTurnText =
+                                editedTurns[turn.turn_id] !== undefined
+                                  ? editedTurns[turn.turn_id]
+                                  : turn.text;
+                              const isModified =
+                                editedTurns[turn.turn_id] !== undefined &&
+                                editedTurns[turn.turn_id] !== turn.text;
 
                               return (
                                 <div
@@ -1838,20 +1868,171 @@ export default function LabelDataPage() {
                                     className={[
                                       styles.chatBubble,
                                       isDoctor ? styles.bubbleDoctor : styles.bubblePatient,
-                                    ].join(" ")}
+                                      isModified ? styles.chatBubbleEdited : "",
+                                    ]
+                                      .filter(Boolean)
+                                      .join(" ")}
                                   >
                                     <div className={styles.bubbleHeader}>
-                                      <span className={styles.bubbleSpeaker}>
-                                        {isDoctor ? "Bác sĩ" : "Người bệnh"}
-                                      </span>
-                                      <span className={styles.turnBadgeSubtle}>{turn.turn_id}</span>
+                                      <div className={styles.bubbleSpeakerRow}>
+                                        <span className={styles.bubbleSpeaker}>
+                                          {isDoctor ? "Bác sĩ" : "Người bệnh"}
+                                        </span>
+                                        <span
+                                          className={styles.pencilHint}
+                                          title="Bác sĩ có thể nhấp trực tiếp vào ô chữ bên dưới để chỉnh sửa"
+                                        >
+                                          <svg
+                                            width="11"
+                                            height="11"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            className={styles.pencilIcon}
+                                          >
+                                            <path d="M12 20h9" />
+                                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                                          </svg>
+                                        </span>
+                                        {isModified && (
+                                          <span
+                                            className={styles.modifiedTag}
+                                            title="Nội dung đã được chỉnh sửa"
+                                          >
+                                            Đã sửa
+                                          </span>
+                                        )}
+                                      </div>
+                                      <div className={styles.bubbleHeaderRight}>
+                                        {isModified && (
+                                          <button
+                                            type="button"
+                                            className={styles.bubbleRevertBtn}
+                                            onClick={() => handleTurnChange(turn.turn_id, turn.text)}
+                                            title="Khôi phục nguyên văn ban đầu"
+                                          >
+                                            Khôi phục
+                                          </button>
+                                        )}
+                                        <span className={styles.turnBadgeSubtle}>{turn.turn_id}</span>
+                                      </div>
                                     </div>
-                                    <p className={styles.bubbleTextReadonly}>{turn.text}</p>
+                                    <AutoExpandingTextarea
+                                      value={currentTurnText}
+                                      onChange={(e) => handleTurnChange(turn.turn_id, e.target.value)}
+                                      className={styles.bubbleTextarea}
+                                      placeholder="Nội dung câu thoại..."
+                                      title="Nhấp để chỉnh sửa trực tiếp nội dung lượt thoại này"
+                                    />
                                   </div>
                                 </div>
                               );
                             })}
                           </div>
+
+                          {/* Session Confirmation & Transition Bar */}
+                          {timeline && timeline.sessions && timeline.sessions.length > 0 && (
+                            <div className={styles.sessionFooterAction}>
+                              <div className={styles.sessionFooterInfo}>
+                                <span>
+                                  Lần {currentSession.session_number} / {timeline.sessions.length} (Đã xem: {inspectedSessions.size}/{timeline.sessions.length} lần)
+                                </span>
+                              </div>
+                              <div className={styles.sessionFooterBtns}>
+                                {activeSessionIndex > 0 && (
+                                  <button
+                                    type="button"
+                                    className={styles.sessionPrevBtn}
+                                    onClick={() => handleSelectSession(activeSessionIndex - 1)}
+                                    title={`Quay lại Lần ${timeline.sessions[activeSessionIndex - 1].session_number}`}
+                                  >
+                                    <svg
+                                      width="13"
+                                      height="13"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      strokeWidth="2.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    >
+                                      <polyline points="15 18 9 12 15 6" />
+                                    </svg>
+                                    <span>Lần trước</span>
+                                  </button>
+                                )}
+
+                                {activeSessionIndex < timeline.sessions.length - 1 ? (
+                                  <button
+                                    type="button"
+                                    className={styles.sessionNextConfirmBtn}
+                                    onClick={() => {
+                                      const nextIdx = activeSessionIndex + 1;
+                                      setInspectedSessions((prev) => new Set([...prev, activeSessionIndex, nextIdx]));
+                                      setActiveSessionIndex(nextIdx);
+                                    }}
+                                    title={`Xác nhận đã xem Lần ${currentSession.session_number} và chuyển sang Lần ${timeline.sessions[activeSessionIndex + 1].session_number}`}
+                                  >
+                                    <svg
+                                      width="14"
+                                      height="14"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      strokeWidth="2.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    >
+                                      <polyline points="20 6 9 17 4 12" />
+                                    </svg>
+                                    <span>
+                                      Xác nhận Lần {currentSession.session_number} & Chuyển Lần {timeline.sessions[activeSessionIndex + 1].session_number}
+                                    </span>
+                                    <svg
+                                      width="13"
+                                      height="13"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      strokeWidth="2.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    >
+                                      <polyline points="9 18 15 12 9 6" />
+                                    </svg>
+                                  </button>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    className={styles.sessionFinalConfirmBtn}
+                                    onClick={() => {
+                                      setInspectedSessions((prev) => new Set([...prev, activeSessionIndex]));
+                                    }}
+                                    title="Đã xem hết tất cả các lần khám trong hồ sơ"
+                                  >
+                                    <svg
+                                      width="14"
+                                      height="14"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      strokeWidth="2.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    >
+                                      <polyline points="20 6 9 17 4 12" />
+                                    </svg>
+                                    <span>
+                                      Đã thẩm định xong Lần {currentSession.session_number} (Lần cuối)
+                                    </span>
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -2102,17 +2283,9 @@ export default function LabelDataPage() {
                   <span>
                     {saving
                       ? "Đang lưu..."
-                      : readingCountdown > 0
-                      ? `Đang đọc hồ sơ (còn ${readingCountdown}s)`
-                      : !hasInspectedRequiredSessions
-                      ? "Bấm xem thêm lần khám trước"
-                      : !isChecklistComplete
-                      ? "Xác nhận 3 tiêu chuẩn trước"
-                      : !notesQuality.isValid
-                      ? "Hoàn thiện biện giải lâm sàng"
                       : activeCase && confirmedCaseIds.has(activeCase.case_id)
-                      ? "Cập nhật xác nhận ca này"
-                      : "Xác nhận thẩm định ca này"}
+                      ? `Cập nhật xác nhận Ca ${doctorCases.findIndex((c) => c.case_id === activeCase.case_id) + 1}`
+                      : `Xác nhận Ca ${activeCase ? doctorCases.findIndex((c) => c.case_id === activeCase.case_id) + 1 : ""}`}
                   </span>
                 </button>
 

@@ -102,10 +102,10 @@ export default function ClinicalRulesModal({
               <div className={styles.ruleBadge}>Nguyên tắc 3</div>
               <div className={styles.ruleContent}>
                 <h4 className={styles.ruleHeading}>
-                  Tính Chuẩn mực Thuật ngữ & Tự nhiên của Ngôn ngữ Giao tiếp
+                  Bảo toàn Ý nghĩa Cốt lõi & Chuẩn hóa Ngôn ngữ Lâm sàng Tự nhiên
                 </h4>
                 <p className={styles.ruleDesc}>
-                  Kiểm tra câu hỏi của người bệnh: chỉnh sửa câu từ nếu còn thô cứng, lủng củng hoặc sai lệch thuật ngữ chuyên ngành Răng Hàm Mặt, nhằm phản ánh chân thực ngôn ngữ hội thoại của người bệnh thực tế tại Việt Nam.
+                  Khi hiệu chỉnh câu hỏi hoặc lời thoại trong các lần khám, Bác sĩ chỉ trau chuốt câu từ cho tự nhiên và chuẩn xác thuật ngữ chuyên ngành Răng Hàm Mặt. Tuyệt đối KHÔNG tự ý thay đổi bản chất bệnh lý, không đảo ngược tình huống lâm sàng hoặc làm biến đổi hoàn toàn ý nghĩa ngữ cảnh gốc của đoạn hội thoại (ví dụ: không được tự ý đổi từ "đang đeo hàm duy trì" thành "đã tháo hoàn toàn", hoặc tự ý thêm bớt triệu chứng mới làm sai lệch tiến trình điều trị).
                 </p>
               </div>
             </div>

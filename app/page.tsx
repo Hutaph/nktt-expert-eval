@@ -310,11 +310,11 @@ export default function LabelDataPage() {
     url?: string;
   } | null>(null);
 
-  // Initialize doctor session from localStorage on mount
+  // Initialize doctor session from sessionStorage on mount (requires password when browser/tab is restarted)
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
-      const saved = localStorage.getItem("nktt_active_doctor_session");
+      const saved = sessionStorage.getItem("nktt_active_doctor_session");
       if (saved) {
         const parsed = JSON.parse(saved);
         const matched = DOCTORS_LIST.find((d) => d.id === parsed.id);
@@ -962,7 +962,7 @@ export default function LabelDataPage() {
       setActiveDoctor(pendingDoctor);
       setAnnotator(pendingDoctor.name);
       try {
-        localStorage.setItem(
+        sessionStorage.setItem(
           "nktt_active_doctor_session",
           JSON.stringify({
             id: pendingDoctor.id,
@@ -1132,14 +1132,6 @@ export default function LabelDataPage() {
                 <span className={styles.doctorProfileQuota}>
                   ({activeDoctor?.caseRangeLabel || "100 ca"})
                 </span>
-                <button
-                  type="button"
-                  className={styles.switchDoctorBtn}
-                  onClick={() => setShowDoctorModal(true)}
-                  title="Chuyển sang tài khoản Bác sĩ khác"
-                >
-                  [Đổi bác sĩ]
-                </button>
               </div>
 
               {/* Auto-save Status Indicator */}
@@ -1180,15 +1172,6 @@ export default function LabelDataPage() {
                 title="Xem quy trình thao tác lâm sàng"
               >
                 Quy trình thao tác
-              </button>
-
-              <button
-                type="button"
-                className={styles.exportBtn}
-                onClick={handleExportAnnotations}
-                title="Tải tệp JSONL chứa kết quả thẩm định của bác sĩ"
-              >
-                Tải file (JSONL)
               </button>
 
               {/* Primary "Lưu" Button */}
@@ -1380,7 +1363,7 @@ export default function LabelDataPage() {
                       >
                         <div className={styles.caseCardHeader}>
                           <span className={styles.caseId}>
-                            Ca {doctorCaseIndex}/100: {c.case_id}
+                            Ca {doctorCaseIndex}/100
                           </span>
                           <span className={styles.caseCheckpoint}>Ca {globalIndex}/500</span>
                         </div>
@@ -1420,22 +1403,11 @@ export default function LabelDataPage() {
                   <div className={styles.queryCard}>
                     <div className={styles.queryCardHeader}>
                       <h2 className={styles.sectionTitle}>
-                        Ca {doctorCases.findIndex((c) => c.case_id === activeCase.case_id) + 1} / 100: Câu hỏi lâm sàng của người bệnh
+                        Ca {doctorCases.findIndex((c) => c.case_id === activeCase.case_id) + 1} / 100: Câu hỏi của người bệnh
                       </h2>
                       <p className={styles.sectionSubtitle}>
                         Hiệu chỉnh câu từ bảo đảm phản ánh đúng thuật ngữ nha khoa và ngữ cảnh giao tiếp thực tế
                       </p>
-                      <div className={styles.metaRow}>
-                        <span className={styles.metaItem}>
-                          Mã bệnh nhân: <strong>{activeCase.user_id}</strong>
-                        </span>
-                        <span className={styles.metaItem}>
-                          Thời điểm hỏi: <strong>{new Date(activeCase.query_time).toLocaleDateString("vi-VN")}</strong>
-                        </span>
-                        <span className={styles.metaItem}>
-                          Phân loại lâm sàng: <strong>{FAMILY_FRIENDLY_NAMES[activeCase.category.primary_family]?.label || activeCase.category.primary_family}</strong>
-                        </span>
-                      </div>
                     </div>
                     <AutoExpandingTextarea
                       value={editedQuery}
@@ -1460,7 +1432,6 @@ export default function LabelDataPage() {
                         {timeline && timeline.sessions && timeline.sessions.length > 0 ? (
                           timeline.sessions.map((s, idx) => {
                             const isSelected = idx === activeSessionIndex;
-                            const hasEvidence = allEvidenceSessionNumbers.includes(s.session_number);
                             return (
                               <button
                                 key={s.session_id}
@@ -1468,19 +1439,13 @@ export default function LabelDataPage() {
                                 className={[
                                   styles.sessionPill,
                                   isSelected ? styles.sessionPillActive : "",
-                                  hasEvidence ? styles.sessionPillEvidence : "",
                                 ]
                                   .filter(Boolean)
                                   .join(" ")}
                                 onClick={() => setActiveSessionIndex(idx)}
-                                title={
-                                  hasEvidence
-                                    ? `Lần khám ${s.session_number} (Có chứa dữ kiện tiền sử then chốt)`
-                                    : `Lần khám ${s.session_number}`
-                                }
+                                title={`Lần ${s.session_number}`}
                               >
-                                {hasEvidence && <span className={styles.evidenceIndicator} />}
-                                Lần khám {s.session_number}
+                                Lần {s.session_number}
                               </button>
                             );
                           })
@@ -1501,7 +1466,7 @@ export default function LabelDataPage() {
                         <div className={styles.sessionChatContainer}>
                           <div className={styles.sessionChatHeader}>
                             <span>
-                              Chi tiết Lần khám {currentSession.session_number}
+                              Chi tiết Lần {currentSession.session_number}
                               {currentSession.session_timestamp &&
                                 ` - Ngày: ${new Date(currentSession.session_timestamp).toLocaleDateString("vi-VN")}`}
                             </span>

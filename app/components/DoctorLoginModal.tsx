@@ -146,10 +146,10 @@ export default function DoctorLoginModal({
       return;
     }
 
-    // Save session in localStorage
+    // Save session in sessionStorage (expires when browser/tab is closed)
     if (typeof window !== "undefined") {
       try {
-        localStorage.setItem(
+        sessionStorage.setItem(
           "nktt_active_doctor_session",
           JSON.stringify({
             id: currentDoctor.id,
@@ -157,6 +157,8 @@ export default function DoctorLoginModal({
             loggedInAt: new Date().toISOString(),
           })
         );
+        // Also remove any legacy persistent session
+        localStorage.removeItem("nktt_active_doctor_session");
       } catch (err) {
         console.error("Lỗi khi lưu phiên bác sĩ:", err);
       }

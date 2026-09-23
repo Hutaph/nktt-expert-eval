@@ -1557,7 +1557,7 @@
   transition: all var(--motion-fast);
 }
 
-.sessionPill:hover {
+.sessionPill:hover:not(:disabled) {
   color: var(--color-primary);
   border-color: var(--color-primary);
   background-color: rgba(20, 107, 104, 0.05);
@@ -1568,6 +1568,32 @@
   background-color: var(--color-primary) !important;
   border-color: var(--color-primary) !important;
   box-shadow: 0 1px 3px rgba(20, 107, 104, 0.2);
+}
+
+.sessionPillCompleted {
+  background-color: #f0fdf4;
+  border-color: #86efac;
+  color: #166534;
+}
+
+.sessionPillCompleted:hover:not(:disabled) {
+  border-color: #22c55e;
+  background-color: #dcfce7;
+  color: #15803d;
+}
+
+.sessionPillLocked {
+  opacity: 0.5;
+  cursor: not-allowed !important;
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #94a3b8 !important;
+}
+
+.sessionPillLocked:hover {
+  border-color: #cbd5e1 !important;
+  background-color: #f1f5f9 !important;
+  color: #94a3b8 !important;
 }
 
 .sessionPillEvidence {

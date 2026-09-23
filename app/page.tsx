@@ -754,6 +754,9 @@ export default function LabelDataPage() {
           setEditedRelevantEvents(draftData.editedRelevantEvents || "");
           setEditedStaleEvents(draftData.editedStaleEvents || "");
           setEditedForbiddenEvents(draftData.editedForbiddenEvents || "");
+          if (Array.isArray(draftData.inspectedSessions)) {
+            setInspectedSessions(new Set(draftData.inspectedSessions));
+          }
         } else if (saved) {
           // Restore from saved annotation
           setEditedQuery(saved.edited_query || matchedCase.current_query || "");
@@ -833,12 +836,15 @@ export default function LabelDataPage() {
     const isAlreadyConfirmed = confirmedCaseIds.has(selectedCaseId);
     if (isAlreadyConfirmed) {
       setReadingCountdown(0);
+      if (timeline && timeline.sessions) {
+        setInspectedSessions(new Set(timeline.sessions.map((_, i) => i)));
+      }
     } else {
       setReadingCountdown(15);
+      setInspectedSessions(new Set());
     }
-    setInspectedSessions(new Set([0]));
     setIsEditingQuery(false);
-  }, [selectedCaseId, confirmedCaseIds]);
+  }, [selectedCaseId, confirmedCaseIds, timeline]);
 
   // Reading countdown timer tick
   useEffect(() => {
@@ -890,7 +896,6 @@ export default function LabelDataPage() {
 
   const handleSelectSession = (idx: number) => {
     setActiveSessionIndex(idx);
-    setInspectedSessions((prev) => new Set([...prev, idx]));
   };
 
   // Real-time Auto-save Draft
@@ -910,6 +915,7 @@ export default function LabelDataPage() {
           editedRelevantEvents,
           editedStaleEvents,
           editedForbiddenEvents,
+          inspectedSessions: Array.from(inspectedSessions),
           updatedAt: new Date().toISOString(),
         };
         localStorage.setItem(draftKey, JSON.stringify(draftObj));
@@ -932,6 +938,7 @@ export default function LabelDataPage() {
     editedRelevantEvents,
     editedStaleEvents,
     editedForbiddenEvents,
+    inspectedSessions,
     activeCase,
     activeDoctor,
   ]);
@@ -1786,21 +1793,54 @@ export default function LabelDataPage() {
                           timeline.sessions.map((s, idx) => {
                             const isSelected = idx === activeSessionIndex;
                             const isInspected = inspectedSessions.has(idx);
+                            const isCaseConfirmed = activeCase ? confirmedCaseIds.has(activeCase.case_id) : false;
+                            const isUnlocked =
+                              idx === 0 ||
+                              isCaseConfirmed ||
+                              inspectedSessions.has(idx - 1) ||
+                              inspectedSessions.has(idx);
+
                             return (
                               <button
                                 key={s.session_id}
                                 type="button"
+                                disabled={!isUnlocked}
                                 className={[
                                   styles.sessionPill,
                                   isSelected ? styles.sessionPillActive : "",
+                                  isInspected && !isSelected ? styles.sessionPillCompleted : "",
+                                  !isUnlocked ? styles.sessionPillLocked : "",
                                 ]
                                   .filter(Boolean)
                                   .join(" ")}
-                                onClick={() => handleSelectSession(idx)}
-                                title={`Lần ${s.session_number} (${isInspected ? "Đã xem" : "Chưa xem"})`}
+                                onClick={() => {
+                                  if (isUnlocked) {
+                                    handleSelectSession(idx);
+                                  }
+                                }}
+                                title={
+                                  !isUnlocked
+                                    ? `Lần ${s.session_number} đang khóa (cần xem và xác nhận Lần ${timeline.sessions[idx - 1]?.session_number || idx} trước)`
+                                    : `Lần ${s.session_number} (${isInspected ? "Đã xác nhận" : isSelected ? "Đang thẩm định" : "Đã mở khóa"})`
+                                }
                               >
+                                {!isUnlocked && (
+                                  <svg
+                                    width="10"
+                                    height="10"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  >
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                                  </svg>
+                                )}
                                 <span>Lần {s.session_number}</span>
-                                {isInspected && (
+                                {isUnlocked && isInspected && (
                                   <svg
                                     width="10"
                                     height="10"
@@ -1938,7 +1978,7 @@ export default function LabelDataPage() {
                             <div className={styles.sessionFooterAction}>
                               <div className={styles.sessionFooterInfo}>
                                 <span>
-                                  Lần {currentSession.session_number} / {timeline.sessions.length} (Đã xem: {inspectedSessions.size}/{timeline.sessions.length} lần)
+                                  Lần {currentSession.session_number} / {timeline.sessions.length} (Đã xác nhận: {inspectedSessions.size}/{timeline.sessions.length} lần)
                                 </span>
                               </div>
                               <div className={styles.sessionFooterBtns}>
@@ -1971,10 +2011,10 @@ export default function LabelDataPage() {
                                     className={styles.sessionNextConfirmBtn}
                                     onClick={() => {
                                       const nextIdx = activeSessionIndex + 1;
-                                      setInspectedSessions((prev) => new Set([...prev, activeSessionIndex, nextIdx]));
+                                      setInspectedSessions((prev) => new Set([...prev, activeSessionIndex]));
                                       setActiveSessionIndex(nextIdx);
                                     }}
-                                    title={`Xác nhận đã xem Lần ${currentSession.session_number} và chuyển sang Lần ${timeline.sessions[activeSessionIndex + 1].session_number}`}
+                                    title={`Xác nhận đã thẩm định Lần ${currentSession.session_number} và mở khóa Lần ${timeline.sessions[activeSessionIndex + 1].session_number}`}
                                   >
                                     <svg
                                       width="14"
@@ -2011,7 +2051,7 @@ export default function LabelDataPage() {
                                     onClick={() => {
                                       setInspectedSessions((prev) => new Set([...prev, activeSessionIndex]));
                                     }}
-                                    title="Đã xem hết tất cả các lần khám trong hồ sơ"
+                                    title="Xác nhận đã thẩm định xong toàn bộ các lần khám trong hồ sơ"
                                   >
                                     <svg
                                       width="14"
@@ -2026,7 +2066,9 @@ export default function LabelDataPage() {
                                       <polyline points="20 6 9 17 4 12" />
                                     </svg>
                                     <span>
-                                      Đã thẩm định xong Lần {currentSession.session_number} (Lần cuối)
+                                      {inspectedSessions.has(activeSessionIndex)
+                                        ? `Đã xác nhận Lần ${currentSession.session_number} (Lần cuối)`
+                                        : `Xác nhận Lần ${currentSession.session_number} & Hoàn tất xem hồ sơ`}
                                     </span>
                                   </button>
                                 )}

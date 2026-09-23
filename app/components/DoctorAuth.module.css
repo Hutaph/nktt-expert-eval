@@ -1,0 +1,309 @@
+/* Doctor Login Portal & Quality Warning Modal Styles */
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 35, 35, 0.72);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.portalCard {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 45px rgba(20, 107, 104, 0.18);
+  width: 100%;
+  max-width: 820px;
+  max-height: 90vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.portalHeader {
+  padding: 1.5rem 1.75rem 1rem 1.75rem;
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-surface-muted);
+}
+
+.portalTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.portalIconSvg {
+  width: 28px;
+  height: 28px;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.portalTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin: 0;
+}
+
+.portalSubtitle {
+  margin: 0.35rem 0 0 0;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  line-height: 1.45;
+}
+
+.portalBody {
+  padding: 1.5rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.doctorGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 1rem;
+}
+
+.doctorCard {
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 1.1rem;
+  background-color: var(--color-surface);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  text-align: left;
+}
+
+.doctorCard:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 6px 18px rgba(20, 107, 104, 0.12);
+  transform: translateY(-2px);
+}
+
+.doctorCardSelected {
+  border-color: var(--color-primary);
+  background-color: rgba(20, 107, 104, 0.04);
+  box-shadow: 0 0 0 2px var(--color-primary-soft);
+}
+
+.doctorHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.doctorBadge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-surface-muted);
+  color: var(--color-primary);
+  border: 1px solid var(--color-border);
+}
+
+.doctorName {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.doctorQuota {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.doctorProgressRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 0.5rem;
+  border-top: 1px dashed var(--color-border);
+  font-size: 0.75rem;
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+/* Password Form */
+.passwordSection {
+  background-color: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.passwordLabel {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.passwordInputRow {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.passwordInput {
+  flex: 1;
+  padding: 0.65rem 0.9rem;
+  font-size: 0.9rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.passwordInput:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-soft);
+}
+
+.loginSubmitBtn {
+  padding: 0.65rem 1.4rem;
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+  font-weight: 600;
+  font-size: 0.875rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  white-space: nowrap;
+}
+
+.loginSubmitBtn:hover {
+  background-color: var(--color-primary-hover);
+}
+
+.passwordHint {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
+.errorMessage {
+  padding: 0.6rem 0.85rem;
+  font-size: 0.8rem;
+  color: #a82323;
+  background-color: #fdf2f2;
+  border: 1px solid #f8c8c8;
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+}
+
+/* Quality Warning Modal */
+.warningCard {
+  background-color: var(--color-surface);
+  border: 1.5px solid #d98962;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 45px rgba(217, 137, 98, 0.22);
+  width: 100%;
+  max-width: 600px;
+  overflow: hidden;
+}
+
+.warningHeader {
+  padding: 1.25rem 1.5rem;
+  background-color: #fdf6f3;
+  border-bottom: 1px solid #f4dbce;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.warningSvg {
+  width: 26px;
+  height: 26px;
+  color: #c45d2c;
+  flex-shrink: 0;
+}
+
+.warningTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #9c4116;
+  margin: 0;
+}
+
+.warningBody {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--color-text);
+}
+
+.warningList {
+  margin: 0;
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  color: #7a310f;
+  font-weight: 500;
+}
+
+.warningFooter {
+  padding: 1rem 1.5rem;
+  background-color: var(--color-surface-muted);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.btnBack {
+  padding: 0.6rem 1.2rem;
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+  font-weight: 600;
+  font-size: 0.85rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.btnBack:hover {
+  background-color: var(--color-primary-hover);
+}
+
+.btnForceSave {
+  padding: 0.6rem 1.2rem;
+  background-color: transparent;
+  color: #a13e3e;
+  font-weight: 600;
+  font-size: 0.85rem;
+  border: 1px solid #e2a1a1;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.btnForceSave:hover {
+  background-color: #fdf2f2;
+}

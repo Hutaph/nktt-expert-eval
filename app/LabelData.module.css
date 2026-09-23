@@ -1099,5 +1099,201 @@
   font-size: 0.875rem;
   cursor: pointer;
   padding: 0 0.25rem;
-
 }
+
+/* Locked Tab Styles */
+.globalNavTabLocked {
+  padding: 0.65rem 1.1rem;
+  font-size: 0.84375rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: not-allowed;
+  opacity: 0.6;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.lockedBadge {
+  font-size: 0.65rem;
+  background-color: rgba(93, 118, 116, 0.15);
+  padding: 0.1rem 0.4rem;
+  border-radius: var(--radius-pill);
+  font-weight: 700;
+}
+
+/* Batch Navigation Bar */
+.batchNavContainer {
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  padding: 0.5rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+.batchLabelArea {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  white-space: nowrap;
+}
+
+.batchTitle {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin: 0;
+}
+
+.batchPillList {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.batchPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-surface-muted);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.batchPill:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  background-color: rgba(20, 107, 104, 0.08);
+}
+
+.batchPillActive {
+  background-color: var(--color-primary) !important;
+  color: var(--color-text-inverse) !important;
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 2px 6px rgba(20, 107, 104, 0.25);
+}
+
+.batchPillCompleted {
+  background-color: #f0fdf4;
+  border-color: #86efac;
+  color: #166534;
+}
+
+.batchPillLocked {
+  opacity: 0.5;
+  cursor: not-allowed !important;
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #94a3b8;
+}
+
+/* Auto-Save Status Badge */
+.autoSaveBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.725rem;
+  color: var(--color-text-muted);
+  background-color: var(--color-surface-muted);
+  padding: 0.3rem 0.6rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.autoSaveDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #22c55e;
+  display: inline-block;
+}
+
+.autoSaveDotSaving {
+  background-color: #f59e0b;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.4; }
+  100% { opacity: 1; }
+}
+
+/* Doctor Profile Badge in Header */
+.doctorProfileBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.65rem;
+  background-color: rgba(20, 107, 104, 0.06);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  font-size: 0.775rem;
+}
+
+.doctorProfileName {
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.doctorProfileQuota {
+  color: var(--color-text-muted);
+  font-size: 0.725rem;
+}
+
+.switchDoctorBtn {
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 0.725rem;
+  padding: 0 0.15rem;
+}
+
+.switchDoctorBtn:hover {
+  color: var(--color-primary);
+}
+
+/* Main Save Button */
+.saveMainBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 1.1rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-text-inverse);
+  background-color: var(--color-primary);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(20, 107, 104, 0.25);
+}
+
+.saveMainBtn:hover:not(:disabled) {
+  background-color: var(--color-primary-hover);
+  transform: translateY(-1px);
+}
+
+.saveMainBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

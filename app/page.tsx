@@ -4,6 +4,11 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from "react"
 import styles from "./LabelData.module.css";
 import ClinicalLikertEvalView from "./components/ClinicalLikertEvalView";
 import DriveSyncModal from "./components/DriveSyncModal";
+import DoctorLoginModal, {
+  DOCTORS_LIST,
+  DoctorProfile,
+} from "./components/DoctorLoginModal";
+import QualityWarningModal from "./components/QualityWarningModal";
 import {
   getDriveConfig,
   syncExpertAnnotationsToDrive,
@@ -230,10 +235,28 @@ let cachedTimelinesMap: Map<string, TimelineRecord> | null = null;
 let cachedEventsMap: Map<string, SourceEventRecord[]> | null = null;
 
 export default function LabelDataPage() {
-  const [activeTab, setActiveTab] = useState<"clinical-likert" | "label-data">("clinical-likert");
+  // Navigation: activeTab is locked to label-data by default
+  const [activeTab, setActiveTab] = useState<"clinical-likert" | "label-data">("label-data");
+
+  // Doctor session state
+  const [activeDoctor, setActiveDoctor] = useState<DoctorProfile | null>(null);
+  const [showDoctorModal, setShowDoctorModal] = useState<boolean>(false);
+
+  // Batch states (10 batches per doctor, 10 cases per batch)
+  const [currentBatchIndex, setCurrentBatchIndex] = useState<number>(1);
+  const [completedBatches, setCompletedBatches] = useState<number[]>([]);
+
+  // Quality Warning modal state
+  const [showQualityWarning, setShowQualityWarning] = useState<boolean>(false);
+  const [qualityFindings, setQualityFindings] = useState<string[]>([]);
+
+  // Auto-save state
+  const [lastAutoSavedAt, setLastAutoSavedAt] = useState<string | null>(null);
+  const [isAutoSaving, setIsAutoSaving] = useState<boolean>(false);
+  const isInitialCaseLoadRef = useRef<boolean>(true);
+
+  // Core dataset state
   const [allCases, setAllCases] = useState<CaseDetail[]>([]);
-  const [families, setFamilies] = useState<string[]>([]);
-  const [selectedFamily, setSelectedFamily] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [loadingList, setLoadingList] = useState<boolean>(true);
 
@@ -243,15 +266,15 @@ export default function LabelDataPage() {
   const [events, setEvents] = useState<SourceEventRecord[]>([]);
   const [loadingDetail, setLoadingDetail] = useState<boolean>(false);
 
+  // Editing state for active case
   const [editedQuery, setEditedQuery] = useState<string>("");
   const [activeSessionIndex, setActiveSessionIndex] = useState<number>(0);
   const [editedTurns, setEditedTurns] = useState<Record<string, string>>({});
-
   const [editedFactors, setEditedFactors] = useState<FactorRecord[]>([]);
   const [editedRelevantEvents, setEditedRelevantEvents] = useState<string>("");
   const [editedStaleEvents, setEditedStaleEvents] = useState<string>("");
   const [editedForbiddenEvents, setEditedForbiddenEvents] = useState<string>("");
-  const [annotator, setAnnotator] = useState<string>("Hội đồng Chuyên gia Nha khoa");
+  const [annotator, setAnnotator] = useState<string>("Bác sĩ Thẩm định");
 
   const [clinicalNotes, setClinicalNotes] = useState<string>("");
   const [saving, setSaving] = useState<boolean>(false);
@@ -270,6 +293,59 @@ export default function LabelDataPage() {
     url?: string;
   } | null>(null);
 
+  // Initialize doctor session from localStorage on mount
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const saved = localStorage.getItem("nktt_active_doctor_session");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        const matched = DOCTORS_LIST.find((d) => d.id === parsed.id);
+        if (matched) {
+          setActiveDoctor(matched);
+          setAnnotator(matched.name);
+          setShowDoctorModal(false);
+          return;
+        }
+      }
+    } catch {}
+    // If no active session, show Doctor Login Modal
+    setShowDoctorModal(true);
+  }, []);
+
+  // When active doctor changes, load their completed batches
+  useEffect(() => {
+    if (!activeDoctor) return;
+    try {
+      const saved = localStorage.getItem(`nktt_completed_batches_${activeDoctor.id}`);
+      if (saved) {
+        const list = JSON.parse(saved);
+        if (Array.isArray(list)) {
+          setCompletedBatches(list);
+          // Auto select first incomplete batch
+          let foundFirstIncomplete = false;
+          for (let b = 1; b <= 10; b++) {
+            if (!list.includes(b)) {
+              setCurrentBatchIndex(b);
+              foundFirstIncomplete = true;
+              break;
+            }
+          }
+          if (!foundFirstIncomplete) {
+            setCurrentBatchIndex(10);
+          }
+        }
+      } else {
+        setCompletedBatches([]);
+        setCurrentBatchIndex(1);
+      }
+    } catch {
+      setCompletedBatches([]);
+      setCurrentBatchIndex(1);
+    }
+    setAnnotator(activeDoctor.name);
+  }, [activeDoctor]);
+
   // Load stored annotations on mount, merge with default 500 entries
   useEffect(() => {
     let isMounted = true;
@@ -280,7 +356,6 @@ export default function LabelDataPage() {
         const res = await fetch(`${assetBase}/dataset/default_expert_annotations_500.json`);
         if (res.ok) {
           const defaultData = await res.json();
-          // Merge: default as base, stored annotations take priority (preserves user edits)
           const merged = { ...defaultData, ...stored };
           if (isMounted) {
             setAnnotationsMap(merged);
@@ -315,33 +390,20 @@ export default function LabelDataPage() {
           const res = await fetch(`${assetBase}/dataset/vident_longmem_500/benchmark_cases.jsonl`);
           const text = await res.text();
           const list: CaseDetail[] = [];
-          const famSet = new Set<string>();
           for (const line of text.split("\n")) {
             const trimmed = line.trim();
             if (!trimmed) continue;
             try {
               const parsed = JSON.parse(trimmed) as CaseDetail;
               list.push(parsed);
-              if (parsed.category?.primary_family) {
-                famSet.add(parsed.category.primary_family);
-              }
-            } catch { }
+            } catch {}
           }
           cachedAllCases = list;
           if (isMounted) {
             setAllCases(list);
-            setFamilies(Array.from(famSet).sort());
-            if (list.length > 0 && !selectedCaseId) {
-              setSelectedCaseId(list[0].case_id);
-            }
           }
         } else {
           setAllCases(cachedAllCases);
-          const famSet = new Set(cachedAllCases.map((c) => c.category?.primary_family).filter(Boolean) as string[]);
-          setFamilies(Array.from(famSet).sort());
-          if (cachedAllCases.length > 0 && !selectedCaseId) {
-            setSelectedCaseId(cachedAllCases[0].case_id);
-          }
         }
       } catch (err) {
         console.error("Lỗi khi tải danh sách ca bệnh:", err);
@@ -354,97 +416,153 @@ export default function LabelDataPage() {
     return () => {
       isMounted = false;
     };
-  }, [selectedCaseId]);
+  }, []);
 
-  // Load timeline and events for selected case
+  // 100 cases assigned to the active doctor
+  const doctorCases = useMemo(() => {
+    if (!activeDoctor || allCases.length === 0) return [];
+    return allCases.slice(activeDoctor.startIndex, activeDoctor.endIndex + 1);
+  }, [activeDoctor, allCases]);
+
+  // 10 cases of the currently active batch
+  const batchCases = useMemo(() => {
+    if (doctorCases.length === 0) return [];
+    const start = (currentBatchIndex - 1) * 10;
+    return doctorCases.slice(start, start + 10);
+  }, [doctorCases, currentBatchIndex]);
+
+  // Auto-select first case of current batch
+  useEffect(() => {
+    if (batchCases.length > 0) {
+      if (!selectedCaseId || !batchCases.some((c) => c.case_id === selectedCaseId)) {
+        setSelectedCaseId(batchCases[0].case_id);
+      }
+    }
+  }, [batchCases, selectedCaseId]);
+
+  // Cases filtered by search within the current batch
+  const filteredCases = useMemo(() => {
+    let list = batchCases;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      list = list.filter(
+        (c) =>
+          c.case_id.toLowerCase().includes(q) ||
+          c.user_id.toLowerCase().includes(q) ||
+          c.current_query.toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }, [batchCases, searchQuery]);
+
+  // Load detail for selected case (with draft restoration)
   useEffect(() => {
     if (!selectedCaseId || allCases.length === 0) return;
-
-    const matchedCase = allCases.find((c) => c.case_id === selectedCaseId);
-    if (!matchedCase) return;
-
     let isMounted = true;
-    setLoadingDetail(true);
-    setSaveMessage(null);
 
     async function loadCaseData() {
+      setLoadingDetail(true);
+      isInitialCaseLoadRef.current = true;
       try {
+        const matchedCase = allCases.find((c) => c.case_id === selectedCaseId);
+        if (!matchedCase) return;
+        setActiveCase(matchedCase);
+
         const assetBase = getAssetBase();
 
-        // 1. Load timelines map if not cached
+        // 1. Load timelines
         if (!cachedTimelinesMap) {
-          const res = await fetch(`${assetBase}/dataset/vident_longmem_500/timelines.jsonl`);
-          const text = await res.text();
-          const map = new Map<string, TimelineRecord>();
-          for (const line of text.split("\n")) {
+          const tRes = await fetch(`${assetBase}/dataset/vident_longmem_500/timelines.jsonl`);
+          const tText = await tRes.text();
+          const tMap = new Map<string, TimelineRecord>();
+          for (const line of tText.split("\n")) {
             const trimmed = line.trim();
             if (!trimmed) continue;
             try {
               const rec = JSON.parse(trimmed) as TimelineRecord;
-              if (rec.user_id) map.set(rec.user_id, rec);
-            } catch { }
+              tMap.set(rec.user_id, rec);
+            } catch {}
           }
-          cachedTimelinesMap = map;
+          cachedTimelinesMap = tMap;
         }
 
-        // 2. Load events map if not cached
+        // 2. Load events
         if (!cachedEventsMap) {
-          const res = await fetch(`${assetBase}/dataset/vident_longmem_500/source_events.jsonl`);
-          const text = await res.text();
-          const map = new Map<string, SourceEventRecord[]>();
-          for (const line of text.split("\n")) {
+          const eRes = await fetch(`${assetBase}/dataset/vident_longmem_500/source_events.jsonl`);
+          const eText = await eRes.text();
+          const eMap = new Map<string, SourceEventRecord[]>();
+          for (const line of eText.split("\n")) {
             const trimmed = line.trim();
             if (!trimmed) continue;
             try {
               const rec = JSON.parse(trimmed) as SourceEventRecord;
-              if (rec.user_id) {
-                if (!map.has(rec.user_id)) map.set(rec.user_id, []);
-                map.get(rec.user_id)!.push(rec);
+              if (!eMap.has(rec.user_id)) {
+                eMap.set(rec.user_id, []);
               }
-            } catch { }
+              eMap.get(rec.user_id)!.push(rec);
+            } catch {}
           }
-          cachedEventsMap = map;
+          cachedEventsMap = eMap;
         }
 
-        if (!isMounted || !matchedCase) return;
+        if (!isMounted) return;
 
-        const userTimeline = cachedTimelinesMap?.get(matchedCase.user_id) || null;
-        const userEvents = cachedEventsMap?.get(matchedCase.user_id) || [];
+        const uTimeline = cachedTimelinesMap?.get(matchedCase.user_id) || null;
+        setTimeline(uTimeline);
 
-        setActiveCase(matchedCase);
-        setTimeline(userTimeline);
-        setEvents(userEvents);
+        const uEvents = cachedEventsMap?.get(matchedCase.user_id) || [];
+        setEvents(uEvents);
 
-        if (userTimeline && userTimeline.sessions && userTimeline.sessions.length > 0) {
-          const cutoffSession = matchedCase.visible_history?.up_to_session;
-          const foundIdx = userTimeline.sessions.findIndex((s: SessionRecord) =>
-            cutoffSession ? (s.session_id.endsWith(cutoffSession) || s.session_id === cutoffSession) : false
-          );
-          setActiveSessionIndex(foundIdx >= 0 ? foundIdx : userTimeline.sessions.length - 1);
+        // Find relevant session index
+        const upToSession = matchedCase.visible_history?.up_to_session;
+        if (uTimeline && uTimeline.sessions && upToSession) {
+          const idx = uTimeline.sessions.findIndex((s) => s.session_id === upToSession);
+          setActiveSessionIndex(idx >= 0 ? idx : 0);
+        } else {
+          setActiveSessionIndex(0);
         }
 
-        // Check stored annotation
-        const saved = annotationsMap[matchedCase.case_id] || getStoredAnnotations()[matchedCase.case_id];
-        if (saved) {
-          setClinicalNotes(saved.clinical_notes || "");
-          setAnnotator(saved.annotator || "Bác sĩ nha khoa");
+        // Check for local working draft first (in-progress work)
+        let draftData: any = null;
+        if (activeDoctor) {
+          try {
+            const rawDraft = localStorage.getItem(`nktt_draft_${activeDoctor.id}_${matchedCase.case_id}`);
+            if (rawDraft) draftData = JSON.parse(rawDraft);
+          } catch {}
+        }
+
+        const saved = annotationsMap[matchedCase.case_id];
+
+        if (draftData) {
+          // Restore from draft
+          setEditedQuery(draftData.editedQuery || matchedCase.current_query || "");
+          setClinicalNotes(draftData.clinicalNotes || "");
+          setEditedTurns(draftData.editedTurns || {});
+          setEditedFactors(draftData.editedFactors || (matchedCase.targets?.factors ? JSON.parse(JSON.stringify(matchedCase.targets.factors)) : []));
+          setEditedRelevantEvents(draftData.editedRelevantEvents || "");
+          setEditedStaleEvents(draftData.editedStaleEvents || "");
+          setEditedForbiddenEvents(draftData.editedForbiddenEvents || "");
+        } else if (saved) {
+          // Restore from approved annotation
           setEditedQuery(saved.edited_query || matchedCase.current_query || "");
+          setClinicalNotes(saved.clinical_notes || "");
+
+          const tMap: Record<string, string> = {};
           if (saved.edited_turns) {
-            const turnMap: Record<string, string> = {};
             saved.edited_turns.forEach((t) => {
-              turnMap[t.turn_id] = t.text;
+              tMap[t.turn_id] = t.text;
             });
-            setEditedTurns(turnMap);
-          } else {
-            setEditedTurns({});
           }
+          setEditedTurns(tMap);
+
           if (saved.factors && saved.factors.length > 0) {
-            setEditedFactors(saved.factors);
+            setEditedFactors(JSON.parse(JSON.stringify(saved.factors)));
           } else if (matchedCase.targets?.factors) {
             setEditedFactors(JSON.parse(JSON.stringify(matchedCase.targets.factors)));
           } else {
             setEditedFactors([]);
           }
+
           if (saved.memory_events) {
             setEditedRelevantEvents((saved.memory_events.relevant_event_ids || []).join(", "));
             setEditedStaleEvents((saved.memory_events.stale_event_ids || []).join(", "));
@@ -459,6 +577,7 @@ export default function LabelDataPage() {
             setEditedForbiddenEvents("");
           }
         } else {
+          // Default fresh state
           setEditedQuery(matchedCase.current_query || "");
           setClinicalNotes("");
           setEditedTurns({});
@@ -480,7 +599,12 @@ export default function LabelDataPage() {
       } catch (err) {
         console.error("Lỗi nạp ca bệnh:", err);
       } finally {
-        if (isMounted) setLoadingDetail(false);
+        if (isMounted) {
+          setLoadingDetail(false);
+          setTimeout(() => {
+            isInitialCaseLoadRef.current = false;
+          }, 300);
+        }
       }
     }
 
@@ -489,77 +613,52 @@ export default function LabelDataPage() {
     return () => {
       isMounted = false;
     };
-  }, [selectedCaseId, allCases, annotationsMap]);
+  }, [selectedCaseId, allCases, annotationsMap, activeDoctor]);
 
-  // Filtered cases (from 1 to 500)
-  const filteredCases = useMemo(() => {
-    let list = allCases;
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      list = list.filter((c) =>
-        c.case_id.toLowerCase().includes(q) ||
-        c.user_id.toLowerCase().includes(q) ||
-        c.current_query.toLowerCase().includes(q)
-      );
-    }
-    return list;
-  }, [allCases, searchQuery]);
+  // Real-time Auto-save Draft
+  useEffect(() => {
+    if (isInitialCaseLoadRef.current || !activeCase || !activeDoctor) return;
 
-  const handleExportAnnotations = () => {
-    const stored = getStoredAnnotations();
-    const values = Object.values(stored);
-    if (values.length === 0) {
-      alert("Chưa có ca bệnh nào được lưu xác nhận để tải về.");
-      return;
-    }
-    const lines = values.map((v) => JSON.stringify(v)).join("\n") + "\n";
-    const blob = new Blob([lines], { type: "application/x-ndjson;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "expert_annotations.jsonl";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
+    setIsAutoSaving(true);
+    const timer = setTimeout(() => {
+      try {
+        const draftKey = `nktt_draft_${activeDoctor.id}_${activeCase.case_id}`;
+        const draftObj = {
+          case_id: activeCase.case_id,
+          editedQuery,
+          clinicalNotes,
+          editedTurns,
+          editedFactors,
+          editedRelevantEvents,
+          editedStaleEvents,
+          editedForbiddenEvents,
+          updatedAt: new Date().toISOString(),
+        };
+        localStorage.setItem(draftKey, JSON.stringify(draftObj));
+        const now = new Date();
+        const timeStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(now.getSeconds()).padStart(2, "0")}`;
+        setLastAutoSavedAt(timeStr);
+      } catch (err) {
+        console.error("Lỗi khi tự động lưu nháp:", err);
+      } finally {
+        setIsAutoSaving(false);
+      }
+    }, 600);
 
-  const handleSyncAnnotationsToDrive = async () => {
-    const config = getDriveConfig();
-    if (!config.webhookUrl) {
-      setShowDriveModal(true);
-      return;
-    }
+    return () => clearTimeout(timer);
+  }, [
+    editedQuery,
+    clinicalNotes,
+    editedTurns,
+    editedFactors,
+    editedRelevantEvents,
+    editedStaleEvents,
+    editedForbiddenEvents,
+    activeCase,
+    activeDoctor,
+  ]);
 
-    const stored = getStoredAnnotations();
-    const values = Object.values(stored);
-    if (values.length === 0) {
-      alert("Chưa có ca bệnh nào được lưu xác nhận để đồng bộ lên Google Drive.");
-      return;
-    }
-
-    setSyncingDrive(true);
-    setDriveNotice({ type: "info", text: "Đang tải dữ liệu gán nhãn lên Google Drive..." });
-
-    const result = await syncExpertAnnotationsToDrive(annotator, stored);
-    setSyncingDrive(false);
-
-    if (result.ok) {
-      setDriveConfig(getDriveConfig());
-      setDriveNotice({
-        type: "success",
-        text: `Đã lưu thành công dữ liệu lên Google Drive (Thư mục: ${result.folderName || "NKTT_Expert_Evaluations"}).`,
-        url: result.folderUrl,
-      });
-      setTimeout(() => setDriveNotice(null), 8000);
-    } else {
-      setDriveNotice({
-        type: "error",
-        text: result.error || "Không thể đồng bộ lên Google Drive.",
-      });
-    }
-  };
-
+  // Handle Turn edit
   const handleTurnChange = (turnId: string, text: string) => {
     setEditedTurns((prev) => ({
       ...prev,
@@ -567,6 +666,7 @@ export default function LabelDataPage() {
     }));
   };
 
+  // Handle Factor edit
   const handleFactorChange = (index: number, field: keyof FactorRecord, val: string) => {
     setEditedFactors((prev) => {
       const next = [...prev];
@@ -578,6 +678,7 @@ export default function LabelDataPage() {
     });
   };
 
+  // Save current individual case annotation
   const handleSaveAnnotation = () => {
     if (!activeCase) return;
 
@@ -615,7 +716,7 @@ export default function LabelDataPage() {
       edited_turns: updatedTurnList.length > 0 ? updatedTurnList : undefined,
       factors: editedFactors,
       memory_events: parsedMemoryEvents,
-      annotator: annotator.trim() || "Bác sĩ nha khoa",
+      annotator: activeDoctor?.name || annotator.trim() || "Bác sĩ Thẩm định",
       updated_at: new Date().toISOString(),
     };
 
@@ -629,14 +730,186 @@ export default function LabelDataPage() {
     setSaving(false);
   };
 
+  // Batch switching handler (checks if unlocked)
+  const handleSelectBatch = (batchNum: number, isUnlocked: boolean) => {
+    if (!isUnlocked) {
+      alert(`Đợt ${batchNum} hiện đang khóa. Bạn cần hoàn thành các ca và bấm "Lưu" ở Đợt ${batchNum - 1} trước.`);
+      return;
+    }
+    // Auto-save current case before switching batch
+    if (activeCase && activeDoctor) {
+      try {
+        const draftKey = `nktt_draft_${activeDoctor.id}_${activeCase.case_id}`;
+        localStorage.setItem(
+          draftKey,
+          JSON.stringify({
+            case_id: activeCase.case_id,
+            editedQuery,
+            clinicalNotes,
+            editedTurns,
+            editedFactors,
+            editedRelevantEvents,
+            editedStaleEvents,
+            editedForbiddenEvents,
+            updatedAt: new Date().toISOString(),
+          })
+        );
+      } catch {}
+    }
+    setCurrentBatchIndex(batchNum);
+  };
+
+  // Main "Lưu" button handler for the entire batch
+  const handleSaveBatch = () => {
+    if (!activeDoctor || batchCases.length === 0) return;
+
+    // 1. Save currently open case first
+    handleSaveAnnotation();
+
+    // 2. Validate all 10 cases in current batch are annotated
+    const currentStored = getStoredAnnotations();
+    const missingCases: string[] = [];
+    batchCases.forEach((c) => {
+      if (!annotationsMap[c.case_id] && !currentStored[c.case_id]) {
+        missingCases.push(c.case_id);
+      }
+    });
+
+    if (missingCases.length > 0) {
+      alert(
+        `Đợt ${currentBatchIndex} còn ${missingCases.length}/10 ca chưa được bấm "Xác nhận" (ví dụ ca: ${missingCases[0]}).\n\nBác sĩ vui lòng duyệt và bấm nút "Xác nhận" ở cột bên phải cho đủ các ca trước khi Lưu đợt.`
+      );
+      return;
+    }
+
+    // 3. Superficial evaluation detection ("label hời hợt")
+    const findings: string[] = [];
+    let emptyNotesCount = 0;
+    let shortNotesCount = 0;
+    const noteTexts: string[] = [];
+
+    batchCases.forEach((c) => {
+      const rec = annotationsMap[c.case_id] || currentStored[c.case_id];
+      const note = rec?.clinical_notes?.trim() || "";
+      if (!note) {
+        emptyNotesCount++;
+        shortNotesCount++;
+      } else if (note.length < 15) {
+        shortNotesCount++;
+      }
+      if (note) {
+        noteTexts.push(note.toLowerCase());
+      }
+    });
+
+    if (emptyNotesCount >= 4) {
+      findings.push(`Có ${emptyNotesCount}/10 ca hoàn toàn không có ghi chú lâm sàng.`);
+    } else if (shortNotesCount >= 5) {
+      findings.push(`Có ${shortNotesCount}/10 ca có ghi chú quá ngắn (dưới 15 ký tự).`);
+    }
+
+    if (noteTexts.length >= 4) {
+      const uniqueNotes = new Set(noteTexts);
+      if (uniqueNotes.size <= 2) {
+        findings.push("Nhận xét lâm sàng giữa các ca mang tính chất lặp lại tương tự nhau.");
+      }
+    }
+
+    if (findings.length > 0) {
+      setQualityFindings(findings);
+      setShowQualityWarning(true);
+      return;
+    }
+
+    // Passed quality check -> proceed to final save and unlock
+    executeBatchSaveAndUnlock();
+  };
+
+  // Execute batch save and unlock next batch
+  const executeBatchSaveAndUnlock = async () => {
+    setShowQualityWarning(false);
+    if (!activeDoctor) return;
+
+    // Mark current batch as completed
+    const nextCompleted = Array.from(new Set([...completedBatches, currentBatchIndex]));
+    setCompletedBatches(nextCompleted);
+    try {
+      localStorage.setItem(`nktt_completed_batches_${activeDoctor.id}`, JSON.stringify(nextCompleted));
+    } catch {}
+
+    // Synchronize to Google Drive webhook
+    setSyncingDrive(true);
+    setDriveNotice({
+      type: "info",
+      text: `Đang lưu Đợt ${currentBatchIndex} và đồng bộ dữ liệu lên Google Drive...`,
+    });
+
+    const stored = getStoredAnnotations();
+    const result = await syncExpertAnnotationsToDrive(activeDoctor.name, stored);
+    setSyncingDrive(false);
+
+    if (result.ok) {
+      setDriveNotice({
+        type: "success",
+        text: `Đã lưu thành công Đợt ${currentBatchIndex} và đồng bộ lên Google Drive (Thư mục: ${result.folderName || "NKTT_Expert_Evaluations"}). Đợt tiếp theo đã được mở khóa!`,
+        url: result.folderUrl,
+      });
+      setTimeout(() => setDriveNotice(null), 8000);
+    } else {
+      setDriveNotice({
+        type: "success",
+        text: `Đã lưu thành công Đợt ${currentBatchIndex} vào bộ nhớ máy. Đợt tiếp theo đã được mở khóa!`,
+      });
+      setTimeout(() => setDriveNotice(null), 8000);
+    }
+
+    // Advance to next batch if available
+    if (currentBatchIndex < 10) {
+      const nextBatch = currentBatchIndex + 1;
+      setCurrentBatchIndex(nextBatch);
+      const nextBatchCases = doctorCases.slice((nextBatch - 1) * 10, nextBatch * 10);
+      if (nextBatchCases.length > 0) {
+        setSelectedCaseId(nextBatchCases[0].case_id);
+      }
+    } else {
+      alert(`Chúc mừng Bác sĩ ${activeDoctor.name}! Bạn đã hoàn thành toàn bộ 10 đợt (100 ca) được phân công.`);
+    }
+  };
+
+  // Export JSONL
+  const handleExportAnnotations = () => {
+    const stored = getStoredAnnotations();
+    const values = Object.values(stored);
+    if (values.length === 0) {
+      alert("Chưa có ca bệnh nào được lưu xác nhận để tải về.");
+      return;
+    }
+    const lines = values.map((v) => JSON.stringify(v)).join("\n") + "\n";
+    const blob = new Blob([lines], { type: "application/x-ndjson;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `expert_annotations_${activeDoctor?.id || "doctor"}.jsonl`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // Doctor selection handler from modal
+  const handleDoctorSelected = (doc: DoctorProfile) => {
+    setActiveDoctor(doc);
+    setShowDoctorModal(false);
+  };
+
   const currentSession =
     timeline && timeline.sessions && timeline.sessions[activeSessionIndex]
       ? timeline.sessions[activeSessionIndex]
       : null;
 
-  const allEvidenceSessionNumbers = useMemo(() => {
+  const allEvidenceSessionNumbers = useMemo<number[]>(() => {
+    if (!activeCase) return [];
     const nums = new Set<number>();
-    if (!activeCase) return nums;
 
     const allEventIds = [
       ...(activeCase.targets?.memory_events?.relevant_event_ids || []),
@@ -654,44 +927,14 @@ export default function LabelDataPage() {
       }
     });
 
-    return nums;
+    return Array.from(nums).sort((a, b) => a - b);
   }, [activeCase, events]);
 
-  const allEvidenceTurnIds = useMemo(() => {
-    const ids = new Set<string>();
-    if (!activeCase) return ids;
+  const getEvidenceSessionListForFactor = (factorId: string) => {
+    if (!activeCase || !timeline) return [];
 
-    const allEventIds = [
-      ...(activeCase.targets?.memory_events?.relevant_event_ids || []),
-      ...(activeCase.targets?.state_snapshots?.flatMap((s) => s.supporting_event_ids || []) || []),
-    ];
-
-    allEventIds.forEach((eventId) => {
-      const matchedEv = events.find((e) => e.event_id === eventId);
-      if (matchedEv && matchedEv.turn_id) {
-        ids.add(matchedEv.turn_id);
-      } else {
-        const sMatch = eventId.match(/_S(\d+)/i);
-        const tMatch = eventId.match(/_T(\d+)/i);
-        if (sMatch && tMatch) {
-          ids.add(`${activeCase.user_id}_S${sMatch[1]}_T${tMatch[1]}`);
-        }
-      }
-    });
-
-    return ids;
-  }, [activeCase, events]);
-
-  const getFactorEvidenceMap = (factorId: string) => {
-    if (!activeCase || !timeline || !timeline.sessions) return [];
-
-    const snapshot = activeCase.targets?.state_snapshots?.find(
-      (s) => s.factor_id === factorId
-    );
-    let eventIds = snapshot?.supporting_event_ids || [];
-    if (eventIds.length === 0 && activeCase.targets?.memory_events?.relevant_event_ids) {
-      eventIds = activeCase.targets.memory_events.relevant_event_ids;
-    }
+    const snapshot = activeCase.targets?.state_snapshots?.find((s) => s.factor_id === factorId);
+    const eventIds = snapshot?.supporting_event_ids || [];
 
     const sessionMap = new Map<number, { sessionIndex: number; turnIds: Set<string> }>();
 
@@ -737,22 +980,38 @@ export default function LabelDataPage() {
     return result.sort((a, b) => a.sessionNumber - b.sessionNumber);
   };
 
-  const totalAnnotatedCount = Object.keys(annotationsMap).length;
+  const totalAnnotatedInDoctorRange = useMemo(() => {
+    if (doctorCases.length === 0) return 0;
+    return doctorCases.filter((c) => Boolean(annotationsMap[c.case_id])).length;
+  }, [doctorCases, annotationsMap]);
 
   return (
     <div className={styles.container}>
-      {/* Global Navigation Tabs */}
+      {/* Global Navigation Tabs: 200 cases tab is LOCKED */}
       <nav className={styles.globalNav}>
         <button
           type="button"
-          className={[
-            styles.globalNavTab,
-            activeTab === "clinical-likert" ? styles.globalNavTabActive : "",
-          ].join(" ")}
-          onClick={() => setActiveTab("clinical-likert")}
+          className={styles.globalNavTabLocked}
+          disabled={true}
+          title="Tab 200 mẫu hiện đang khóa. Hệ thống đang tiến hành thẩm định tập trung 500 ca ViDent-LongMem."
         >
-          Chấm điểm Lâm sàng Likert 5 mức (200 ca)
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg>
+          <span>Chấm điểm Lâm sàng Likert 5 mức (200 ca)</span>
+          <span className={styles.lockedBadge}>Đã khóa</span>
         </button>
+
         <button
           type="button"
           className={[
@@ -771,372 +1030,495 @@ export default function LabelDataPage() {
         <>
           {/* Top Header */}
           <header className={styles.topBar}>
-        <div className={styles.titleArea}>
-          <h1 className={styles.titleMain}>Kiểm tra & Gán nhãn Dữ liệu Nha khoa</h1>
-          <p className={styles.titleSub}>
-            Đọc câu hỏi, xem lại lịch sử các lần khám và chỉnh sửa câu chữ cho tự nhiên, đúng thực tế
-          </p>
-        </div>
-        <div className={styles.topActions}>
-          <span className={styles.statsBadge}>
-            Đã thẩm định: {totalAnnotatedCount}/{allCases.length || 500} ca
-          </span>
-          <button
-            type="button"
-            className={styles.guideBtn}
-            onClick={() => setShowGuide(true)}
-            title="Xem hướng dẫn cách làm"
-          >
-            Xem hướng dẫn
-          </button>
-          <button type="button" className={styles.exportBtn} onClick={handleExportAnnotations}>
-            Tải file kết quả (JSONL)
-          </button>
-          <button
-            type="button"
-            className={styles.driveBtn}
-            onClick={handleSyncAnnotationsToDrive}
-            disabled={syncingDrive}
-            title="Lưu toàn bộ dữ liệu gán nhãn lên Google Drive"
-          >
-            {syncingDrive ? "Đang lưu..." : "Lưu lên Google Drive"}
-          </button>
-          <button
-            type="button"
-            className={styles.exportBtn}
-            onClick={() => setShowDriveModal(true)}
-            title="Cài đặt kết nối dịch vụ Google Drive"
-          >
-            Cài đặt Drive
-          </button>
-          <div className={styles.annotatorBadge}>
-            <label className={styles.annotatorLabel}>Người thẩm định:</label>
-            <input
-              type="text"
-              value={annotator}
-              onChange={(e) => setAnnotator(e.target.value)}
-              className={styles.annotatorInput}
-              placeholder="Họ tên của bạn..."
-            />
-          </div>
-        </div>
-      </header>
+            <div className={styles.titleArea}>
+              <h1 className={styles.titleMain}>Kiểm tra & Gán nhãn Dữ liệu Nha khoa</h1>
+              <p className={styles.titleSub}>
+                Đọc câu hỏi, xem lại lịch sử các lần khám và chỉnh sửa câu chữ cho tự nhiên, đúng thực tế
+              </p>
+            </div>
 
-      {driveNotice && (
-        <div
-          className={
-            driveNotice.type === "success"
-              ? styles.driveNoticeSuccess
-              : driveNotice.type === "error"
-              ? styles.driveNoticeError
-              : styles.driveNoticeInfo
-          }
-        >
-          <div>
-            <span>{driveNotice.text}</span>
-            {driveNotice.url && (
-              <a
-                href={driveNotice.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.driveNoticeLink}
+            <div className={styles.topActions}>
+              {/* Doctor Profile Badge */}
+              <div className={styles.doctorProfileBadge}>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                </svg>
+                <span className={styles.doctorProfileName}>
+                  {activeDoctor?.name || "Chưa chọn BS"}
+                </span>
+                <span className={styles.doctorProfileQuota}>
+                  ({activeDoctor?.caseRangeLabel || "100 ca"})
+                </span>
+                <button
+                  type="button"
+                  className={styles.switchDoctorBtn}
+                  onClick={() => setShowDoctorModal(true)}
+                  title="Chuyển sang tài khoản Bác sĩ khác"
+                >
+                  [Đổi bác sĩ]
+                </button>
+              </div>
+
+              {/* Auto-save Status Indicator */}
+              <div className={styles.autoSaveBadge} title="Tự động lưu nháp liên tục vào trình duyệt">
+                <span
+                  className={[
+                    styles.autoSaveDot,
+                    isAutoSaving ? styles.autoSaveDotSaving : "",
+                  ].join(" ")}
+                />
+                <span>
+                  {isAutoSaving
+                    ? "Đang lưu nháp..."
+                    : lastAutoSavedAt
+                    ? `Đã lưu nháp: ${lastAutoSavedAt}`
+                    : "Tự động lưu nháp"}
+                </span>
+              </div>
+
+              <span className={styles.statsBadge}>
+                Tiến độ: {totalAnnotatedInDoctorRange}/100 ca ({completedBatches.length}/10 đợt)
+              </span>
+
+              <button
+                type="button"
+                className={styles.guideBtn}
+                onClick={() => setShowGuide(true)}
+                title="Xem hướng dẫn cách làm"
               >
-                Mở thư mục Google Drive
-              </a>
-            )}
-          </div>
-          <button
-            type="button"
-            className={styles.driveNoticeClose}
-            onClick={() => setDriveNotice(null)}
-          >
-            Đóng
-          </button>
-        </div>
-      )}
+                Xem hướng dẫn
+              </button>
 
-      {/* Main Workspace: 3 Columns */}
-      <div className={styles.workspace}>
-        {/* Left Column: Filter and Cases list */}
-        <section className={styles.sidebar} aria-label="Danh sách ca bệnh">
-          <div className={styles.filterSection}>
-            <input
-              type="text"
-              placeholder="Tìm theo mã ca, câu hỏi, từ khóa..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className={styles.searchInput}
-            />
-          </div>
+              <button
+                type="button"
+                className={styles.exportBtn}
+                onClick={handleExportAnnotations}
+                title="Tải tệp JSONL chứa kết quả thẩm định của bác sĩ"
+              >
+                Tải file (JSONL)
+              </button>
 
-          <div className={styles.caseList}>
-            {loadingList ? (
-              <p className={styles.emptyPlaceholder}>Đang tải danh sách ca bệnh...</p>
-            ) : filteredCases.length === 0 ? (
-              <p className={styles.emptyPlaceholder}>Không tìm thấy ca nào phù hợp</p>
-            ) : (
-              filteredCases.map((c) => {
-                const globalIndex = allCases.findIndex((item) => item.case_id === c.case_id) + 1;
-                const isActive = c.case_id === selectedCaseId;
-                const friendlyFamily = FAMILY_FRIENDLY_NAMES[c.category?.primary_family]?.label || c.category?.primary_family;
-                const isAnnotated = Boolean(annotationsMap[c.case_id]);
+              {/* Primary "Lưu" Button */}
+              <button
+                type="button"
+                className={styles.saveMainBtn}
+                onClick={handleSaveBatch}
+                disabled={syncingDrive}
+                title="Lưu đợt hiện tại, kiểm tra chất lượng và mở khóa đợt tiếp theo"
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                  <polyline points="17 21 17 13 7 13 7 21" />
+                  <polyline points="7 3 7 8 15 8" />
+                </svg>
+                <span>{syncingDrive ? "Đang lưu..." : "Lưu"}</span>
+              </button>
+
+              <button
+                type="button"
+                className={styles.exportBtn}
+                onClick={() => setShowDriveModal(true)}
+                title="Cài đặt kết nối dịch vụ Google Drive Webhook"
+              >
+                Cài đặt Drive
+              </button>
+            </div>
+          </header>
+
+          {/* Batch Navigation Bar (10 batches, 10 cases each) */}
+          <div className={styles.batchNavContainer}>
+            <div className={styles.batchLabelArea}>
+              <span className={styles.batchTitle}>
+                Phân đợt làm việc ({activeDoctor?.name || "Bác sĩ"} - {activeDoctor?.caseRangeLabel || "100 ca"}):
+              </span>
+            </div>
+            <div className={styles.batchPillList}>
+              {Array.from({ length: 10 }, (_, i) => i + 1).map((batchNum) => {
+                const isActive = batchNum === currentBatchIndex;
+                const isCompleted = completedBatches.includes(batchNum);
+                const isUnlocked =
+                  batchNum === 1 || completedBatches.includes(batchNum - 1) || isCompleted;
                 return (
                   <button
-                    key={c.case_id}
+                    key={batchNum}
                     type="button"
-                    className={[styles.caseCard, isActive ? styles.caseCardActive : ""].filter(Boolean).join(" ")}
-                    onClick={() => setSelectedCaseId(c.case_id)}
+                    disabled={!isUnlocked}
+                    className={[
+                      styles.batchPill,
+                      isActive ? styles.batchPillActive : "",
+                      isCompleted ? styles.batchPillCompleted : "",
+                      !isUnlocked ? styles.batchPillLocked : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                    onClick={() => handleSelectBatch(batchNum, isUnlocked)}
+                    title={
+                      !isUnlocked
+                        ? `Cần hoàn thành và bấm "Lưu" ở Đợt ${batchNum - 1} để mở khóa Đợt ${batchNum}`
+                        : `Đợt ${batchNum}: Ca ${(batchNum - 1) * 10 + 1} - ${batchNum * 10}`
+                    }
                   >
-                    <div className={styles.caseCardHeader}>
-                      <span className={styles.caseId}>Ca {globalIndex}: {c.case_id}</span>
-                      <span className={styles.caseCheckpoint}>Ca {globalIndex}/500</span>
-                    </div>
-                    <div className={styles.caseQueryPreview}>{c.current_query}</div>
-                    <div className={styles.caseCardFooter}>
-                      <span className={styles.familyTag} title={c.category?.primary_family}>
-                        {friendlyFamily}
-                      </span>
-                      {isAnnotated && (
-                        <span className={[styles.verdictBadge, styles.verdictApproved].join(" ")}>
-                          Đã thẩm định
-                        </span>
-                      )}
-                    </div>
+                    {isCompleted && (
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    )}
+                    {!isUnlocked && (
+                      <svg
+                        width="11"
+                        height="11"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                      </svg>
+                    )}
+                    <span>
+                      Đợt {batchNum} ({isCompleted ? "Đã xong" : "10 ca"})
+                    </span>
                   </button>
                 );
-              })
-            )}
+              })}
+            </div>
           </div>
 
-          <div className={styles.pagination}>
-            <span>
-              Tổng cộng: {allCases.length} ca bệnh (từ Ca 1 đến Ca 500)
-              {filteredCases.length < allCases.length ? ` - Đang tìm thấy ${filteredCases.length} ca` : ""}
-            </span>
-          </div>
-        </section>
+          {/* Drive & Batch Notice Banner */}
+          {driveNotice && (
+            <div
+              className={
+                driveNotice.type === "success"
+                  ? styles.driveNoticeSuccess
+                  : driveNotice.type === "error"
+                  ? styles.driveNoticeError
+                  : styles.driveNoticeInfo
+              }
+            >
+              <div>
+                <span>{driveNotice.text}</span>
+                {driveNotice.url && (
+                  <a
+                    href={driveNotice.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.driveNoticeLink}
+                  >
+                    Mở thư mục Google Drive
+                  </a>
+                )}
+              </div>
+              <button
+                type="button"
+                className={styles.driveNoticeClose}
+                onClick={() => setDriveNotice(null)}
+              >
+                Đóng
+              </button>
+            </div>
+          )}
 
-        {/* Center Column: Query Editor & Dialogue Timeline */}
-        <section className={styles.mainContent} aria-label="Nội dung hội thoại">
-          {loadingDetail ? (
-            <div className={styles.emptyPlaceholder}>Đang mở ca này...</div>
-          ) : !activeCase ? (
-            <div className={styles.emptyPlaceholder}>Bấm chọn một ca ở cột bên trái để bắt đầu xem</div>
-          ) : (
-            <>
-              {/* Question Editor */}
-              <div className={styles.queryCard}>
-                <div className={styles.queryCardHeader}>
-                  <h2 className={styles.sectionTitle}>
-                    Ca {allCases.findIndex((c) => c.case_id === activeCase.case_id) + 1} / 500: Câu hỏi của bệnh nhân (Bấm vào để sửa)
-                  </h2>
-                  <p className={styles.sectionSubtitle}>
-                    Nếu thấy câu hỏi chưa tự nhiên hoặc lủng củng, bạn bấm thẳng vào ô dưới để sửa lại.
-                  </p>
-                  <div className={styles.metaRow}>
-                    <span className={styles.metaItem}>
-                      Mã bệnh nhân: <strong>{activeCase.user_id}</strong>
-                    </span>
-                    <span className={styles.metaItem}>
-                      Ngày hỏi: <strong>{new Date(activeCase.query_time).toLocaleDateString("vi-VN")}</strong>
-                    </span>
-                    <span className={styles.metaItem}>
-                      Dạng câu hỏi: <strong>{FAMILY_FRIENDLY_NAMES[activeCase.category.primary_family]?.label || activeCase.category.primary_family}</strong>
-                    </span>
-                  </div>
-                </div>
-                <AutoExpandingTextarea
-                  value={editedQuery}
-                  onChange={(e) => setEditedQuery(e.target.value)}
-                  placeholder="Nội dung câu hỏi của bệnh nhân..."
-                  className={styles.queryTextarea}
+          {/* Main Workspace: 3 Columns */}
+          <div className={styles.workspace}>
+            {/* Left Column: Cases of the current batch */}
+            <section className={styles.sidebar} aria-label="Danh sách ca bệnh trong đợt">
+              <div className={styles.filterSection}>
+                <input
+                  type="text"
+                  placeholder="Tìm trong 10 ca của đợt này..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className={styles.searchInput}
                 />
               </div>
 
-              {/* Timeline Tabs */}
-              {timeline && timeline.sessions && timeline.sessions.length > 0 && (() => {
-                const cutoffSessionStr = activeCase.visible_history?.up_to_session || "";
-                const cutoffMatch = cutoffSessionStr.match(/S(\d+)/i);
-                const cutoffSessionNum = cutoffMatch ? parseInt(cutoffMatch[1], 10) : -1;
-                const isCurrentSessionFuture = currentSession && cutoffSessionNum > 0 && currentSession.session_number > cutoffSessionNum;
-
-                return (
-                  <>
-                    <div className={styles.sessionTabs}>
-                      {timeline.sessions.map((s, idx) => {
-                        const isCutoff = s.session_number === cutoffSessionNum;
-                        const isFuture = cutoffSessionNum > 0 && s.session_number > cutoffSessionNum;
-                        const isActive = idx === activeSessionIndex;
-                        const hasEvidence = allEvidenceSessionNumbers.has(s.session_number);
-                        return (
-                          <button
-                            key={s.session_id}
-                            type="button"
-                            className={[
-                              styles.sessionTab,
-                              isActive ? styles.sessionTabActive : "",
-                              isCutoff ? styles.sessionTabCurrentCutoff : "",
-                              isFuture ? styles.sessionTabFuture : "",
-                              hasEvidence ? styles.sessionTabWithEvidence : "",
-                            ].filter(Boolean).join(" ")}
-                            onClick={() => setActiveSessionIndex(idx)}
-                            title={
-                              isFuture
-                                ? "Lần khám diễn ra sau thời điểm hỏi"
-                                : hasEvidence
-                                  ? "Lần khám này có thông tin quan trọng"
-                                  : `Xem trao đổi lần khám ${s.session_number}`
-                            }
-                          >
-                            Lần khám {s.session_number}
-                            {hasEvidence ? " •" : ""}
-                            {isCutoff ? " (Lần này)" : isFuture ? " (Lần sau)" : ""}
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    {isCurrentSessionFuture && (
-                      <div className={styles.futureSessionBanner}>
-                        <strong>Lưu ý:</strong> Lần khám {currentSession.session_number} diễn ra SAU thời điểm bệnh nhân hỏi.
-                      </div>
-                    )}
-                  </>
-                );
-              })()}
-
-              {/* Dialogue History Scroll */}
-              <div className={styles.dialogueScroll}>
-                {!currentSession ? (
-                  <p className={styles.emptyPlaceholder}>Không có tin nhắn nào trong lần khám này</p>
+              <div className={styles.caseList}>
+                {loadingList ? (
+                  <p className={styles.emptyPlaceholder}>Đang tải danh sách ca bệnh...</p>
+                ) : filteredCases.length === 0 ? (
+                  <p className={styles.emptyPlaceholder}>Không tìm thấy ca nào trong đợt này</p>
                 ) : (
-                  currentSession.turns.map((turn) => {
-                    const isUser = turn.speaker === "user";
-                    const currentText = editedTurns[turn.turn_id] ?? turn.text;
-                    const isEvidenceTurn = allEvidenceTurnIds.has(turn.turn_id);
-                    const turnShortId = turn.turn_id.replace(/.*_/, "");
+                  filteredCases.map((c) => {
+                    const globalIndex = allCases.findIndex((item) => item.case_id === c.case_id) + 1;
+                    const doctorCaseIndex = doctorCases.findIndex((item) => item.case_id === c.case_id) + 1;
+                    const isActive = c.case_id === selectedCaseId;
+                    const friendlyFamily =
+                      FAMILY_FRIENDLY_NAMES[c.category?.primary_family]?.label ||
+                      c.category?.primary_family;
+                    const isAnnotated = Boolean(annotationsMap[c.case_id]);
+
                     return (
-                      <div
-                        key={turn.turn_id}
-                        className={[
-                          styles.turnCard,
-                          isUser ? styles.turnCardUser : styles.turnCardAssistant,
-                          isEvidenceTurn ? styles.turnCardEvidence : "",
-                        ].join(" ")}
+                      <button
+                        key={c.case_id}
+                        type="button"
+                        className={[styles.caseCard, isActive ? styles.caseCardActive : ""]
+                          .filter(Boolean)
+                          .join(" ")}
+                        onClick={() => setSelectedCaseId(c.case_id)}
                       >
-                        <div className={styles.turnHeader}>
-                          <span
-                            className={[
-                              styles.turnSpeaker,
-                              isUser ? styles.turnSpeakerUser : styles.turnSpeakerAssistant,
-                            ].join(" ")}
-                          >
-                            {isUser ? "Bệnh nhân" : "Bác sĩ / Trợ lý"}
-                            <span className={styles.turnBadgeSubtle}>#{turnShortId}</span>
+                        <div className={styles.caseCardHeader}>
+                          <span className={styles.caseId}>
+                            Ca {doctorCaseIndex}/100: {c.case_id}
                           </span>
-                          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                            {isEvidenceTurn && (
-                              <span className={styles.turnEvidenceBadge}>
-                                Thông tin quan trọng
-                              </span>
-                            )}
-                            {turn.turn_timestamp && (
-                              <span className={styles.turnTime}>
-                                {new Date(turn.turn_timestamp).toLocaleString("vi-VN")}
-                              </span>
-                            )}
-                          </div>
+                          <span className={styles.caseCheckpoint}>Ca {globalIndex}/500</span>
                         </div>
-                        <AutoExpandingTextarea
-                          value={currentText}
-                          onChange={(e) => handleTurnChange(turn.turn_id, e.target.value)}
-                          placeholder="Bấm vào đây nếu muốn sửa câu này..."
-                          className={styles.turnTextarea}
-                        />
-                      </div>
+                        <div className={styles.caseQueryPreview}>{c.current_query}</div>
+                        <div className={styles.caseCardFooter}>
+                          <span className={styles.familyTag} title={c.category?.primary_family}>
+                            {friendlyFamily}
+                          </span>
+                          {isAnnotated && (
+                            <span className={[styles.verdictBadge, styles.verdictApproved].join(" ")}>
+                              Đã xác nhận
+                            </span>
+                          )}
+                        </div>
+                      </button>
                     );
                   })
                 )}
               </div>
-            </>
-          )}
-        </section>
 
-        {/* Right Column: Clinical Factors & Save Form */}
-        <section className={styles.reviewPanel} aria-label="Kiểm tra thông tin">
-          {!activeCase ? (
-            <div className={styles.emptyPlaceholder}>Chưa chọn ca nào</div>
-          ) : (
-            <>
-              {/* Target Factors Section */}
-              <div className={styles.reviewSection}>
-                <div className={styles.reviewSectionHeader}>
-                  <h2 className={styles.sectionTitle}>
-                    2. Thông tin bệnh án quan trọng (Bấm vào để sửa)
-                  </h2>
+              <div className={styles.pagination}>
+                <span>
+                  Đợt {currentBatchIndex}/10 ({batchCases.length} ca bệnh) - {activeDoctor?.name || "Bác sĩ"}
+                </span>
+              </div>
+            </section>
+
+            {/* Center Column: Query Editor & Dialogue Timeline */}
+            <section className={styles.mainContent} aria-label="Nội dung hội thoại">
+              {loadingDetail ? (
+                <div className={styles.emptyPlaceholder}>Đang mở ca này...</div>
+              ) : !activeCase ? (
+                <div className={styles.emptyPlaceholder}>Bấm chọn một ca ở cột bên trái để bắt đầu xem</div>
+              ) : (
+                <>
+                  {/* Question Editor */}
+                  <div className={styles.queryCard}>
+                    <div className={styles.queryCardHeader}>
+                      <h2 className={styles.sectionTitle}>
+                        Ca {allCases.findIndex((c) => c.case_id === activeCase.case_id) + 1} / 500: Câu hỏi của bệnh nhân (Bấm vào để sửa)
+                      </h2>
+                      <p className={styles.sectionSubtitle}>
+                        Nếu thấy câu hỏi chưa tự nhiên hoặc lủng củng, bạn bấm thẳng vào ô dưới để sửa lại.
+                      </p>
+                      <div className={styles.metaRow}>
+                        <span className={styles.metaItem}>
+                          Mã bệnh nhân: <strong>{activeCase.user_id}</strong>
+                        </span>
+                        <span className={styles.metaItem}>
+                          Ngày hỏi: <strong>{new Date(activeCase.query_time).toLocaleDateString("vi-VN")}</strong>
+                        </span>
+                        <span className={styles.metaItem}>
+                          Dạng câu hỏi: <strong>{FAMILY_FRIENDLY_NAMES[activeCase.category.primary_family]?.label || activeCase.category.primary_family}</strong>
+                        </span>
+                      </div>
+                    </div>
+                    <AutoExpandingTextarea
+                      value={editedQuery}
+                      onChange={(e) => setEditedQuery(e.target.value)}
+                      placeholder="Nội dung câu hỏi của bệnh nhân..."
+                      className={styles.queryTextarea}
+                    />
+                  </div>
+
+                  {/* Dialogue Timeline */}
+                  <div className={styles.timelineCard}>
+                    <div className={styles.timelineHeader}>
+                      <div>
+                        <h2 className={styles.sectionTitle}>
+                          2. Lịch sử các lần khám trước (Bấm vào từng lần để đọc)
+                        </h2>
+                        <p className={styles.sectionSubtitle}>
+                          Mỗi nút tương ứng một lần bệnh nhân đến khám hoặc nhắn tin trước đây. Bấm vào câu bất kỳ để sửa nếu cần.
+                        </p>
+                      </div>
+                      <div className={styles.sessionPills}>
+                        {timeline && timeline.sessions && timeline.sessions.length > 0 ? (
+                          timeline.sessions.map((s, idx) => {
+                            const isSelected = idx === activeSessionIndex;
+                            const hasEvidence = allEvidenceSessionNumbers.includes(s.session_number);
+                            return (
+                              <button
+                                key={s.session_id}
+                                type="button"
+                                className={[
+                                  styles.sessionPill,
+                                  isSelected ? styles.sessionPillActive : "",
+                                  hasEvidence ? styles.sessionPillEvidence : "",
+                                ]
+                                  .filter(Boolean)
+                                  .join(" ")}
+                                onClick={() => setActiveSessionIndex(idx)}
+                                title={
+                                  hasEvidence
+                                    ? `Lần khám ${s.session_number} (Có chứa thông tin quan trọng)`
+                                    : `Lần khám ${s.session_number}`
+                                }
+                              >
+                                {hasEvidence && <span className={styles.evidenceIndicator} />}
+                                Lần {s.session_number}
+                              </button>
+                            );
+                          })
+                        ) : (
+                          <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>
+                            Không có lịch sử các lần khám trước
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className={styles.chatArea}>
+                      {!currentSession ? (
+                        <div className={styles.emptyPlaceholder}>
+                          Ca này là câu hỏi độc lập, không có lịch sử khám trước
+                        </div>
+                      ) : (
+                        <div className={styles.sessionChatContainer}>
+                          <div className={styles.sessionChatHeader}>
+                            <span>
+                              Chi tiết Lần khám {currentSession.session_number}
+                              {currentSession.session_timestamp &&
+                                ` - Ngày: ${new Date(currentSession.session_timestamp).toLocaleDateString("vi-VN")}`}
+                            </span>
+                            <span style={{ fontWeight: "normal", color: "var(--color-text-muted)" }}>
+                              (Gồm {currentSession.turns.length} lượt trao đổi)
+                            </span>
+                          </div>
+
+                          <div className={styles.turnsList}>
+                            {currentSession.turns.map((turn) => {
+                              const isDoctor = turn.speaker?.toLowerCase().includes("doctor") || turn.speaker?.toLowerCase().includes("assistant");
+                              const currentValue =
+                                editedTurns[turn.turn_id] !== undefined
+                                  ? editedTurns[turn.turn_id]
+                                  : turn.text;
+                              const isTurnModified =
+                                editedTurns[turn.turn_id] !== undefined &&
+                                editedTurns[turn.turn_id] !== turn.text;
+
+                              return (
+                                <div
+                                  key={turn.turn_id}
+                                  className={[
+                                    styles.chatBubbleWrapper,
+                                    isDoctor ? styles.bubbleWrapperRight : styles.bubbleWrapperLeft,
+                                  ].join(" ")}
+                                >
+                                  <div
+                                    className={[
+                                      styles.chatBubble,
+                                      isDoctor ? styles.bubbleDoctor : styles.bubblePatient,
+                                    ].join(" ")}
+                                  >
+                                    <div className={styles.bubbleHeader}>
+                                      <span className={styles.bubbleSpeaker}>
+                                        {isDoctor ? "Bác sĩ" : "Bệnh nhân"}
+                                      </span>
+                                      {isTurnModified && (
+                                        <span className={styles.modifiedTag}>Đã sửa</span>
+                                      )}
+                                    </div>
+                                    <AutoExpandingTextarea
+                                      value={currentValue}
+                                      onChange={(e) => handleTurnChange(turn.turn_id, e.target.value)}
+                                      className={styles.bubbleTextarea}
+                                      placeholder="Nội dung trao đổi..."
+                                    />
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+            </section>
+
+            {/* Right Column: Factor Inspection & Case Save */}
+            <section className={styles.rightSidebar} aria-label="Thông tin quan trọng và xác nhận">
+              <div className={styles.factorsCard}>
+                <div className={styles.factorsHeader}>
+                  <h2 className={styles.sectionTitle}>Thông tin nha khoa then chốt</h2>
                   <p className={styles.sectionSubtitle}>
-                    Thông tin trong tiền sử mà câu trả lời cần phải nhớ
+                    Các dữ kiện tiền sử bệnh nhân cần ghi nhớ để tư vấn chính xác
                   </p>
                 </div>
 
                 {editedFactors.length === 0 ? (
-                  <div className={styles.guideTipBox}>
-                    <strong>Câu hỏi đại cương:</strong> Bệnh nhân hỏi kiến thức chung, không liên quan đến bệnh án riêng.
+                  <div className={styles.emptyPlaceholder}>
+                    Ca này hỏi kiến thức phổ thông, không có tiền sử đặc biệt cần lưu ý
                   </div>
                 ) : (
                   editedFactors.map((factor, idx) => {
-                    const evidenceList = getFactorEvidenceMap(factor.factor_id);
+                    const evidenceList = getEvidenceSessionListForFactor(factor.factor_id);
                     return (
-                      <div key={factor.factor_id || idx} className={styles.factorCard}>
-                        <div className={styles.factorCardTop}>
-                          <span className={styles.factorCardTitle}>
-                            Thông tin #{idx + 1}
+                      <div key={factor.factor_id || idx} className={styles.factorItem}>
+                        <div className={styles.factorItemHeader}>
+                          <span className={styles.factorNumber}>Thông tin {idx + 1}</span>
+                          <span className={styles.factorBadge}>
+                            {factor.expected_status || "ĐANG HIỆU LỰC"}
                           </span>
-                          <div className={styles.factorStatusWrapper}>
-                            <label className={styles.fieldLabelSmall}>Tình trạng:</label>
-                            <select
-                              value={factor.expected_status}
-                              onChange={(e) => handleFactorChange(idx, "expected_status", e.target.value)}
-                              className={styles.factorSelect}
-                            >
-                              <option value="KNOWN">Đã biết rõ</option>
-                              <option value="UNKNOWN">Chưa rõ (Cần hỏi thêm)</option>
-                              <option value="NOT_APPLICABLE">Không áp dụng</option>
-                            </select>
-                          </div>
                         </div>
 
-                        <div className={styles.factorFieldGroup}>
-                          <label className={styles.fieldLabel}>
-                            Vấn đề nha khoa:
-                          </label>
-                          <span className={styles.fieldHint}>
-                            (Ví dụ: Đang đeo loại hàm duy trì nào)
-                          </span>
+                        <div className={styles.fieldGroup}>
+                          <label className={styles.fieldLabel}>Tên thông tin:</label>
                           <AutoExpandingTextarea
-                            value={factor.description}
+                            value={factor.description || ""}
                             onChange={(e) => handleFactorChange(idx, "description", e.target.value)}
-                            placeholder="Mô tả vấn đề..."
+                            placeholder="Mô tả thông tin..."
                             className={styles.factorTextarea}
                           />
                         </div>
 
-                        <div className={styles.factorFieldGroup}>
-                          <label className={styles.fieldLabel}>
-                            Chi tiết cụ thể:
-                          </label>
-                          <span className={styles.fieldHint}>
-                            (Ví dụ: Hàm Hawley, chỉ đeo ban đêm)
-                          </span>
-                          <AutoExpandingTextarea
-                            value={factor.expected_value}
+                        <div className={styles.fieldGroup}>
+                          <label className={styles.fieldLabel}>Tình trạng / Giá trị:</label>
+                          <input
+                            type="text"
+                            value={factor.expected_value || ""}
                             onChange={(e) => handleFactorChange(idx, "expected_value", e.target.value)}
-                            placeholder="Chi tiết cụ thể..."
-                            className={styles.factorTextarea}
+                            placeholder="Ví dụ: Răng số 4 đã nhổ, đang đeo hàm duy trì..."
+                            className={styles.factorInput}
                           />
                         </div>
 
-                        <div className={styles.factorFieldGroup}>
+                        <div className={styles.fieldGroup}>
                           <label className={styles.fieldLabel}>
                             Tại sao thông tin này quan trọng:
                           </label>
@@ -1165,7 +1547,10 @@ export default function LabelDataPage() {
                                   onClick={() => setActiveSessionIndex(loc.sessionIndex)}
                                   title={`Xem lại Lần khám ${loc.sessionNumber}`}
                                 >
-                                  Lần khám {loc.sessionNumber} {loc.turnIds.length > 0 ? `(${loc.turnIds.map((t) => t.replace(/.*_/, "")).join(", ")})` : ""}
+                                  Lần khám {loc.sessionNumber}{" "}
+                                  {loc.turnIds.length > 0
+                                    ? `(${loc.turnIds.map((t) => t.replace(/.*_/, "")).join(", ")})`
+                                    : ""}
                                 </button>
                               ))}
                             </div>
@@ -1226,14 +1611,14 @@ export default function LabelDataPage() {
                     3. Ghi chú & Xác nhận
                   </h2>
                   <p className={styles.sectionSubtitle}>
-                    Ghi chú thêm (nếu có) rồi bấm nút xác nhận bên dưới
+                    Ghi chú lâm sàng cho ca này rồi bấm nút xác nhận
                   </p>
                 </div>
 
                 <textarea
                   value={clinicalNotes}
                   onChange={(e) => setClinicalNotes(e.target.value)}
-                  placeholder="Ghi chú thêm (nếu có): ví dụ đã sửa câu hỏi cho dễ hiểu hơn, dặn bệnh nhân tái khám..."
+                  placeholder="Ghi chú lâm sàng: ví dụ đã sửa câu hỏi cho tự nhiên hơn, dặn dò bệnh nhân tránh nhai thức ăn cứng..."
                   className={styles.notesTextarea}
                 />
 
@@ -1242,6 +1627,7 @@ export default function LabelDataPage() {
                   className={styles.saveBtn}
                   disabled={saving}
                   onClick={handleSaveAnnotation}
+                  title="Xác nhận lưu ca bệnh này vào kết quả thẩm định"
                 >
                   {saving ? "Đang xác nhận..." : "Xác nhận"}
                 </button>
@@ -1257,82 +1643,110 @@ export default function LabelDataPage() {
                   </div>
                 )}
               </div>
-            </>
-          )}
-        </section>
-      </div>
-
-      {/* Guide Modal for Users */}
-      {showGuide && (
-        <div className={styles.guideModalOverlay} onClick={() => setShowGuide(false)}>
-          <div className={styles.guideModal} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.guideModalHeader}>
-              <h3 className={styles.guideModalTitle}>
-                Hướng dẫn cách làm (Rất đơn giản)
-              </h3>
-              <button
-                type="button"
-                className={styles.guideCloseIconBtn}
-                onClick={() => setShowGuide(false)}
-                title="Đóng cửa sổ này"
-              >
-                Đóng
-              </button>
-            </div>
-
-            <div className={styles.guideModalBody}>
-              <div className={styles.guideTipBox}>
-                <strong>Mục đích:</strong> Giúp câu hỏi và lịch sử khám nghe giống người thật nói chuyện, đúng thực tế và an toàn khi tư vấn nha khoa.
-              </div>
-
-              <div className={styles.guideStepCard}>
-                <div className={styles.guideStepHeader}>
-                  <span className={styles.guideStepNumber}>Bước 1</span>
-                  <span className={styles.guideStepTitle}>Đọc và sửa câu hỏi</span>
-                </div>
-                <p className={styles.guideStepDesc}>
-                  Đọc ô <strong>"1. Câu hỏi của bệnh nhân"</strong>. Nếu thấy câu từ bị gượng gạo, lủng củng hoặc sai từ chuyên môn nha khoa, bạn cứ bấm thẳng vào ô đó để sửa lại cho tự nhiên.
-                </p>
-              </div>
-
-              <div className={styles.guideStepCard}>
-                <div className={styles.guideStepHeader}>
-                  <span className={styles.guideStepNumber}>Bước 2</span>
-                  <span className={styles.guideStepTitle}>Xem lại các lần khám trước</span>
-                </div>
-                <p className={styles.guideStepDesc}>
-                  Bấm vào các nút <strong>"Lần khám 1, 2..."</strong> để xem trước đây bệnh nhân đã nói gì. Chỗ nào có nhãn màu cam <strong>"Thông tin quan trọng"</strong> là lời dặn then chốt (ví dụ: đang đeo hàm duy trì gì, có dị ứng gì không). Nếu thấy câu nào cần sửa, bạn cũng có thể bấm vào sửa luôn.
-                </p>
-              </div>
-
-              <div className={styles.guideStepCard}>
-                <div className={styles.guideStepHeader}>
-                  <span className={styles.guideStepNumber}>Bước 3</span>
-                  <span className={styles.guideStepTitle}>Ghi chú và bấm Xác nhận</span>
-                </div>
-                <p className={styles.guideStepDesc}>
-                  Ở cột bên phải, kiểm tra lại thông tin quan trọng. Nếu muốn nhắn nhủ gì thêm thì gõ vào ô ghi chú, sau đó bấm nút <strong>"Xác nhận"</strong> là xong một ca!
-                </p>
-              </div>
-            </div>
-
-            <div className={styles.guideModalFooter}>
-              <button
-                type="button"
-                className={styles.guideDismissBtn}
-                onClick={() => setShowGuide(false)}
-              >
-                Tôi đã hiểu và bắt đầu làm
-              </button>
-            </div>
+            </section>
           </div>
-        </div>
-      )}
-      <DriveSyncModal
-        isOpen={showDriveModal}
-        onClose={() => setShowDriveModal(false)}
-        onConfigSaved={(cfg) => setDriveConfig(cfg)}
-      />
+
+          {/* Guide Modal for Users */}
+          {showGuide && (
+            <div className={styles.guideModalOverlay} onClick={() => setShowGuide(false)}>
+              <div className={styles.guideModal} onClick={(e) => e.stopPropagation()}>
+                <div className={styles.guideModalHeader}>
+                  <h3 className={styles.guideModalTitle}>
+                    Hướng dẫn cách làm (Rất đơn giản)
+                  </h3>
+                  <button
+                    type="button"
+                    className={styles.guideCloseIconBtn}
+                    onClick={() => setShowGuide(false)}
+                    title="Đóng cửa sổ này"
+                  >
+                    Đóng
+                  </button>
+                </div>
+
+                <div className={styles.guideModalBody}>
+                  <div className={styles.guideTipBox}>
+                    <strong>Mục đích:</strong> Giúp câu hỏi và lịch sử khám nghe giống người thật nói chuyện, đúng thực tế và an toàn khi tư vấn nha khoa.
+                  </div>
+
+                  <div className={styles.guideStepCard}>
+                    <div className={styles.guideStepHeader}>
+                      <span className={styles.guideStepNumber}>Bước 1</span>
+                      <span className={styles.guideStepTitle}>Đọc và sửa câu hỏi</span>
+                    </div>
+                    <p className={styles.guideStepDesc}>
+                      Đọc ô <strong>"1. Câu hỏi của bệnh nhân"</strong>. Nếu thấy câu từ bị gượng gạo, lủng củng hoặc sai từ chuyên môn nha khoa, bạn cứ bấm thẳng vào ô đó để sửa lại cho tự nhiên.
+                    </p>
+                  </div>
+
+                  <div className={styles.guideStepCard}>
+                    <div className={styles.guideStepHeader}>
+                      <span className={styles.guideStepNumber}>Bước 2</span>
+                      <span className={styles.guideStepTitle}>Xem lại các lần khám trước</span>
+                    </div>
+                    <p className={styles.guideStepDesc}>
+                      Bấm vào các nút <strong>"Lần khám 1, 2..."</strong> để xem trước đây bệnh nhân đã nói gì. Chỗ nào có nhãn màu cam <strong>"Thông tin quan trọng"</strong> là lời dặn then chốt (ví dụ: đang đeo hàm duy trì gì, có dị ứng gì không). Nếu thấy câu nào cần sửa, bạn cũng có thể bấm vào sửa luôn.
+                    </p>
+                  </div>
+
+                  <div className={styles.guideStepCard}>
+                    <div className={styles.guideStepHeader}>
+                      <span className={styles.guideStepNumber}>Bước 3</span>
+                      <span className={styles.guideStepTitle}>Ghi chú và bấm Xác nhận</span>
+                    </div>
+                    <p className={styles.guideStepDesc}>
+                      Ở cột bên phải, kiểm tra lại thông tin quan trọng. Nhập ghi chú lâm sàng chi tiết, sau đó bấm nút <strong>"Xác nhận"</strong> cho từng ca.
+                    </p>
+                  </div>
+
+                  <div className={styles.guideStepCard}>
+                    <div className={styles.guideStepHeader}>
+                      <span className={styles.guideStepNumber}>Bước 4</span>
+                      <span className={styles.guideStepTitle}>Bấm Lưu đợt để chuyển tiếp</span>
+                    </div>
+                    <p className={styles.guideStepDesc}>
+                      Khi đã duyệt đủ 10 ca trong đợt, bấm nút <strong>"Lưu"</strong> ở thanh trên cùng để lưu trữ và mở khóa đợt tiếp theo.
+                    </p>
+                  </div>
+                </div>
+
+                <div className={styles.guideModalFooter}>
+                  <button
+                    type="button"
+                    className={styles.guideDismissBtn}
+                    onClick={() => setShowGuide(false)}
+                  >
+                    Tôi đã hiểu và bắt đầu làm
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Google Drive Configuration Modal */}
+          <DriveSyncModal
+            isOpen={showDriveModal}
+            onClose={() => setShowDriveModal(false)}
+            onConfigSaved={(cfg) => setDriveConfig(cfg)}
+          />
+
+          {/* Doctor Selection & Authentication Portal */}
+          <DoctorLoginModal
+            isOpen={showDoctorModal}
+            canClose={Boolean(activeDoctor)}
+            onClose={() => setShowDoctorModal(false)}
+            onSelectDoctor={handleDoctorSelected}
+            activeDoctorId={activeDoctor?.id}
+          />
+
+          {/* Quality Warning Modal for Superficial Evaluation */}
+          <QualityWarningModal
+            isOpen={showQualityWarning}
+            batchNumber={currentBatchIndex}
+            findings={qualityFindings}
+            onBack={() => setShowQualityWarning(false)}
+            onConfirmSave={executeBatchSaveAndUnlock}
+          />
         </>
       )}
     </div>

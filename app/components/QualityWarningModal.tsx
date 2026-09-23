@@ -62,11 +62,8 @@ export default function QualityWarningModal({
 
         {/* Footer */}
         <div className={styles.warningFooter}>
-          <button type="button" className={styles.btnForceSave} onClick={onConfirmSave}>
-            Tôi hiểu rủi ro, xác nhận vẫn Lưu
-          </button>
           <button type="button" className={styles.btnBack} onClick={onBack}>
-            Quay lại bổ sung nhận xét
+            Quay lại bổ sung nhận xét cho đạt chuẩn
           </button>
         </div>
       </div>

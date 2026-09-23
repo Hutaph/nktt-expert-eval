@@ -154,7 +154,9 @@ interface ExpertAnnotationRecord {
   user_id: string;
   verdict: "APPROVED";
   clinical_notes: string;
+  original_query?: string;
   edited_query?: string;
+  query_change_percent?: number;
   edited_turns?: TurnRecord[];
   factors?: FactorRecord[];
   memory_events?: {
@@ -164,6 +166,161 @@ interface ExpertAnnotationRecord {
   };
   annotator: string;
   updated_at: string;
+}
+
+const CLINICAL_DOMAIN_KEYWORDS = [
+  "răng", "nướu", "lợi", "tủy", "hàm", "niềng", "mắc cài", "nhổ", "trám",
+  "phục hình", "cạo vôi", "nha chu", "sâu răng", "khớp cắn", "máng", "implant",
+  "bọc sứ", "răng khôn", "tẩy trắng", "kẽ", "chỉ nha khoa", "tăm nước", "bàn chải",
+  "súc miệng", "chlorhexidine", "penicillin", "kháng sinh", "giảm đau", "dị ứng",
+  "tiền sử", "bệnh sử", "diễn tiến", "lâm sàng", "chống chỉ định", "chỉ định",
+  "chẩn đoán", "an toàn", "nguy cơ", "phác đồ", "đối chứng", "đại cương",
+  "triệu chứng", "điều trị", "theo dõi", "tái khám", "can thiệp", "biến chứng",
+  "phù hợp", "chính xác", "thuật ngữ", "ngữ cảnh", "người bệnh", "bệnh nhân",
+  "hồ sơ", "khám", "thuốc", "vệ sinh", "viêm", "ê buốt", "lệch", "xương", "mô mềm"
+];
+
+function getLevenshteinDistance(a: string, b: string): number {
+  const matrix: number[][] = [];
+  for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+  for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      if (b.charAt(i - 1) === a.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1];
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1,
+          Math.min(matrix[i][j - 1] + 1, matrix[i - 1][j] + 1)
+        );
+      }
+    }
+  }
+  return matrix[b.length][a.length];
+}
+
+function calculateQueryChangePercent(orig: string, edited: string): number {
+  if (!orig && !edited) return 0;
+  if (orig === edited) return 0;
+  const maxLen = Math.max(orig.length, edited.length);
+  if (maxLen === 0) return 0;
+  const dist = getLevenshteinDistance(orig, edited);
+  return Math.min(100, Math.round((dist / maxLen) * 100));
+}
+
+interface ClinicalNotesQuality {
+  isValid: boolean;
+  errors: string[];
+  charCount: number;
+  wordCount: number;
+  uniqueWords: number;
+  hasAccent: boolean;
+  hasDomainKeywords: boolean;
+  hasSpamRepeat: boolean;
+  duplicateWithCaseId?: string;
+  duplicateSimilarity?: number;
+}
+
+function checkClinicalNotesQuality(
+  notes: string,
+  currentCaseId: string,
+  batchCases: CaseDetail[],
+  annotationsMap: Record<string, ExpertAnnotationRecord>,
+  isBigQueryEdit: boolean
+): ClinicalNotesQuality {
+  const trimmed = notes.trim();
+  const errors: string[] = [];
+  const charCount = trimmed.length;
+
+  if (charCount < 20) {
+    errors.push("Biện giải lâm sàng phải có tối thiểu 20 ký tự.");
+  }
+
+  // 1. Check spam repetition
+  const hasSpamRepeat = /(.)\1{4,}/i.test(trimmed);
+  if (hasSpamRepeat) {
+    errors.push("Phát hiện ký tự lặp vô nghĩa (spam). Vui lòng nhập nhận xét thực tế.");
+  }
+
+  // 2. Word count & diversity
+  const rawWords = trimmed.toLowerCase().split(/\s+/).filter(Boolean);
+  const wordCount = rawWords.length;
+  const uniqueWordsSet = new Set(rawWords);
+  const uniqueWords = uniqueWordsSet.size;
+
+  if (charCount >= 20 && wordCount < 5) {
+    errors.push("Biện giải phải có tối thiểu 5 từ diễn đạt câu hoàn chỉnh.");
+  }
+  if (wordCount >= 5 && uniqueWords < 4) {
+    errors.push("Từ ngữ nhận xét bị lặp lại quá nhiều. Vui lòng nêu rõ lý do lâm sàng.");
+  }
+
+  // 3. Vietnamese accent check
+  const hasAccent = /[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i.test(trimmed);
+  if (charCount >= 10 && !hasAccent) {
+    errors.push("Nhận xét bắt buộc phải gõ Tiếng Việt có dấu đầy đủ, đúng ngữ pháp y văn.");
+  }
+
+  // 4. Domain keyword check
+  const lower = trimmed.toLowerCase();
+  const hasDomainKeywords = CLINICAL_DOMAIN_KEYWORDS.some((kw) => lower.includes(kw));
+  if (charCount >= 20 && !hasDomainKeywords) {
+    errors.push(
+      "Nhận xét phải chứa thuật ngữ chuyên ngành Răng Hàm Mặt hoặc căn cứ y khoa (ví dụ: răng, nướu, tiền sử, lâm sàng, phác đồ, an toàn, đối chứng...)."
+    );
+  }
+
+  // 5. Cross-case similarity in current batch
+  let duplicateWithCaseId: string | undefined;
+  let duplicateSimilarity: number | undefined;
+
+  if (charCount >= 20 && batchCases.length > 0) {
+    const curWords = new Set(rawWords.filter((w) => w.length > 2));
+    if (curWords.size >= 3) {
+      for (const otherCase of batchCases) {
+        if (otherCase.case_id === currentCaseId) continue;
+        const otherRec = annotationsMap[otherCase.case_id];
+        if (!otherRec || !otherRec.clinical_notes) continue;
+        const otherWords = new Set(
+          otherRec.clinical_notes.toLowerCase().split(/\s+/).filter((w) => w.length > 2)
+        );
+        let intersection = 0;
+        curWords.forEach((w) => {
+          if (otherWords.has(w)) intersection++;
+        });
+        const union = new Set([...curWords, ...otherWords]).size;
+        const sim = union > 0 ? intersection / union : 0;
+        if (sim >= 0.7) {
+          duplicateWithCaseId = otherCase.case_id;
+          duplicateSimilarity = Math.round(sim * 100);
+          errors.push(
+            `Nhận xét này trùng lặp ${duplicateSimilarity}% với ca ${otherCase.case_id}. Bác sĩ vui lòng biện giải riêng theo tình huống cụ thể của ca này.`
+          );
+          break;
+        }
+      }
+    }
+  }
+
+  // 6. If big query edit (>50% change), require explanation in notes
+  if (isBigQueryEdit && charCount < 35) {
+    errors.push(
+      "Vì câu hỏi có sự thay đổi lớn (>50%), Bác sĩ cần ghi chú chi tiết tối thiểu 35 ký tự giải trình lý do chuyên môn."
+    );
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+    charCount,
+    wordCount,
+    uniqueWords,
+    hasAccent,
+    hasDomainKeywords,
+    hasSpamRepeat,
+    duplicateWithCaseId,
+    duplicateSimilarity,
+  };
 }
 
 const STORAGE_KEY = "nktt_expert_annotations_v3";
@@ -299,6 +456,18 @@ export default function LabelDataPage() {
   const [annotationsMap, setAnnotationsMap] = useState<Record<string, ExpertAnnotationRecord>>({});
 
   const [showGuide, setShowGuide] = useState<boolean>(false);
+
+  // Anti-speedrun & session inspection tracking
+  const [readingCountdown, setReadingCountdown] = useState<number>(0);
+  const [inspectedSessions, setInspectedSessions] = useState<Set<number>>(new Set());
+
+  // Clinical Verification Checklist
+  const [checklistHistory, setChecklistHistory] = useState<boolean>(true);
+  const [checklistSafety, setChecklistSafety] = useState<boolean>(true);
+  const [checklistCore, setChecklistCore] = useState<boolean>(true);
+
+  // Query editing toggle
+  const [isEditingQuery, setIsEditingQuery] = useState<boolean>(false);
 
   // Google Drive state
   const [showDriveModal, setShowDriveModal] = useState<boolean>(false);
@@ -652,6 +821,72 @@ export default function LabelDataPage() {
     };
   }, [selectedCaseId, allCases, annotationsMap, activeDoctor]);
 
+  // Reset speedrun countdown and inspected sessions when switching cases
+  useEffect(() => {
+    if (!selectedCaseId) return;
+    const isAlreadyConfirmed = confirmedCaseIds.has(selectedCaseId);
+    if (isAlreadyConfirmed) {
+      setReadingCountdown(0);
+    } else {
+      setReadingCountdown(15);
+    }
+    setInspectedSessions(new Set([0]));
+    setIsEditingQuery(false);
+  }, [selectedCaseId, confirmedCaseIds]);
+
+  // Reading countdown timer tick
+  useEffect(() => {
+    if (readingCountdown <= 0) return;
+    const timer = setInterval(() => {
+      setReadingCountdown((prev) => Math.max(0, prev - 1));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [readingCountdown]);
+
+  const originalQuery = activeCase?.current_query || "";
+  const queryChangePercent = useMemo(
+    () => calculateQueryChangePercent(originalQuery, editedQuery),
+    [originalQuery, editedQuery]
+  );
+  const isSignificantQueryEdit = queryChangePercent > 50;
+
+  const notesQuality = useMemo(() => {
+    if (!activeCase) {
+      return {
+        isValid: false,
+        errors: [],
+        charCount: 0,
+        wordCount: 0,
+        uniqueWords: 0,
+        hasAccent: false,
+        hasDomainKeywords: false,
+        hasSpamRepeat: false,
+      };
+    }
+    return checkClinicalNotesQuality(
+      clinicalNotes,
+      activeCase.case_id,
+      batchCases,
+      annotationsMap,
+      isSignificantQueryEdit
+    );
+  }, [clinicalNotes, activeCase, batchCases, annotationsMap, isSignificantQueryEdit]);
+
+  const hasMultipleSessions = Boolean(timeline && timeline.sessions && timeline.sessions.length > 1);
+  const hasInspectedRequiredSessions = !hasMultipleSessions || inspectedSessions.size >= 2;
+  const isChecklistComplete = checklistHistory && checklistSafety && checklistCore;
+
+  const canConfirmCase =
+    readingCountdown === 0 &&
+    hasInspectedRequiredSessions &&
+    isChecklistComplete &&
+    notesQuality.isValid;
+
+  const handleSelectSession = (idx: number) => {
+    setActiveSessionIndex(idx);
+    setInspectedSessions((prev) => new Set([...prev, idx]));
+  };
+
   // Real-time Auto-save Draft
   useEffect(() => {
     if (isInitialCaseLoadRef.current || !activeCase || !activeDoctor) return;
@@ -719,10 +954,37 @@ export default function LabelDataPage() {
   const handleSaveAnnotation = () => {
     if (!activeCase || !activeDoctor) return;
 
-    // Strict validation: Require meaningful clinical notes
-    if (!clinicalNotes.trim() || clinicalNotes.trim().length < 15) {
+    // Check anti-speedrun
+    if (readingCountdown > 0) {
       setSaveMessage({
-        text: "Yêu cầu bắt buộc: Ghi chú lâm sàng phải có tối thiểu 15-20 ký tự nêu rõ cơ sở chuyên môn.",
+        text: `Vui lòng dành thời gian thẩm định kỹ hồ sơ ca bệnh (còn ${readingCountdown} giây).`,
+        isError: true,
+      });
+      return;
+    }
+
+    // Check session inspection
+    if (!hasInspectedRequiredSessions) {
+      setSaveMessage({
+        text: "Ca bệnh có nhiều lần khám trong quá khứ. Bác sĩ vui lòng bấm xem ít nhất 1 đợt khám khác trước đó để kiểm tra tiền sử.",
+        isError: true,
+      });
+      return;
+    }
+
+    // Check checklist
+    if (!isChecklistComplete) {
+      setSaveMessage({
+        text: "Bác sĩ vui lòng đánh dấu xác nhận đầy đủ 3 tiêu chuẩn thẩm định lâm sàng.",
+        isError: true,
+      });
+      return;
+    }
+
+    // Check notes quality
+    if (!notesQuality.isValid) {
+      setSaveMessage({
+        text: notesQuality.errors[0] || "Biện giải lâm sàng chưa đạt chuẩn chất lượng.",
         isError: true,
       });
       return;
@@ -730,22 +992,6 @@ export default function LabelDataPage() {
 
     setSaving(true);
     setSaveMessage(null);
-
-    const updatedTurnList: TurnRecord[] = [];
-    if (timeline && timeline.sessions) {
-      timeline.sessions.forEach((s) => {
-        s.turns.forEach((t) => {
-          if (editedTurns[t.turn_id] !== undefined) {
-            updatedTurnList.push({
-              turn_id: t.turn_id,
-              speaker: t.speaker,
-              text: editedTurns[t.turn_id],
-              turn_timestamp: t.turn_timestamp,
-            });
-          }
-        });
-      });
-    }
 
     const parsedMemoryEvents = {
       relevant_event_ids: editedRelevantEvents.split(",").map((s) => s.trim()).filter(Boolean),
@@ -758,8 +1004,9 @@ export default function LabelDataPage() {
       user_id: activeCase.user_id,
       verdict: "APPROVED",
       clinical_notes: clinicalNotes.trim(),
-      edited_query: editedQuery !== activeCase.current_query ? editedQuery : undefined,
-      edited_turns: updatedTurnList.length > 0 ? updatedTurnList : undefined,
+      original_query: activeCase.current_query,
+      edited_query: editedQuery.trim() !== activeCase.current_query.trim() ? editedQuery.trim() : undefined,
+      query_change_percent: queryChangePercent > 0 ? queryChangePercent : undefined,
       factors: editedFactors,
       memory_events: parsedMemoryEvents,
       annotator: activeDoctor.name,
@@ -817,8 +1064,8 @@ export default function LabelDataPage() {
   const handleSaveBatch = () => {
     if (!activeDoctor || batchCases.length === 0) return;
 
-    // 1. If currently open case has notes, commit it
-    if (clinicalNotes.trim().length >= 15) {
+    // 1. If currently open case has notes and passes quality, commit it
+    if (notesQuality.isValid && canConfirmCase) {
       handleSaveAnnotation();
     }
 
@@ -831,42 +1078,25 @@ export default function LabelDataPage() {
       return;
     }
 
-    // 3. Strict superficial evaluation detection ("chống label hời hợt")
+    // 3. Strict superficial evaluation detection using checkClinicalNotesQuality
     const findings: string[] = [];
-    const missingNotesCases: string[] = [];
-    const shortNotesCases: string[] = [];
-    const noteTexts: string[] = [];
-
     batchCases.forEach((c) => {
       const rec = annotationsMap[c.case_id];
       const note = rec?.clinical_notes?.trim() || "";
       if (!note) {
-        missingNotesCases.push(c.case_id);
-      } else if (note.length < 20) {
-        shortNotesCases.push(c.case_id);
-      } else {
-        noteTexts.push(note.toLowerCase());
+        findings.push(`Ca ${c.case_id}: Hoàn toàn chưa có biện giải lâm sàng cụ thể.`);
+        return;
+      }
+      const isBigEdit = Boolean(
+        rec.edited_query &&
+        rec.original_query &&
+        calculateQueryChangePercent(rec.original_query, rec.edited_query) > 50
+      );
+      const quality = checkClinicalNotesQuality(note, c.case_id, batchCases, annotationsMap, isBigEdit);
+      if (!quality.isValid) {
+        findings.push(`Ca ${c.case_id}: ${quality.errors[0]}`);
       }
     });
-
-    if (missingNotesCases.length > 0) {
-      findings.push(
-        `Có ${missingNotesCases.length}/10 ca hoàn toàn chưa có biện giải lâm sàng cụ thể (ví dụ: ca ${missingNotesCases.slice(0, 3).join(", ")}).`
-      );
-    }
-
-    if (shortNotesCases.length > 0) {
-      findings.push(
-        `Có ${shortNotesCases.length}/10 ca có nhận xét quá ngắn (dưới 20 ký tự), chưa bảo đảm tính chặt chẽ y khoa.`
-      );
-    }
-
-    if (noteTexts.length >= 4) {
-      const uniqueNotes = new Set(noteTexts);
-      if (uniqueNotes.size < noteTexts.length / 2) {
-        findings.push("Nhận xét chuyên môn giữa các ca có dấu hiệu sao chép lặp lại mang tính đối phó.");
-      }
-    }
 
     if (findings.length > 0) {
       setQualityFindings(findings);
@@ -1399,36 +1629,140 @@ export default function LabelDataPage() {
                 <div className={styles.emptyPlaceholder}>Vui lòng chọn một ca bệnh ở cột bên trái để thẩm định</div>
               ) : (
                 <>
-                  {/* Question Editor */}
+                  {/* Question Audit & Editor Card */}
                   <div className={styles.queryCard}>
                     <div className={styles.queryCardHeader}>
-                      <h2 className={styles.sectionTitle}>
-                        Ca {doctorCases.findIndex((c) => c.case_id === activeCase.case_id) + 1} / 100: Câu hỏi của người bệnh
-                      </h2>
+                      <div className={styles.queryTitleRow}>
+                        <h2 className={styles.sectionTitle}>
+                          Ca {doctorCases.findIndex((c) => c.case_id === activeCase.case_id) + 1} / 100: Câu hỏi của người bệnh
+                        </h2>
+                      </div>
+                      <div className={styles.queryActionGroup}>
+                        <button
+                          type="button"
+                          className={styles.toggleEditBtn}
+                          onClick={() => setIsEditingQuery(!isEditingQuery)}
+                          title="Bật/tắt chế độ trau chuốt câu từ"
+                        >
+                          <svg
+                            width="13"
+                            height="13"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M12 20h9" />
+                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                          </svg>
+                          <span>{isEditingQuery ? "Thu gọn chỉnh sửa" : "Hiệu chỉnh câu từ"}</span>
+                        </button>
+                        {editedQuery !== activeCase.current_query && (
+                          <button
+                            type="button"
+                            className={styles.resetQueryBtn}
+                            onClick={() => setEditedQuery(activeCase.current_query || "")}
+                            title="Khôi phục nguyên văn câu hỏi ban đầu"
+                          >
+                            <svg
+                              width="13"
+                              height="13"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                              <path d="M3 3v5h5" />
+                            </svg>
+                            <span>Khôi phục bản gốc</span>
+                          </button>
+                        )}
+                      </div>
                     </div>
-                    <AutoExpandingTextarea
-                      value={editedQuery}
-                      onChange={(e) => setEditedQuery(e.target.value)}
-                      placeholder="Nội dung câu hỏi của người bệnh..."
-                      className={styles.queryTextarea}
-                    />
+
+                    {/* Original Query Box (Immutable Ground Truth Reference) */}
+                    <div className={styles.originalQueryBox}>
+                      <span className={styles.originalQueryLabel}>
+                        <svg
+                          width="12"
+                          height="12"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <circle cx="12" cy="12" r="10" />
+                          <line x1="12" y1="16" x2="12" y2="12" />
+                          <line x1="12" y1="8" x2="12.01" y2="8" />
+                        </svg>
+                        Bản gốc:
+                      </span>
+                      <p className={styles.originalQueryText}>{activeCase.current_query}</p>
+                    </div>
+
+                    {/* Editable Query Section (Controlled with Diff Tracking) */}
+                    {isEditingQuery && (
+                      <div className={styles.editQuerySection}>
+                        <div className={styles.editQueryHeader}>
+                          <span className={styles.editQueryLabel}>Bản hiệu chỉnh chuyên khoa:</span>
+                          <span
+                            className={[
+                              styles.diffBadge,
+                              queryChangePercent <= 20
+                                ? styles.diffBadgeMinor
+                                : queryChangePercent <= 50
+                                ? styles.diffBadgeModerate
+                                : styles.diffBadgeMajor,
+                            ].join(" ")}
+                          >
+                            {queryChangePercent === 0
+                              ? "Chưa thay đổi (0%)"
+                              : queryChangePercent <= 20
+                              ? `Trau chuốt nhẹ (thay đổi ${queryChangePercent}%)`
+                              : queryChangePercent <= 50
+                              ? `Điều chỉnh thuật ngữ (thay đổi ${queryChangePercent}%)`
+                              : `Thay đổi lớn (thay đổi ${queryChangePercent}%)`}
+                          </span>
+                        </div>
+
+                        {queryChangePercent > 50 && (
+                          <div className={styles.diffAlertBanner}>
+                            <strong>Cảnh báo thay đổi lớn:</strong> Bạn đang thay đổi đáng kể bản chất câu hỏi ban đầu (thay đổi {queryChangePercent}%). Bác sĩ vui lòng bảo đảm giữ nguyên cốt lõi tình huống lâm sàng và nêu rõ lý do chuyên môn trong ô biện giải (tối thiểu 35 ký tự).
+                          </div>
+                        )}
+
+                        <textarea
+                          value={editedQuery}
+                          onChange={(e) => setEditedQuery(e.target.value)}
+                          placeholder="Nhập nội dung hiệu chỉnh câu chữ chuẩn y khoa..."
+                          className={styles.queryTextarea}
+                          rows={2}
+                          spellCheck={false}
+                        />
+                      </div>
+                    )}
                   </div>
 
                   {/* Dialogue Timeline */}
                   <div className={styles.timelineCard}>
                     <div className={styles.timelineHeader}>
-                      <div>
+                      <div className={styles.timelineTitleGroup}>
                         <h2 className={styles.sectionTitle}>
-                          Hồ sơ bệnh án & Diễn tiến các lần khám trước
+                          Hồ sơ bệnh án & Diễn tiến:
                         </h2>
-                        <p className={styles.sectionSubtitle}>
-                          Đối chiếu lịch sử can thiệp theo thời gian. Nhấp vào từng lần khám để kiểm tra tiền sử và lời dặn chuyên môn.
-                        </p>
                       </div>
                       <div className={styles.sessionPills}>
                         {timeline && timeline.sessions && timeline.sessions.length > 0 ? (
                           timeline.sessions.map((s, idx) => {
                             const isSelected = idx === activeSessionIndex;
+                            const isInspected = inspectedSessions.has(idx);
                             return (
                               <button
                                 key={s.session_id}
@@ -1439,10 +1773,24 @@ export default function LabelDataPage() {
                                 ]
                                   .filter(Boolean)
                                   .join(" ")}
-                                onClick={() => setActiveSessionIndex(idx)}
-                                title={`Lần ${s.session_number}`}
+                                onClick={() => handleSelectSession(idx)}
+                                title={`Lần ${s.session_number} (${isInspected ? "Đã xem" : "Chưa xem"})`}
                               >
-                                Lần {s.session_number}
+                                <span>Lần {s.session_number}</span>
+                                {isInspected && (
+                                  <svg
+                                    width="10"
+                                    height="10"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="3"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  >
+                                    <polyline points="20 6 9 17 4 12" />
+                                  </svg>
+                                )}
                               </button>
                             );
                           })
@@ -1477,13 +1825,6 @@ export default function LabelDataPage() {
                               const isDoctor =
                                 turn.speaker?.toLowerCase().includes("doctor") ||
                                 turn.speaker?.toLowerCase().includes("assistant");
-                              const currentValue =
-                                editedTurns[turn.turn_id] !== undefined
-                                  ? editedTurns[turn.turn_id]
-                                  : turn.text;
-                              const isTurnModified =
-                                editedTurns[turn.turn_id] !== undefined &&
-                                editedTurns[turn.turn_id] !== turn.text;
 
                               return (
                                 <div
@@ -1503,16 +1844,9 @@ export default function LabelDataPage() {
                                       <span className={styles.bubbleSpeaker}>
                                         {isDoctor ? "Bác sĩ" : "Người bệnh"}
                                       </span>
-                                      {isTurnModified && (
-                                        <span className={styles.modifiedTag}>Đã hiệu chỉnh</span>
-                                      )}
+                                      <span className={styles.turnBadgeSubtle}>{turn.turn_id}</span>
                                     </div>
-                                    <AutoExpandingTextarea
-                                      value={currentValue}
-                                      onChange={(e) => handleTurnChange(turn.turn_id, e.target.value)}
-                                      className={styles.bubbleTextarea}
-                                      placeholder="Nội dung hội thoại..."
-                                    />
+                                    <p className={styles.bubbleTextReadonly}>{turn.text}</p>
                                   </div>
                                 </div>
                               );
@@ -1560,43 +1894,37 @@ export default function LabelDataPage() {
                   </p>
                 </div>
 
-                {/* Quick Feedback Templates */}
-                <div className={styles.quickTemplatesBox}>
-                  <span className={styles.quickTemplateLabel}>Gợi ý nhận xét nhanh:</span>
-                  <div className={styles.quickTemplateList}>
-                    <button
-                      type="button"
-                      className={styles.quickTemplateBtn}
-                      onClick={() =>
-                        setClinicalNotes(
-                          "Đã đối chiếu các lần khám: Câu hỏi và diễn tiến hoàn toàn phù hợp với tiền sử bệnh nhân."
-                        )
-                      }
-                    >
-                      Đúng diễn tiến tiền sử
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.quickTemplateBtn}
-                      onClick={() =>
-                        setClinicalNotes(
-                          "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân."
-                        )
-                      }
-                    >
-                      Kiến thức đại cương chuẩn
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.quickTemplateBtn}
-                      onClick={() =>
-                        setClinicalNotes(
-                          "Đã trau chuốt câu từ và thuật ngữ chuyên ngành Răng Hàm Mặt, bảo toàn nguyên vẹn ý nghĩa lâm sàng."
-                        )
-                      }
-                    >
-                      Đã trau chuốt câu từ
-                    </button>
+                {/* Clinical Verification Checklist (Replaces quick canned templates) */}
+                <div className={styles.clinicalChecklistBox}>
+                  <div className={styles.checklistTitle}>Tiêu chuẩn thẩm định bắt buộc:</div>
+                  <div className={styles.checklistList}>
+                    <label className={styles.checklistItem}>
+                      <input
+                        type="checkbox"
+                        checked={checklistHistory}
+                        onChange={(e) => setChecklistHistory(e.target.checked)}
+                        className={styles.checklistCheckbox}
+                      />
+                      <span>Đã đối chiếu các lần khám và tiền sử bệnh nhân</span>
+                    </label>
+                    <label className={styles.checklistItem}>
+                      <input
+                        type="checkbox"
+                        checked={checklistSafety}
+                        onChange={(e) => setChecklistSafety(e.target.checked)}
+                        className={styles.checklistCheckbox}
+                      />
+                      <span>Bảo đảm an toàn y khoa, không vi phạm chống chỉ định</span>
+                    </label>
+                    <label className={styles.checklistItem}>
+                      <input
+                        type="checkbox"
+                        checked={checklistCore}
+                        onChange={(e) => setChecklistCore(e.target.checked)}
+                        className={styles.checklistCheckbox}
+                      />
+                      <span>Bảo toàn bản chất tình huống bệnh lý của câu hỏi</span>
+                    </label>
                   </div>
                 </div>
 
@@ -1607,6 +1935,7 @@ export default function LabelDataPage() {
                     placeholder="Biện giải chuyên môn: Nêu rõ đánh giá an toàn, tính chính xác của chẩn đoán và căn cứ đối chiếu tiền sử..."
                     className={styles.notesTextarea}
                     rows={4}
+                    spellCheck={false}
                   />
                   <div className={styles.charCountRow}>
                     <span
@@ -1621,6 +1950,119 @@ export default function LabelDataPage() {
                   </div>
                 </div>
 
+                {/* Guardrails Feedback Box */}
+                <div className={styles.guardrailBox}>
+                  <div className={styles.guardrailGrid}>
+                    <div
+                      className={[
+                        styles.guardrailItem,
+                        notesQuality.charCount >= 20 ? styles.guardrailPassed : styles.guardrailFailed,
+                      ].join(" ")}
+                    >
+                      <span
+                        className={[
+                          styles.guardrailIndicator,
+                          notesQuality.charCount >= 20 ? styles.indicatorPassed : styles.indicatorFailed,
+                        ].join(" ")}
+                      />
+                      <span>Đủ 20 ký tự ({notesQuality.charCount}/20)</span>
+                    </div>
+                    <div
+                      className={[
+                        styles.guardrailItem,
+                        notesQuality.hasAccent ? styles.guardrailPassed : styles.guardrailFailed,
+                      ].join(" ")}
+                    >
+                      <span
+                        className={[
+                          styles.guardrailIndicator,
+                          notesQuality.hasAccent ? styles.indicatorPassed : styles.indicatorFailed,
+                        ].join(" ")}
+                      />
+                      <span>Tiếng Việt có dấu</span>
+                    </div>
+                    <div
+                      className={[
+                        styles.guardrailItem,
+                        notesQuality.hasDomainKeywords ? styles.guardrailPassed : styles.guardrailFailed,
+                      ].join(" ")}
+                    >
+                      <span
+                        className={[
+                          styles.guardrailIndicator,
+                          notesQuality.hasDomainKeywords ? styles.indicatorPassed : styles.indicatorFailed,
+                        ].join(" ")}
+                      />
+                      <span>Thuật ngữ RHM / Y khoa</span>
+                    </div>
+                    <div
+                      className={[
+                        styles.guardrailItem,
+                        !notesQuality.hasSpamRepeat && !notesQuality.duplicateWithCaseId
+                          ? styles.guardrailPassed
+                          : styles.guardrailFailed,
+                      ].join(" ")}
+                    >
+                      <span
+                        className={[
+                          styles.guardrailIndicator,
+                          !notesQuality.hasSpamRepeat && !notesQuality.duplicateWithCaseId
+                            ? styles.indicatorPassed
+                            : styles.indicatorFailed,
+                        ].join(" ")}
+                      />
+                      <span>Không trùng lặp spam</span>
+                    </div>
+                  </div>
+
+                  {notesQuality.errors.length > 0 && clinicalNotes.trim().length > 0 && (
+                    <div className={styles.guardrailWarningText}>
+                      {notesQuality.errors[0]}
+                    </div>
+                  )}
+                </div>
+
+                {/* Speedrun or Session Inspection Reminder */}
+                {readingCountdown > 0 ? (
+                  <div className={styles.speedrunNotice}>
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                    <span>Đang thẩm định hồ sơ: Vui lòng đọc kỹ nội dung (còn {readingCountdown} giây)</span>
+                  </div>
+                ) : !hasInspectedRequiredSessions ? (
+                  <div
+                    className={styles.speedrunNotice}
+                    style={{ color: "#9a3412", backgroundColor: "#fff7ed", borderColor: "#ffedd5" }}
+                  >
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="12" y1="8" x2="12" y2="12" />
+                      <line x1="12" y1="16" x2="12.01" y2="16" />
+                    </svg>
+                    <span>Hồ sơ có nhiều đợt khám: Bác sĩ cần bấm xem ít nhất 1 đợt khám khác trước đó.</span>
+                  </div>
+                ) : null}
+
                 <button
                   type="button"
                   className={[
@@ -1631,9 +2073,19 @@ export default function LabelDataPage() {
                   ]
                     .filter(Boolean)
                     .join(" ")}
-                  disabled={saving}
+                  disabled={saving || !canConfirmCase}
                   onClick={handleSaveAnnotation}
-                  title="Xác nhận ca bệnh này và đưa vào tập kết quả thẩm định"
+                  title={
+                    readingCountdown > 0
+                      ? `Đang trong thời gian đọc hồ sơ (còn ${readingCountdown}s)`
+                      : !hasInspectedRequiredSessions
+                      ? "Cần bấm xem ít nhất 1 đợt khám trước đó"
+                      : !isChecklistComplete
+                      ? "Cần đánh dấu đủ 3 tiêu chuẩn thẩm định"
+                      : !notesQuality.isValid
+                      ? "Biện giải lâm sàng chưa đạt chuẩn chất lượng"
+                      : "Xác nhận thẩm định ca này"
+                  }
                 >
                   <svg
                     width="15"
@@ -1650,6 +2102,14 @@ export default function LabelDataPage() {
                   <span>
                     {saving
                       ? "Đang lưu..."
+                      : readingCountdown > 0
+                      ? `Đang đọc hồ sơ (còn ${readingCountdown}s)`
+                      : !hasInspectedRequiredSessions
+                      ? "Bấm xem thêm lần khám trước"
+                      : !isChecklistComplete
+                      ? "Xác nhận 3 tiêu chuẩn trước"
+                      : !notesQuality.isValid
+                      ? "Hoàn thiện biện giải lâm sàng"
                       : activeCase && confirmedCaseIds.has(activeCase.case_id)
                       ? "Cập nhật xác nhận ca này"
                       : "Xác nhận thẩm định ca này"}

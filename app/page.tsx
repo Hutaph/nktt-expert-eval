@@ -9,6 +9,7 @@ import DoctorLoginModal, {
   DoctorProfile,
 } from "./components/DoctorLoginModal";
 import QualityWarningModal from "./components/QualityWarningModal";
+import ClinicalRulesModal from "./components/ClinicalRulesModal";
 import {
   getDriveConfig,
   syncExpertAnnotationsToDrive,
@@ -197,36 +198,36 @@ function saveStoredAnnotation(record: ExpertAnnotationRecord): void {
 
 const FAMILY_FRIENDLY_NAMES: Record<string, { label: string; desc: string }> = {
   NO_PERSONALIZATION_NEEDED: {
-    label: "Kiến thức nha khoa chung",
-    desc: "Câu hỏi thông thường, không cần nhớ tiền sử của bệnh nhân",
+    label: "Kiến thức nha khoa đại cương",
+    desc: "Câu hỏi đại cương không đòi hỏi truy hồi tiền sử cá nhân",
   },
   UPDATE_SUPERSESSION: {
-    label: "Thông tin đã thay đổi theo thời gian",
-    desc: "Bệnh nhân có thông tin mới (ví dụ đã đổi loại hàm, đã tháo niềng), cần dùng thông tin mới nhất",
+    label: "Cập nhật thay đổi theo thời gian",
+    desc: "Bệnh nhân có biến chuyển mới (đổi khí cụ, tháo niềng, hoàn tất thủ thuật)",
   },
   EXPLICIT_STABLE_PERSONALIZATION: {
-    label: "Tiền sử cố định",
-    desc: "Thông tin cố định lâu dài như cơ địa, tiền sử dị ứng, răng đã nhổ",
+    label: "Tiền sử bệnh học cố định",
+    desc: "Thông tin cố định lâu dài: cơ địa, dị ứng thuốc, răng đã can thiệp",
   },
   LATENT_EVIDENCE_CONDITIONED_FACTOR: {
-    label: "Cần suy luận từ lời kể",
-    desc: "Thông tin ẩn trong các đợt khám trước, cần liên kết lại",
+    label: "Suy luận từ diễn tiến lâm sàng",
+    desc: "Dữ kiện ẩn trong các đợt khám trước, cần liên kết phác đồ",
   },
   MISSING_FACTOR_UNKNOWN: {
-    label: "Chưa có thông tin (Cần hỏi thêm)",
-    desc: "Hồ sơ chưa có, bác sĩ phải hỏi lại bệnh nhân trước khi tư vấn",
+    label: "Thiếu dữ kiện lâm sàng (Cần hỏi lại)",
+    desc: "Hồ sơ chưa có thông tin, bác sĩ cần yêu cầu người bệnh cung cấp thêm",
   },
   MULTI_FACTOR_CROSS_SESSION: {
-    label: "Gộp thông tin từ nhiều lần khám",
-    desc: "Cần xâu chuỗi thông tin từ nhiều buổi hẹn trước",
+    label: "Xâu chuỗi đa đợt khám",
+    desc: "Tổng hợp thông tin từ nhiều buổi hẹn điều trị trước đây",
   },
   CONFLICT_UNCERTAINTY: {
-    label: "Thông tin chưa rõ ràng",
-    desc: "Có sự mâu thuẫn giữa các lần khám, cần làm rõ lại",
+    label: "Mâu thuẫn hoặc chưa rõ ràng",
+    desc: "Có sự bất nhất giữa các lần khám, cần làm rõ lại triệu chứng",
   },
   PROVENANCE_BOUNDARY: {
-    label: "Phân biệt nguồn thông tin",
-    desc: "Phân định rõ lời bệnh nhân kể và kết quả do bác sĩ khám",
+    label: "Phân định nguồn dữ liệu",
+    desc: "Phân biệt rõ lời người bệnh tự kể và kết quả khám trực tiếp của bác sĩ",
   },
 };
 
@@ -235,12 +236,17 @@ let cachedTimelinesMap: Map<string, TimelineRecord> | null = null;
 let cachedEventsMap: Map<string, SourceEventRecord[]> | null = null;
 
 export default function LabelDataPage() {
-  // Navigation: activeTab is locked to label-data by default
+  // Navigation: permanently locked to label-data
   const [activeTab, setActiveTab] = useState<"clinical-likert" | "label-data">("label-data");
 
-  // Doctor session state
+  // Doctor session & Protocol states
   const [activeDoctor, setActiveDoctor] = useState<DoctorProfile | null>(null);
+  const [pendingDoctor, setPendingDoctor] = useState<DoctorProfile | null>(null);
   const [showDoctorModal, setShowDoctorModal] = useState<boolean>(false);
+  const [showRulesModal, setShowRulesModal] = useState<boolean>(false);
+
+  // Track explicit case confirmations made by the doctor
+  const [confirmedCaseIds, setConfirmedCaseIds] = useState<Set<string>>(new Set());
 
   // Batch states (10 batches per doctor, 10 cases per batch)
   const [currentBatchIndex, setCurrentBatchIndex] = useState<number>(1);
@@ -313,9 +319,26 @@ export default function LabelDataPage() {
     setShowDoctorModal(true);
   }, []);
 
-  // When active doctor changes, load their completed batches
+  // When active doctor changes, load their confirmed cases and completed batches
   useEffect(() => {
     if (!activeDoctor) return;
+
+    // Load confirmed cases for this specific doctor
+    try {
+      const savedConfirmed = localStorage.getItem(`nktt_confirmed_cases_${activeDoctor.id}`);
+      if (savedConfirmed) {
+        const list = JSON.parse(savedConfirmed);
+        if (Array.isArray(list)) {
+          setConfirmedCaseIds(new Set(list));
+        }
+      } else {
+        setConfirmedCaseIds(new Set());
+      }
+    } catch {
+      setConfirmedCaseIds(new Set());
+    }
+
+    // Load completed batches for this doctor
     try {
       const saved = localStorage.getItem(`nktt_completed_batches_${activeDoctor.id}`);
       if (saved) {
@@ -346,7 +369,7 @@ export default function LabelDataPage() {
     setAnnotator(activeDoctor.name);
   }, [activeDoctor]);
 
-  // Load stored annotations on mount, merge with default 500 entries
+  // Load stored annotations on mount
   useEffect(() => {
     let isMounted = true;
     async function initAnnotations() {
@@ -522,7 +545,7 @@ export default function LabelDataPage() {
           setActiveSessionIndex(0);
         }
 
-        // Check for local working draft first (in-progress work)
+        // Check for local working draft first
         let draftData: any = null;
         if (activeDoctor) {
           try {
@@ -538,12 +561,15 @@ export default function LabelDataPage() {
           setEditedQuery(draftData.editedQuery || matchedCase.current_query || "");
           setClinicalNotes(draftData.clinicalNotes || "");
           setEditedTurns(draftData.editedTurns || {});
-          setEditedFactors(draftData.editedFactors || (matchedCase.targets?.factors ? JSON.parse(JSON.stringify(matchedCase.targets.factors)) : []));
+          setEditedFactors(
+            draftData.editedFactors ||
+              (matchedCase.targets?.factors ? JSON.parse(JSON.stringify(matchedCase.targets.factors)) : [])
+          );
           setEditedRelevantEvents(draftData.editedRelevantEvents || "");
           setEditedStaleEvents(draftData.editedStaleEvents || "");
           setEditedForbiddenEvents(draftData.editedForbiddenEvents || "");
         } else if (saved) {
-          // Restore from approved annotation
+          // Restore from saved annotation
           setEditedQuery(saved.edited_query || matchedCase.current_query || "");
           setClinicalNotes(saved.clinical_notes || "");
 
@@ -577,7 +603,7 @@ export default function LabelDataPage() {
             setEditedForbiddenEvents("");
           }
         } else {
-          // Default fresh state
+          // Fresh default state
           setEditedQuery(matchedCase.current_query || "");
           setClinicalNotes("");
           setEditedTurns({});
@@ -678,9 +704,18 @@ export default function LabelDataPage() {
     });
   };
 
-  // Save current individual case annotation
+  // Save current individual case annotation & register confirmation
   const handleSaveAnnotation = () => {
-    if (!activeCase) return;
+    if (!activeCase || !activeDoctor) return;
+
+    // Strict validation: Require meaningful clinical notes
+    if (!clinicalNotes.trim() || clinicalNotes.trim().length < 15) {
+      setSaveMessage({
+        text: "Yêu cầu bắt buộc: Ghi chú lâm sàng phải có tối thiểu 15-20 ký tự nêu rõ cơ sở chuyên môn.",
+        isError: true,
+      });
+      return;
+    }
 
     setSaving(true);
     setSaveMessage(null);
@@ -711,12 +746,12 @@ export default function LabelDataPage() {
       case_id: activeCase.case_id,
       user_id: activeCase.user_id,
       verdict: "APPROVED",
-      clinical_notes: clinicalNotes,
+      clinical_notes: clinicalNotes.trim(),
       edited_query: editedQuery !== activeCase.current_query ? editedQuery : undefined,
       edited_turns: updatedTurnList.length > 0 ? updatedTurnList : undefined,
       factors: editedFactors,
       memory_events: parsedMemoryEvents,
-      annotator: activeDoctor?.name || annotator.trim() || "Bác sĩ Thẩm định",
+      annotator: activeDoctor.name,
       updated_at: new Date().toISOString(),
     };
 
@@ -726,7 +761,15 @@ export default function LabelDataPage() {
       [record.case_id]: record,
     }));
 
-    setSaveMessage({ text: "Đã lưu xác nhận ca này thành công!", isError: false });
+    // Register explicit confirmation for this doctor
+    const nextConfirmed = new Set(confirmedCaseIds);
+    nextConfirmed.add(record.case_id);
+    setConfirmedCaseIds(nextConfirmed);
+    try {
+      localStorage.setItem(`nktt_confirmed_cases_${activeDoctor.id}`, JSON.stringify(Array.from(nextConfirmed)));
+    } catch {}
+
+    setSaveMessage({ text: "Đã xác nhận và lưu trữ ca bệnh này thành công!", isError: false });
     setSaving(false);
   };
 
@@ -763,55 +806,54 @@ export default function LabelDataPage() {
   const handleSaveBatch = () => {
     if (!activeDoctor || batchCases.length === 0) return;
 
-    // 1. Save currently open case first
-    handleSaveAnnotation();
+    // 1. If currently open case has notes, commit it
+    if (clinicalNotes.trim().length >= 15) {
+      handleSaveAnnotation();
+    }
 
-    // 2. Validate all 10 cases in current batch are annotated
-    const currentStored = getStoredAnnotations();
-    const missingCases: string[] = [];
-    batchCases.forEach((c) => {
-      if (!annotationsMap[c.case_id] && !currentStored[c.case_id]) {
-        missingCases.push(c.case_id);
-      }
-    });
-
-    if (missingCases.length > 0) {
+    // 2. Strict check: All 10 cases in current batch must be explicitly confirmed by doctor
+    const unconfirmed = batchCases.filter((c) => !confirmedCaseIds.has(c.case_id));
+    if (unconfirmed.length > 0) {
       alert(
-        `Đợt ${currentBatchIndex} còn ${missingCases.length}/10 ca chưa được bấm "Xác nhận" (ví dụ ca: ${missingCases[0]}).\n\nBác sĩ vui lòng duyệt và bấm nút "Xác nhận" ở cột bên phải cho đủ các ca trước khi Lưu đợt.`
+        `Đợt ${currentBatchIndex} còn ${unconfirmed.length}/10 ca chưa được Bác sĩ bấm nút "Xác nhận thẩm định ca này" (ví dụ ca: ${unconfirmed[0].case_id}).\n\nBác sĩ vui lòng đọc hồ sơ, nhập biện giải lâm sàng và bấm "Xác nhận thẩm định ca này" cho đủ cả 10 ca trước khi Lưu đợt.`
       );
       return;
     }
 
-    // 3. Superficial evaluation detection ("label hời hợt")
+    // 3. Strict superficial evaluation detection ("chống label hời hợt")
     const findings: string[] = [];
-    let emptyNotesCount = 0;
-    let shortNotesCount = 0;
+    const missingNotesCases: string[] = [];
+    const shortNotesCases: string[] = [];
     const noteTexts: string[] = [];
 
     batchCases.forEach((c) => {
-      const rec = annotationsMap[c.case_id] || currentStored[c.case_id];
+      const rec = annotationsMap[c.case_id];
       const note = rec?.clinical_notes?.trim() || "";
       if (!note) {
-        emptyNotesCount++;
-        shortNotesCount++;
-      } else if (note.length < 15) {
-        shortNotesCount++;
-      }
-      if (note) {
+        missingNotesCases.push(c.case_id);
+      } else if (note.length < 20) {
+        shortNotesCases.push(c.case_id);
+      } else {
         noteTexts.push(note.toLowerCase());
       }
     });
 
-    if (emptyNotesCount >= 4) {
-      findings.push(`Có ${emptyNotesCount}/10 ca hoàn toàn không có ghi chú lâm sàng.`);
-    } else if (shortNotesCount >= 5) {
-      findings.push(`Có ${shortNotesCount}/10 ca có ghi chú quá ngắn (dưới 15 ký tự).`);
+    if (missingNotesCases.length > 0) {
+      findings.push(
+        `Có ${missingNotesCases.length}/10 ca hoàn toàn chưa có biện giải lâm sàng cụ thể (ví dụ: ca ${missingNotesCases.slice(0, 3).join(", ")}).`
+      );
+    }
+
+    if (shortNotesCases.length > 0) {
+      findings.push(
+        `Có ${shortNotesCases.length}/10 ca có nhận xét quá ngắn (dưới 20 ký tự), chưa bảo đảm tính chặt chẽ y khoa.`
+      );
     }
 
     if (noteTexts.length >= 4) {
       const uniqueNotes = new Set(noteTexts);
-      if (uniqueNotes.size <= 2) {
-        findings.push("Nhận xét lâm sàng giữa các ca mang tính chất lặp lại tương tự nhau.");
+      if (uniqueNotes.size < noteTexts.length / 2) {
+        findings.push("Nhận xét chuyên môn giữa các ca có dấu hiệu sao chép lặp lại mang tính đối phó.");
       }
     }
 
@@ -896,10 +938,30 @@ export default function LabelDataPage() {
     URL.revokeObjectURL(url);
   };
 
-  // Doctor selection handler from modal
+  // Doctor selection handler from login modal -> triggers Rules Modal
   const handleDoctorSelected = (doc: DoctorProfile) => {
-    setActiveDoctor(doc);
+    setPendingDoctor(doc);
     setShowDoctorModal(false);
+    setShowRulesModal(true);
+  };
+
+  // Confirmation of Clinical Rules -> enters workspace
+  const handleAcceptRules = () => {
+    if (pendingDoctor) {
+      setActiveDoctor(pendingDoctor);
+      setAnnotator(pendingDoctor.name);
+      try {
+        localStorage.setItem(
+          "nktt_active_doctor_session",
+          JSON.stringify({
+            id: pendingDoctor.id,
+            name: pendingDoctor.name,
+            loggedInAt: new Date().toISOString(),
+          })
+        );
+      } catch {}
+    }
+    setShowRulesModal(false);
   };
 
   const currentSession =
@@ -980,14 +1042,14 @@ export default function LabelDataPage() {
     return result.sort((a, b) => a.sessionNumber - b.sessionNumber);
   };
 
-  const totalAnnotatedInDoctorRange = useMemo(() => {
+  const totalDoctorConfirmedCount = useMemo(() => {
     if (doctorCases.length === 0) return 0;
-    return doctorCases.filter((c) => Boolean(annotationsMap[c.case_id])).length;
-  }, [doctorCases, annotationsMap]);
+    return doctorCases.filter((c) => confirmedCaseIds.has(c.case_id)).length;
+  }, [doctorCases, confirmedCaseIds]);
 
   return (
     <div className={styles.container}>
-      {/* Global Navigation Tabs: 200 cases tab is LOCKED */}
+      {/* Global Navigation Tabs: 200 cases tab is permanently locked */}
       <nav className={styles.globalNav}>
         <button
           type="button"
@@ -1028,12 +1090,12 @@ export default function LabelDataPage() {
         <ClinicalLikertEvalView />
       ) : (
         <>
-          {/* Top Header */}
+          {/* Top Header - Streamlined for Doctor Focus */}
           <header className={styles.topBar}>
             <div className={styles.titleArea}>
-              <h1 className={styles.titleMain}>Kiểm tra & Gán nhãn Dữ liệu Nha khoa</h1>
+              <h1 className={styles.titleMain}>Hệ thống Thẩm định Lâm sàng ViDent</h1>
               <p className={styles.titleSub}>
-                Đọc câu hỏi, xem lại lịch sử các lần khám và chỉnh sửa câu chữ cho tự nhiên, đúng thực tế
+                Nền tảng đánh giá dữ liệu bệnh án dọc và câu hỏi chuyên khoa Răng Hàm Mặt
               </p>
             </div>
 
@@ -1087,16 +1149,26 @@ export default function LabelDataPage() {
               </div>
 
               <span className={styles.statsBadge}>
-                Tiến độ: {totalAnnotatedInDoctorRange}/100 ca ({completedBatches.length}/10 đợt)
+                Tiến độ: {totalDoctorConfirmedCount}/100 ca ({completedBatches.length}/10 đợt hoàn tất)
               </span>
+
+              {/* Clinical Rules Button */}
+              <button
+                type="button"
+                className={styles.rulesBtn}
+                onClick={() => setShowRulesModal(true)}
+                title="Xem lại 5 nguyên tắc và cam kết thẩm định lâm sàng"
+              >
+                Quy chuẩn thẩm định
+              </button>
 
               <button
                 type="button"
                 className={styles.guideBtn}
                 onClick={() => setShowGuide(true)}
-                title="Xem hướng dẫn cách làm"
+                title="Xem quy trình thao tác lâm sàng"
               >
-                Xem hướng dẫn
+                Quy trình thao tác
               </button>
 
               <button
@@ -1131,15 +1203,6 @@ export default function LabelDataPage() {
                   <polyline points="7 3 7 8 15 8" />
                 </svg>
                 <span>{syncingDrive ? "Đang lưu..." : "Lưu"}</span>
-              </button>
-
-              <button
-                type="button"
-                className={styles.exportBtn}
-                onClick={() => setShowDriveModal(true)}
-                title="Cài đặt kết nối dịch vụ Google Drive Webhook"
-              >
-                Cài đặt Drive
               </button>
             </div>
           </header>
@@ -1207,7 +1270,7 @@ export default function LabelDataPage() {
                       </svg>
                     )}
                     <span>
-                      Đợt {batchNum} ({isCompleted ? "Đã xong" : "10 ca"})
+                      Đợt {batchNum} ({isCompleted ? "Đã lưu" : "10 ca"})
                     </span>
                   </button>
                 );
@@ -1238,6 +1301,23 @@ export default function LabelDataPage() {
                     Mở thư mục Google Drive
                   </a>
                 )}
+                {driveNotice.type === "error" && (
+                  <button
+                    type="button"
+                    onClick={() => setShowDriveModal(true)}
+                    style={{
+                      marginLeft: "1rem",
+                      background: "transparent",
+                      border: "none",
+                      textDecoration: "underline",
+                      cursor: "pointer",
+                      fontWeight: 600,
+                      color: "inherit",
+                    }}
+                  >
+                    Cài đặt Drive
+                  </button>
+                )}
               </div>
               <button
                 type="button"
@@ -1249,7 +1329,7 @@ export default function LabelDataPage() {
             </div>
           )}
 
-          {/* Main Workspace: 3 Columns */}
+          {/* Main Workspace: 3 Columns Focused on Clinical Review */}
           <div className={styles.workspace}>
             {/* Left Column: Cases of the current batch */}
             <section className={styles.sidebar} aria-label="Danh sách ca bệnh trong đợt">
@@ -1276,7 +1356,7 @@ export default function LabelDataPage() {
                     const friendlyFamily =
                       FAMILY_FRIENDLY_NAMES[c.category?.primary_family]?.label ||
                       c.category?.primary_family;
-                    const isAnnotated = Boolean(annotationsMap[c.case_id]);
+                    const isConfirmed = confirmedCaseIds.has(c.case_id);
 
                     return (
                       <button
@@ -1298,7 +1378,7 @@ export default function LabelDataPage() {
                           <span className={styles.familyTag} title={c.category?.primary_family}>
                             {friendlyFamily}
                           </span>
-                          {isAnnotated && (
+                          {isConfirmed && (
                             <span className={[styles.verdictBadge, styles.verdictApproved].join(" ")}>
                               Đã xác nhận
                             </span>
@@ -1320,36 +1400,36 @@ export default function LabelDataPage() {
             {/* Center Column: Query Editor & Dialogue Timeline */}
             <section className={styles.mainContent} aria-label="Nội dung hội thoại">
               {loadingDetail ? (
-                <div className={styles.emptyPlaceholder}>Đang mở ca này...</div>
+                <div className={styles.emptyPlaceholder}>Đang nạp dữ liệu hồ sơ ca bệnh...</div>
               ) : !activeCase ? (
-                <div className={styles.emptyPlaceholder}>Bấm chọn một ca ở cột bên trái để bắt đầu xem</div>
+                <div className={styles.emptyPlaceholder}>Vui lòng chọn một ca bệnh ở cột bên trái để thẩm định</div>
               ) : (
                 <>
                   {/* Question Editor */}
                   <div className={styles.queryCard}>
                     <div className={styles.queryCardHeader}>
                       <h2 className={styles.sectionTitle}>
-                        Ca {allCases.findIndex((c) => c.case_id === activeCase.case_id) + 1} / 500: Câu hỏi của bệnh nhân (Bấm vào để sửa)
+                        Ca {doctorCases.findIndex((c) => c.case_id === activeCase.case_id) + 1} / 100: Câu hỏi lâm sàng của người bệnh
                       </h2>
                       <p className={styles.sectionSubtitle}>
-                        Nếu thấy câu hỏi chưa tự nhiên hoặc lủng củng, bạn bấm thẳng vào ô dưới để sửa lại.
+                        Hiệu chỉnh câu từ bảo đảm phản ánh đúng thuật ngữ nha khoa và ngữ cảnh giao tiếp thực tế
                       </p>
                       <div className={styles.metaRow}>
                         <span className={styles.metaItem}>
                           Mã bệnh nhân: <strong>{activeCase.user_id}</strong>
                         </span>
                         <span className={styles.metaItem}>
-                          Ngày hỏi: <strong>{new Date(activeCase.query_time).toLocaleDateString("vi-VN")}</strong>
+                          Thời điểm hỏi: <strong>{new Date(activeCase.query_time).toLocaleDateString("vi-VN")}</strong>
                         </span>
                         <span className={styles.metaItem}>
-                          Dạng câu hỏi: <strong>{FAMILY_FRIENDLY_NAMES[activeCase.category.primary_family]?.label || activeCase.category.primary_family}</strong>
+                          Phân loại lâm sàng: <strong>{FAMILY_FRIENDLY_NAMES[activeCase.category.primary_family]?.label || activeCase.category.primary_family}</strong>
                         </span>
                       </div>
                     </div>
                     <AutoExpandingTextarea
                       value={editedQuery}
                       onChange={(e) => setEditedQuery(e.target.value)}
-                      placeholder="Nội dung câu hỏi của bệnh nhân..."
+                      placeholder="Nội dung câu hỏi của người bệnh..."
                       className={styles.queryTextarea}
                     />
                   </div>
@@ -1359,10 +1439,10 @@ export default function LabelDataPage() {
                     <div className={styles.timelineHeader}>
                       <div>
                         <h2 className={styles.sectionTitle}>
-                          2. Lịch sử các lần khám trước (Bấm vào từng lần để đọc)
+                          Hồ sơ bệnh án & Diễn tiến các lần khám trước
                         </h2>
                         <p className={styles.sectionSubtitle}>
-                          Mỗi nút tương ứng một lần bệnh nhân đến khám hoặc nhắn tin trước đây. Bấm vào câu bất kỳ để sửa nếu cần.
+                          Đối chiếu lịch sử can thiệp theo thời gian. Nhấp vào từng lần khám để kiểm tra tiền sử và lời dặn chuyên môn.
                         </p>
                       </div>
                       <div className={styles.sessionPills}>
@@ -1384,18 +1464,18 @@ export default function LabelDataPage() {
                                 onClick={() => setActiveSessionIndex(idx)}
                                 title={
                                   hasEvidence
-                                    ? `Lần khám ${s.session_number} (Có chứa thông tin quan trọng)`
+                                    ? `Lần khám ${s.session_number} (Có chứa dữ kiện tiền sử then chốt)`
                                     : `Lần khám ${s.session_number}`
                                 }
                               >
                                 {hasEvidence && <span className={styles.evidenceIndicator} />}
-                                Lần {s.session_number}
+                                Lần khám {s.session_number}
                               </button>
                             );
                           })
                         ) : (
                           <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>
-                            Không có lịch sử các lần khám trước
+                            Ca độc lập, không có hồ sơ khám trước đó
                           </span>
                         )}
                       </div>
@@ -1404,7 +1484,7 @@ export default function LabelDataPage() {
                     <div className={styles.chatArea}>
                       {!currentSession ? (
                         <div className={styles.emptyPlaceholder}>
-                          Ca này là câu hỏi độc lập, không có lịch sử khám trước
+                          Ca bệnh này là câu hỏi độc lập, chưa ghi nhận hồ sơ khám trước đó
                         </div>
                       ) : (
                         <div className={styles.sessionChatContainer}>
@@ -1421,7 +1501,9 @@ export default function LabelDataPage() {
 
                           <div className={styles.turnsList}>
                             {currentSession.turns.map((turn) => {
-                              const isDoctor = turn.speaker?.toLowerCase().includes("doctor") || turn.speaker?.toLowerCase().includes("assistant");
+                              const isDoctor =
+                                turn.speaker?.toLowerCase().includes("doctor") ||
+                                turn.speaker?.toLowerCase().includes("assistant");
                               const currentValue =
                                 editedTurns[turn.turn_id] !== undefined
                                   ? editedTurns[turn.turn_id]
@@ -1446,17 +1528,17 @@ export default function LabelDataPage() {
                                   >
                                     <div className={styles.bubbleHeader}>
                                       <span className={styles.bubbleSpeaker}>
-                                        {isDoctor ? "Bác sĩ" : "Bệnh nhân"}
+                                        {isDoctor ? "Bác sĩ" : "Người bệnh"}
                                       </span>
                                       {isTurnModified && (
-                                        <span className={styles.modifiedTag}>Đã sửa</span>
+                                        <span className={styles.modifiedTag}>Đã hiệu chỉnh</span>
                                       )}
                                     </div>
                                     <AutoExpandingTextarea
                                       value={currentValue}
                                       onChange={(e) => handleTurnChange(turn.turn_id, e.target.value)}
                                       className={styles.bubbleTextarea}
-                                      placeholder="Nội dung trao đổi..."
+                                      placeholder="Nội dung hội thoại..."
                                     />
                                   </div>
                                 </div>
@@ -1471,19 +1553,19 @@ export default function LabelDataPage() {
               )}
             </section>
 
-            {/* Right Column: Factor Inspection & Case Save */}
-            <section className={styles.rightSidebar} aria-label="Thông tin quan trọng và xác nhận">
+            {/* Right Column: Factor Inspection & Clinical Judgment */}
+            <section className={styles.rightSidebar} aria-label="Thông tin tiền sử và biện giải lâm sàng">
               <div className={styles.factorsCard}>
                 <div className={styles.factorsHeader}>
-                  <h2 className={styles.sectionTitle}>Thông tin nha khoa then chốt</h2>
+                  <h2 className={styles.sectionTitle}>Dữ kiện bệnh học & Yếu tố tiền sử</h2>
                   <p className={styles.sectionSubtitle}>
-                    Các dữ kiện tiền sử bệnh nhân cần ghi nhớ để tư vấn chính xác
+                    Các thông tin lâm sàng trọng yếu cần đối chiếu để tránh rủi ro tư vấn sai lệch
                   </p>
                 </div>
 
                 {editedFactors.length === 0 ? (
                   <div className={styles.emptyPlaceholder}>
-                    Ca này hỏi kiến thức phổ thông, không có tiền sử đặc biệt cần lưu ý
+                    Ca này hỏi kiến thức đại cương, không có tiền sử bệnh lý đặc biệt cần đối chiếu
                   </div>
                 ) : (
                   editedFactors.map((factor, idx) => {
@@ -1491,44 +1573,41 @@ export default function LabelDataPage() {
                     return (
                       <div key={factor.factor_id || idx} className={styles.factorItem}>
                         <div className={styles.factorItemHeader}>
-                          <span className={styles.factorNumber}>Thông tin {idx + 1}</span>
+                          <span className={styles.factorNumber}>Dữ kiện {idx + 1}</span>
                           <span className={styles.factorBadge}>
                             {factor.expected_status || "ĐANG HIỆU LỰC"}
                           </span>
                         </div>
 
                         <div className={styles.fieldGroup}>
-                          <label className={styles.fieldLabel}>Tên thông tin:</label>
+                          <label className={styles.fieldLabel}>Tên thông tin lâm sàng:</label>
                           <AutoExpandingTextarea
                             value={factor.description || ""}
                             onChange={(e) => handleFactorChange(idx, "description", e.target.value)}
-                            placeholder="Mô tả thông tin..."
+                            placeholder="Mô tả thông tin lâm sàng..."
                             className={styles.factorTextarea}
                           />
                         </div>
 
                         <div className={styles.fieldGroup}>
-                          <label className={styles.fieldLabel}>Tình trạng / Giá trị:</label>
+                          <label className={styles.fieldLabel}>Tình trạng ghi nhận trong hồ sơ:</label>
                           <input
                             type="text"
                             value={factor.expected_value || ""}
                             onChange={(e) => handleFactorChange(idx, "expected_value", e.target.value)}
-                            placeholder="Ví dụ: Răng số 4 đã nhổ, đang đeo hàm duy trì..."
+                            placeholder="Ví dụ: Đang mang hàm duy trì, răng số 38 đã nhổ..."
                             className={styles.factorInput}
                           />
                         </div>
 
                         <div className={styles.fieldGroup}>
                           <label className={styles.fieldLabel}>
-                            Tại sao thông tin này quan trọng:
+                            Ý nghĩa lâm sàng & Rủi ro nếu bỏ sót:
                           </label>
-                          <span className={styles.fieldHint}>
-                            (Để dặn dò bệnh nhân đúng cách, không gây hại)
-                          </span>
                           <AutoExpandingTextarea
                             value={factor.materiality_rationale || ""}
                             onChange={(e) => handleFactorChange(idx, "materiality_rationale", e.target.value)}
-                            placeholder="Lý do quan trọng..."
+                            placeholder="Căn cứ y khoa để dặn dò đúng cách, tránh biến chứng..."
                             className={styles.factorTextarea}
                           />
                         </div>
@@ -1536,7 +1615,7 @@ export default function LabelDataPage() {
                         {evidenceList.length > 0 && (
                           <div className={styles.factorEvidenceBox}>
                             <span className={styles.factorEvidenceTitle}>
-                              Xem lại tại:
+                              Căn cứ trong hồ sơ:
                             </span>
                             <div className={styles.factorEvidenceList}>
                               {evidenceList.map((loc) => (
@@ -1560,65 +1639,23 @@ export default function LabelDataPage() {
                     );
                   })
                 )}
-
-                {/* Collapsible Advanced Technical Section */}
-                <details className={styles.techDetails}>
-                  <summary className={styles.techSummary}>
-                    Tùy chọn kỹ thuật (Dành cho Kỹ sư AI)
-                  </summary>
-                  <div className={styles.techContent}>
-                    <p style={{ fontSize: "0.7rem", color: "var(--color-text-muted)", margin: 0 }}>
-                      Phần này dành riêng cho kỹ sư AI. Bạn không cần bận tâm phần này.
-                    </p>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem" }}>
-                      <label className={styles.fieldLabelSmall}>Mã sự kiện liên quan:</label>
-                      <input
-                        type="text"
-                        value={editedRelevantEvents}
-                        onChange={(e) => setEditedRelevantEvents(e.target.value)}
-                        placeholder="Mã sự kiện..."
-                        className={styles.memoryEventInput}
-                      />
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem" }}>
-                      <label className={styles.fieldLabelSmall}>Mã sự kiện hết hiệu lực:</label>
-                      <input
-                        type="text"
-                        value={editedStaleEvents}
-                        onChange={(e) => setEditedStaleEvents(e.target.value)}
-                        placeholder="Mã sự kiện hết hạn..."
-                        className={styles.memoryEventInput}
-                      />
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem" }}>
-                      <label className={styles.fieldLabelSmall}>Mã sự kiện cấm dùng:</label>
-                      <input
-                        type="text"
-                        value={editedForbiddenEvents}
-                        onChange={(e) => setEditedForbiddenEvents(e.target.value)}
-                        placeholder="Mã cấm..."
-                        className={styles.memoryEventInput}
-                      />
-                    </div>
-                  </div>
-                </details>
               </div>
 
               {/* Review Save Section */}
               <div className={styles.reviewSection}>
                 <div className={styles.reviewSectionHeader}>
                   <h2 className={styles.sectionTitle}>
-                    3. Ghi chú & Xác nhận
+                    Biện giải chuyên môn & Xác nhận thẩm định
                   </h2>
                   <p className={styles.sectionSubtitle}>
-                    Ghi chú lâm sàng cho ca này rồi bấm nút xác nhận
+                    Nhập nhận xét lâm sàng chi tiết (bắt buộc) nêu rõ cơ sở chấp thuận hoặc lý do hiệu chỉnh
                   </p>
                 </div>
 
                 <textarea
                   value={clinicalNotes}
                   onChange={(e) => setClinicalNotes(e.target.value)}
-                  placeholder="Ghi chú lâm sàng: ví dụ đã sửa câu hỏi cho tự nhiên hơn, dặn dò bệnh nhân tránh nhai thức ăn cứng..."
+                  placeholder="Biện giải chuyên môn: Nêu rõ đánh giá an toàn, tính chính xác của chẩn đoán và căn cứ đối chiếu tiền sử..."
                   className={styles.notesTextarea}
                 />
 
@@ -1627,9 +1664,9 @@ export default function LabelDataPage() {
                   className={styles.saveBtn}
                   disabled={saving}
                   onClick={handleSaveAnnotation}
-                  title="Xác nhận lưu ca bệnh này vào kết quả thẩm định"
+                  title="Xác nhận ca bệnh này và đưa vào tập kết quả thẩm định"
                 >
-                  {saving ? "Đang xác nhận..." : "Xác nhận"}
+                  {saving ? "Đang xác nhận..." : "Xác nhận thẩm định ca này"}
                 </button>
 
                 {saveMessage && (
@@ -1646,19 +1683,19 @@ export default function LabelDataPage() {
             </section>
           </div>
 
-          {/* Guide Modal for Users */}
+          {/* Guide Modal for Operating Process */}
           {showGuide && (
             <div className={styles.guideModalOverlay} onClick={() => setShowGuide(false)}>
               <div className={styles.guideModal} onClick={(e) => e.stopPropagation()}>
                 <div className={styles.guideModalHeader}>
                   <h3 className={styles.guideModalTitle}>
-                    Hướng dẫn cách làm (Rất đơn giản)
+                    Quy trình Thẩm định Lâm sàng Chuẩn mực
                   </h3>
                   <button
                     type="button"
                     className={styles.guideCloseIconBtn}
                     onClick={() => setShowGuide(false)}
-                    title="Đóng cửa sổ này"
+                    title="Đóng cửa sổ hướng dẫn"
                   >
                     Đóng
                   </button>
@@ -1666,36 +1703,36 @@ export default function LabelDataPage() {
 
                 <div className={styles.guideModalBody}>
                   <div className={styles.guideTipBox}>
-                    <strong>Mục đích:</strong> Giúp câu hỏi và lịch sử khám nghe giống người thật nói chuyện, đúng thực tế và an toàn khi tư vấn nha khoa.
+                    <strong>Mục tiêu:</strong> Chuẩn hóa dữ liệu bệnh án dọc để làm chuẩn vàng (Gold Standard) cho AI tư vấn nha khoa, bảo đảm tuyệt đối tính an toàn sinh học và căn cứ y văn.
                   </div>
 
                   <div className={styles.guideStepCard}>
                     <div className={styles.guideStepHeader}>
                       <span className={styles.guideStepNumber}>Bước 1</span>
-                      <span className={styles.guideStepTitle}>Đọc và sửa câu hỏi</span>
+                      <span className={styles.guideStepTitle}>Thẩm định câu hỏi của người bệnh</span>
                     </div>
                     <p className={styles.guideStepDesc}>
-                      Đọc ô <strong>"1. Câu hỏi của bệnh nhân"</strong>. Nếu thấy câu từ bị gượng gạo, lủng củng hoặc sai từ chuyên môn nha khoa, bạn cứ bấm thẳng vào ô đó để sửa lại cho tự nhiên.
+                      Đọc kỹ câu hỏi ở khung giữa. Hiệu chỉnh câu chữ nếu diễn đạt lủng củng, thiếu tự nhiên hoặc dùng sai thuật ngữ giải phẫu, bệnh học Răng Hàm Mặt.
                     </p>
                   </div>
 
                   <div className={styles.guideStepCard}>
                     <div className={styles.guideStepHeader}>
                       <span className={styles.guideStepNumber}>Bước 2</span>
-                      <span className={styles.guideStepTitle}>Xem lại các lần khám trước</span>
+                      <span className={styles.guideStepTitle}>Đối chiếu dòng thời gian các lần khám</span>
                     </div>
                     <p className={styles.guideStepDesc}>
-                      Bấm vào các nút <strong>"Lần khám 1, 2..."</strong> để xem trước đây bệnh nhân đã nói gì. Chỗ nào có nhãn màu cam <strong>"Thông tin quan trọng"</strong> là lời dặn then chốt (ví dụ: đang đeo hàm duy trì gì, có dị ứng gì không). Nếu thấy câu nào cần sửa, bạn cũng có thể bấm vào sửa luôn.
+                      Bấm vào các thẻ <strong>"Lần khám 1, 2..."</strong> để kiểm tra tiền sử bệnh nhân. Chú ý các nhãn chỉ báo dữ kiện quan trọng để nắm bắt các can thiệp đã và đang diễn ra.
                     </p>
                   </div>
 
                   <div className={styles.guideStepCard}>
                     <div className={styles.guideStepHeader}>
                       <span className={styles.guideStepNumber}>Bước 3</span>
-                      <span className={styles.guideStepTitle}>Ghi chú và bấm Xác nhận</span>
+                      <span className={styles.guideStepTitle}>Nhập biện giải lâm sàng & Bấm Xác nhận</span>
                     </div>
                     <p className={styles.guideStepDesc}>
-                      Ở cột bên phải, kiểm tra lại thông tin quan trọng. Nhập ghi chú lâm sàng chi tiết, sau đó bấm nút <strong>"Xác nhận"</strong> cho từng ca.
+                      Ở cột bên phải, nhập nhận xét chuyên khoa tối thiểu 20 ký tự nêu rõ căn cứ y khoa, sau đó bấm nút <strong>"Xác nhận thẩm định ca này"</strong>.
                     </p>
                   </div>
 
@@ -1705,7 +1742,7 @@ export default function LabelDataPage() {
                       <span className={styles.guideStepTitle}>Bấm Lưu đợt để chuyển tiếp</span>
                     </div>
                     <p className={styles.guideStepDesc}>
-                      Khi đã duyệt đủ 10 ca trong đợt, bấm nút <strong>"Lưu"</strong> ở thanh trên cùng để lưu trữ và mở khóa đợt tiếp theo.
+                      Sau khi hoàn tất đủ 10 ca trong đợt, bấm nút <strong>"Lưu"</strong> trên thanh công cụ để hệ thống kiểm tra chất lượng chuyên môn và mở khóa đợt kế tiếp.
                     </p>
                   </div>
                 </div>
@@ -1716,7 +1753,7 @@ export default function LabelDataPage() {
                     className={styles.guideDismissBtn}
                     onClick={() => setShowGuide(false)}
                   >
-                    Tôi đã hiểu và bắt đầu làm
+                    Đã hiểu và tiếp tục công việc
                   </button>
                 </div>
               </div>
@@ -1737,6 +1774,15 @@ export default function LabelDataPage() {
             onClose={() => setShowDoctorModal(false)}
             onSelectDoctor={handleDoctorSelected}
             activeDoctorId={activeDoctor?.id}
+          />
+
+          {/* Clinical Rules & Agreement Modal - Displays right after password */}
+          <ClinicalRulesModal
+            isOpen={showRulesModal}
+            doctorName={pendingDoctor?.name || activeDoctor?.name}
+            canDismiss={Boolean(activeDoctor && !pendingDoctor)}
+            onClose={() => setShowRulesModal(false)}
+            onAccept={handleAcceptRules}
           />
 
           {/* Quality Warning Modal for Superficial Evaluation */}

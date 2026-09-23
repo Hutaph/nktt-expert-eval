@@ -140,18 +140,42 @@ interface CaseDetail {
     state_snapshots: Array<{
       factor_id: string;
       status: string;
-      value: string;
+      value: string | null;
       supporting_event_ids: string[];
+      conflict_event_ids?: string[];
     }>;
     evidence_pass1?: {
       target_groups: string[];
       acceptable_chunks: string[];
+    };
+    evidence_pass2?: {
+      target_groups: string[];
+      acceptable_chunks: string[];
+    };
+    clinical_requirements?: {
+      must_personalize: boolean;
+      must_not_use_events: string[];
+      must_not_diagnose: boolean;
     };
   };
   metadata: {
     language: string;
     checkpoint: string;
     history_bucket: string;
+    paper_coverage_contract?: string;
+    annotation_revision?: string;
+    evidence_routing_status?: string;
+    evidence_curation_required?: boolean;
+    validation_status?: string;
+    unresolved_evidence_topic?: string;
+  };
+  evidence_pass1?: {
+    target_groups: string[];
+    acceptable_chunks: string[];
+  };
+  evidence_pass2?: {
+    target_groups: string[];
+    acceptable_chunks: string[];
   };
 }
 
@@ -1632,6 +1656,22 @@ export default function LabelDataPage() {
                           <span className={styles.familyTag} title={c.category?.primary_family}>
                             {friendlyFamily}
                           </span>
+                          {c.metadata?.evidence_curation_required && (
+                            <span
+                              style={{
+                                fontSize: "0.65rem",
+                                padding: "0.1rem 0.35rem",
+                                borderRadius: "3px",
+                                backgroundColor: "#fff7ed",
+                                color: "#c2410c",
+                                border: "1px solid #fed7aa",
+                                fontWeight: 600,
+                              }}
+                              title={`Chuyên đề mở rộng: ${c.metadata?.unresolved_evidence_topic || "Chuyên sâu"}`}
+                            >
+                              Nguồn riêng
+                            </span>
+                          )}
                           {isConfirmed && (
                             <span className={[styles.verdictBadge, styles.verdictApproved].join(" ")}>
                               Đã xác nhận
@@ -1666,6 +1706,36 @@ export default function LabelDataPage() {
                         <h2 className={styles.sectionTitle}>
                           Ca {doctorCases.findIndex((c) => c.case_id === activeCase.case_id) + 1} / 100: Câu hỏi của người bệnh
                         </h2>
+                        {activeCase.metadata?.checkpoint && (
+                          <span
+                            className={styles.checkpointTag}
+                            title={`Mốc khám: ${activeCase.metadata.checkpoint} - Độ dài tiền sử: ${activeCase.metadata.history_bucket || "N/A"}`}
+                          >
+                            {activeCase.metadata.checkpoint} ({activeCase.metadata.history_bucket || "N/A"})
+                          </span>
+                        )}
+                        {activeCase.metadata?.evidence_curation_required && (
+                          <span
+                            className={styles.curationTag}
+                            title="Ca này thuộc chuyên đề nha khoa chuyên sâu cần bổ sung tài liệu nguồn hoặc chuyên gia thẩm định trực tiếp"
+                          >
+                            <svg
+                              width="11"
+                              height="11"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <circle cx="12" cy="12" r="10" />
+                              <line x1="12" y1="8" x2="12" y2="12" />
+                              <line x1="12" y1="16" x2="12.01" y2="16" />
+                            </svg>
+                            <span>Cần bổ sung nguồn: {activeCase.metadata.unresolved_evidence_topic || "Chuyên sâu"}</span>
+                          </span>
+                        )}
                       </div>
                       <div className={styles.queryActionGroup}>
                         <button

@@ -6,7 +6,8 @@ Interactive web application for clinical experts and licensed dental practitione
 
 - **5-Point Likert Clinical Rubric**: Evaluates model responses across 5 clinical dimensions (Dental Correctness, Evidence Grounding, Personalization, Clinical Restraint, and Clarity & Usefulness).
 - **Interactive Multi-Session Case Viewer**: Seamless navigation across 500 longitudinal cases with user history and provenance inspection.
-- **Client-Side Persistence & Export**: Local storage persistence with one-click JSONL export for offline resilience.
+- **Client-Side Persistence & Export**: Local storage persistence with one-click JSON and JSONL export for offline resilience.
+- **Google Drive Cloud Sync**: Direct cloud synchronization to Google Drive via Google Apps Script Webhook without requiring evaluator Google OAuth logins.
 - **Static CI/CD Deployment**: Fully optimized for Next.js static export and zero-configuration hosting on GitHub Pages.
 
 ## Directory Structure
@@ -14,6 +15,9 @@ Interactive web application for clinical experts and licensed dental practitione
 - `app/`: Next.js 15 application source.
   - `page.tsx`: Main evaluation and review interface.
   - `components/ClinicalLikertEvalView.tsx`: 5-point Likert evaluation component.
+  - `components/DriveSyncModal.tsx`: Google Drive connection modal and configuration dialog.
+  - `lib/driveSync.ts`: Client-side Google Drive sync and webhook dispatch service.
+- `google-drive-sync/`: Ready-to-deploy Google Apps Script (`Code.gs`) and deployment guide (`README.md`).
 - `public/dataset/`: Frozen benchmark datasets and paired comparison cases.
 - `annotations/`: Directory for expert annotation exports.
 - `.github/workflows/deploy.yml`: Automated CI/CD pipeline for GitHub Pages deployment.

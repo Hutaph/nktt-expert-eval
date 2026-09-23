@@ -2,6 +2,12 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import styles from "../ClinicalLikertEval.module.css";
+import DriveSyncModal from "./DriveSyncModal";
+import {
+  getDriveConfig,
+  syncClinicalEvaluationToDrive,
+  DriveConfig,
+} from "../lib/driveSync";
 
 interface PairedSystemResponse {
   system_id: string;
@@ -156,6 +162,16 @@ export default function ClinicalLikertEvalView() {
   const [evaluations, setEvaluations] = useState<Record<string, CaseEvaluationRecord>>({});
   const [showRubricModal, setShowRubricModal] = useState<boolean>(false);
   const [saveStatus, setSaveStatus] = useState<{ text: string; isError: boolean } | null>(null);
+
+  // Google Drive sync state
+  const [showDriveModal, setShowDriveModal] = useState<boolean>(false);
+  const [driveConfig, setDriveConfig] = useState<DriveConfig>(getDriveConfig);
+  const [syncingDrive, setSyncingDrive] = useState<boolean>(false);
+  const [driveSyncNotice, setDriveSyncNotice] = useState<{
+    type: "success" | "error" | "info";
+    text: string;
+    url?: string;
+  } | null>(null);
 
   // Load 200 paired cases from dataset
   useEffect(() => {
@@ -335,6 +351,17 @@ export default function ClinicalLikertEvalView() {
       if (typeof window !== "undefined") {
         const storageKey = `nktt_expert_likert_${selectedDoctorId}`;
         localStorage.setItem(storageKey, JSON.stringify(updated));
+
+        // Tự động đồng bộ lên Google Drive nếu đã bật tùy chọn
+        const cfg = getDriveConfig();
+        if (cfg.autoSync && cfg.webhookUrl) {
+          const docName = DOCTOR_PRESETS.find((d) => d.id === selectedDoctorId)?.name || selectedDoctorId;
+          syncClinicalEvaluationToDrive(selectedDoctorId, docName, updated).then((res) => {
+            if (res.ok) {
+              setDriveConfig(getDriveConfig());
+            }
+          });
+        }
       }
 
       return updated;
@@ -398,6 +425,43 @@ export default function ClinicalLikertEvalView() {
     URL.revokeObjectURL(url);
   };
 
+  // Đồng bộ toàn bộ dữ liệu đánh giá lên Google Drive
+  const handleSyncToDrive = async () => {
+    const config = getDriveConfig();
+    if (!config.webhookUrl) {
+      setShowDriveModal(true);
+      return;
+    }
+
+    const list = Object.values(evaluations);
+    if (list.length === 0) {
+      alert("Chưa có dữ liệu đánh giá nào để lưu lên Google Drive.");
+      return;
+    }
+
+    setSyncingDrive(true);
+    setDriveSyncNotice({ type: "info", text: "Đang tải dữ liệu đánh giá lên Google Drive..." });
+
+    const currentDoctorName = DOCTOR_PRESETS.find((d) => d.id === selectedDoctorId)?.name || selectedDoctorId;
+    const result = await syncClinicalEvaluationToDrive(selectedDoctorId, currentDoctorName, evaluations);
+
+    setSyncingDrive(false);
+    if (result.ok) {
+      setDriveConfig(getDriveConfig());
+      setDriveSyncNotice({
+        type: "success",
+        text: `Đã lưu thành công dữ liệu lên Google Drive (Thư mục: ${result.folderName || "NKTT_Expert_Evaluations"}).`,
+        url: result.folderUrl,
+      });
+      setTimeout(() => setDriveSyncNotice(null), 8000);
+    } else {
+      setDriveSyncNotice({
+        type: "error",
+        text: result.error || "Không thể đồng bộ lên Google Drive.",
+      });
+    }
+  };
+
   // Calculate statistics
   const currentCaseIndex = pairedCases.findIndex((c) => c.case_id === selectedCaseId);
   const totalCasesCount = pairedCases.length;
@@ -450,8 +514,58 @@ export default function ClinicalLikertEvalView() {
           >
             Xuất JSONL
           </button>
+          <button
+            type="button"
+            className={styles.actionButtonDrive}
+            onClick={handleSyncToDrive}
+            disabled={syncingDrive}
+            title="Lưu toàn bộ kết quả thẩm định lên Google Drive"
+          >
+            {syncingDrive ? "Đang lưu..." : "Lưu lên Google Drive"}
+          </button>
+          <button
+            type="button"
+            className={styles.actionButtonOutline}
+            onClick={() => setShowDriveModal(true)}
+            title="Cài đặt kết nối dịch vụ Google Drive"
+          >
+            Cài đặt Drive
+          </button>
         </div>
       </header>
+
+      {driveSyncNotice && (
+        <div
+          className={
+            driveSyncNotice.type === "success"
+              ? styles.driveBannerSuccess
+              : driveSyncNotice.type === "error"
+              ? styles.driveBannerError
+              : styles.driveBannerInfo
+          }
+        >
+          <div>
+            <span>{driveSyncNotice.text}</span>
+            {driveSyncNotice.url && (
+              <a
+                href={driveSyncNotice.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.driveLink}
+              >
+                Mở thư mục Google Drive
+              </a>
+            )}
+          </div>
+          <button
+            type="button"
+            className={styles.driveDismissBtn}
+            onClick={() => setDriveSyncNotice(null)}
+          >
+            Đóng
+          </button>
+        </div>
+      )}
 
       {/* Main Workspace Area */}
       <div className={styles.mainContent}>
@@ -864,6 +978,11 @@ export default function ClinicalLikertEvalView() {
           </div>
         </div>
       )}
+      <DriveSyncModal
+        isOpen={showDriveModal}
+        onClose={() => setShowDriveModal(false)}
+        onConfigSaved={(cfg) => setDriveConfig(cfg)}
+      />
     </div>
   );
 }

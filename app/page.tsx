@@ -3,6 +3,12 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import styles from "./LabelData.module.css";
 import ClinicalLikertEvalView from "./components/ClinicalLikertEvalView";
+import DriveSyncModal from "./components/DriveSyncModal";
+import {
+  getDriveConfig,
+  syncExpertAnnotationsToDrive,
+  DriveConfig,
+} from "./lib/driveSync";
 
 interface AutoExpandingTextareaProps {
   value: string;
@@ -253,6 +259,16 @@ export default function LabelDataPage() {
   const [annotationsMap, setAnnotationsMap] = useState<Record<string, ExpertAnnotationRecord>>({});
 
   const [showGuide, setShowGuide] = useState<boolean>(false);
+
+  // Google Drive state
+  const [showDriveModal, setShowDriveModal] = useState<boolean>(false);
+  const [driveConfig, setDriveConfig] = useState<DriveConfig>(getDriveConfig);
+  const [syncingDrive, setSyncingDrive] = useState<boolean>(false);
+  const [driveNotice, setDriveNotice] = useState<{
+    type: "success" | "error" | "info";
+    text: string;
+    url?: string;
+  } | null>(null);
 
   // Load stored annotations on mount, merge with default 500 entries
   useEffect(() => {
@@ -508,6 +524,42 @@ export default function LabelDataPage() {
     URL.revokeObjectURL(url);
   };
 
+  const handleSyncAnnotationsToDrive = async () => {
+    const config = getDriveConfig();
+    if (!config.webhookUrl) {
+      setShowDriveModal(true);
+      return;
+    }
+
+    const stored = getStoredAnnotations();
+    const values = Object.values(stored);
+    if (values.length === 0) {
+      alert("Chưa có ca bệnh nào được lưu xác nhận để đồng bộ lên Google Drive.");
+      return;
+    }
+
+    setSyncingDrive(true);
+    setDriveNotice({ type: "info", text: "Đang tải dữ liệu gán nhãn lên Google Drive..." });
+
+    const result = await syncExpertAnnotationsToDrive(annotator, stored);
+    setSyncingDrive(false);
+
+    if (result.ok) {
+      setDriveConfig(getDriveConfig());
+      setDriveNotice({
+        type: "success",
+        text: `Đã lưu thành công dữ liệu lên Google Drive (Thư mục: ${result.folderName || "NKTT_Expert_Evaluations"}).`,
+        url: result.folderUrl,
+      });
+      setTimeout(() => setDriveNotice(null), 8000);
+    } else {
+      setDriveNotice({
+        type: "error",
+        text: result.error || "Không thể đồng bộ lên Google Drive.",
+      });
+    }
+  };
+
   const handleTurnChange = (turnId: string, text: string) => {
     setEditedTurns((prev) => ({
       ...prev,
@@ -740,6 +792,23 @@ export default function LabelDataPage() {
           <button type="button" className={styles.exportBtn} onClick={handleExportAnnotations}>
             Tải file kết quả (JSONL)
           </button>
+          <button
+            type="button"
+            className={styles.driveBtn}
+            onClick={handleSyncAnnotationsToDrive}
+            disabled={syncingDrive}
+            title="Lưu toàn bộ dữ liệu gán nhãn lên Google Drive"
+          >
+            {syncingDrive ? "Đang lưu..." : "Lưu lên Google Drive"}
+          </button>
+          <button
+            type="button"
+            className={styles.exportBtn}
+            onClick={() => setShowDriveModal(true)}
+            title="Cài đặt kết nối dịch vụ Google Drive"
+          >
+            Cài đặt Drive
+          </button>
           <div className={styles.annotatorBadge}>
             <label className={styles.annotatorLabel}>Người thẩm định:</label>
             <input
@@ -752,6 +821,39 @@ export default function LabelDataPage() {
           </div>
         </div>
       </header>
+
+      {driveNotice && (
+        <div
+          className={
+            driveNotice.type === "success"
+              ? styles.driveNoticeSuccess
+              : driveNotice.type === "error"
+              ? styles.driveNoticeError
+              : styles.driveNoticeInfo
+          }
+        >
+          <div>
+            <span>{driveNotice.text}</span>
+            {driveNotice.url && (
+              <a
+                href={driveNotice.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.driveNoticeLink}
+              >
+                Mở thư mục Google Drive
+              </a>
+            )}
+          </div>
+          <button
+            type="button"
+            className={styles.driveNoticeClose}
+            onClick={() => setDriveNotice(null)}
+          >
+            Đóng
+          </button>
+        </div>
+      )}
 
       {/* Main Workspace: 3 Columns */}
       <div className={styles.workspace}>
@@ -1226,6 +1328,11 @@ export default function LabelDataPage() {
           </div>
         </div>
       )}
+      <DriveSyncModal
+        isOpen={showDriveModal}
+        onClose={() => setShowDriveModal(false)}
+        onConfigSaved={(cfg) => setDriveConfig(cfg)}
+      />
         </>
       )}
     </div>

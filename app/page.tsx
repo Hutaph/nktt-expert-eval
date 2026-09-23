@@ -166,7 +166,7 @@ interface ExpertAnnotationRecord {
   updated_at: string;
 }
 
-const STORAGE_KEY = "nktt_expert_annotations_v1";
+const STORAGE_KEY = "nktt_expert_annotations_v3";
 
 function getAssetBase(): string {
   if (typeof window === "undefined") return "";
@@ -1405,9 +1405,6 @@ export default function LabelDataPage() {
                       <h2 className={styles.sectionTitle}>
                         Ca {doctorCases.findIndex((c) => c.case_id === activeCase.case_id) + 1} / 100: Câu hỏi của người bệnh
                       </h2>
-                      <p className={styles.sectionSubtitle}>
-                        Hiệu chỉnh câu từ bảo đảm phản ánh đúng thuật ngữ nha khoa và ngữ cảnh giao tiếp thực tế
-                      </p>
                     </div>
                     <AutoExpandingTextarea
                       value={editedQuery}
@@ -1529,93 +1526,8 @@ export default function LabelDataPage() {
               )}
             </section>
 
-            {/* Right Column: Factor Inspection & Clinical Judgment */}
-            <section className={styles.rightSidebar} aria-label="Thông tin tiền sử và biện giải lâm sàng">
-              <div className={styles.factorsCard}>
-                <div className={styles.factorsHeader}>
-                  <h2 className={styles.sectionTitle}>Dữ kiện bệnh học & Yếu tố tiền sử</h2>
-                  <p className={styles.sectionSubtitle}>
-                    Các thông tin lâm sàng trọng yếu cần đối chiếu để tránh rủi ro tư vấn sai lệch
-                  </p>
-                </div>
-
-                {editedFactors.length === 0 ? (
-                  <div className={styles.emptyPlaceholder}>
-                    Ca này hỏi kiến thức đại cương, không có tiền sử bệnh lý đặc biệt cần đối chiếu
-                  </div>
-                ) : (
-                  editedFactors.map((factor, idx) => {
-                    const evidenceList = getEvidenceSessionListForFactor(factor.factor_id);
-                    return (
-                      <div key={factor.factor_id || idx} className={styles.factorItem}>
-                        <div className={styles.factorItemHeader}>
-                          <span className={styles.factorNumber}>Dữ kiện {idx + 1}</span>
-                          <span className={styles.factorBadge}>
-                            {STATUS_FRIENDLY_NAMES[factor.expected_status] || factor.expected_status || "ĐÃ XÁC ĐỊNH"}
-                          </span>
-                        </div>
-
-                        <div className={styles.fieldGroup}>
-                          <label className={styles.fieldLabel}>Tên thông tin lâm sàng:</label>
-                          <AutoExpandingTextarea
-                            value={factor.description || ""}
-                            onChange={(e) => handleFactorChange(idx, "description", e.target.value)}
-                            placeholder="Mô tả thông tin lâm sàng..."
-                            className={styles.factorTextarea}
-                          />
-                        </div>
-
-                        <div className={styles.fieldGroup}>
-                          <label className={styles.fieldLabel}>Tình trạng ghi nhận trong hồ sơ:</label>
-                          <input
-                            type="text"
-                            value={factor.expected_value || ""}
-                            onChange={(e) => handleFactorChange(idx, "expected_value", e.target.value)}
-                            placeholder="Ví dụ: Đang mang hàm duy trì, răng số 38 đã nhổ..."
-                            className={styles.factorInput}
-                          />
-                        </div>
-
-                        <div className={styles.fieldGroup}>
-                          <label className={styles.fieldLabel}>
-                            Ý nghĩa lâm sàng & Rủi ro nếu bỏ sót:
-                          </label>
-                          <AutoExpandingTextarea
-                            value={factor.materiality_rationale || ""}
-                            onChange={(e) => handleFactorChange(idx, "materiality_rationale", e.target.value)}
-                            placeholder="Căn cứ y khoa để dặn dò đúng cách, tránh biến chứng..."
-                            className={styles.factorTextarea}
-                          />
-                        </div>
-
-                        {evidenceList.length > 0 && (
-                          <div className={styles.factorEvidenceBox}>
-                            <span className={styles.factorEvidenceTitle}>
-                              Căn cứ trong hồ sơ:
-                            </span>
-                            <div className={styles.factorEvidenceList}>
-                              {evidenceList.map((loc) => (
-                                <button
-                                  key={loc.sessionNumber}
-                                  type="button"
-                                  className={styles.evidenceSessionTag}
-                                  onClick={() => setActiveSessionIndex(loc.sessionIndex)}
-                                  title={`Xem lại Lần khám ${loc.sessionNumber}`}
-                                >
-                                  Lần khám {loc.sessionNumber}{" "}
-                                  {loc.turnIds.length > 0
-                                    ? `(${loc.turnIds.map((t) => t.replace(/.*_/, "")).join(", ")})`
-                                    : ""}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })
-                )}
-              </div>
+            {/* Right Column: Clinical Judgment */}
+            <section className={styles.rightSidebar} aria-label="Biện giải lâm sàng và xác nhận">
 
               {/* Review Save Section */}
               <div className={styles.reviewSection}>

@@ -1319,4 +1319,318 @@
   border-color: var(--color-primary);
   color: var(--color-primary);
 }
+
+/* Metadata Items */
+.metaItem {
+  font-size: 0.775rem;
+  color: var(--color-text-muted);
+  background-color: var(--color-surface-muted);
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.metaItem strong {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+/* Timeline Card & Session Navigation */
+.timelineCard {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  margin-top: 0.85rem;
+}
+
+.timelineHeader {
+  padding: 0.85rem 1.15rem;
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.sessionPills {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  overflow-x: auto;
+  padding-bottom: 0.35rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-strong) transparent;
+}
+
+.sessionPills::-webkit-scrollbar {
+  height: 4px;
+}
+
+.sessionPills::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 4px;
+}
+
+.sessionPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.775rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background-color: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--motion-fast);
+}
+
+.sessionPill:hover {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  background-color: rgba(20, 107, 104, 0.05);
+}
+
+.sessionPillActive {
+  color: #ffffff !important;
+  background-color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 2px 4px rgba(20, 107, 104, 0.2);
+}
+
+.sessionPillEvidence {
+  border-color: #f59e0b;
+}
+
+.evidenceIndicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #f59e0b;
+  display: inline-block;
+}
+
+.sessionPillActive .evidenceIndicator {
+  background-color: #fef08a;
+}
+
+/* Chat Area & Dialogue Bubbles */
+.chatArea {
+  padding: 1rem 1.15rem;
+  background-color: #f8fafc;
+  min-height: 280px;
+  max-height: 520px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.sessionChatContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.sessionChatHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.4rem 0.75rem;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.turnsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.chatBubbleWrapper {
+  display: flex;
+  width: 100%;
+}
+
+.bubbleWrapperLeft {
+  justify-content: flex-start;
+}
+
+.bubbleWrapperRight {
+  justify-content: flex-end;
+}
+
+.chatBubble {
+  max-width: 85%;
+  min-width: 320px;
+  border-radius: 12px;
+  padding: 0.75rem 0.95rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  border: 1px solid transparent;
+}
+
+.bubblePatient {
+  background-color: #ffffff;
+  border-color: #e2e8f0;
+  border-top-left-radius: 2px;
+}
+
+.bubbleDoctor {
+  background-color: #eaf5f4;
+  border-color: #bce1dd;
+  border-top-right-radius: 2px;
+}
+
+.bubbleHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.2rem;
+}
+
+.bubbleSpeaker {
+  font-size: 0.725rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.bubblePatient .bubbleSpeaker {
+  color: #475569;
+}
+
+.bubbleDoctor .bubbleSpeaker {
+  color: #146b68;
+}
+
+.modifiedTag {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #b45309;
+  background-color: #fef3c7;
+  padding: 0.1rem 0.4rem;
+  border-radius: var(--radius-pill);
+}
+
+.bubbleTextarea {
+  width: 100%;
+  min-width: 100%;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: #1e293b;
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  padding: 0.2rem;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.bubbleTextarea:focus {
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 4px;
+}
+
+/* Right Sidebar & Clinical Factor Cards */
+.rightSidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.factorsCard {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 1rem 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.factorsHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 0.65rem;
+}
+
+.factorItem {
+  background-color: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.factorItemHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.factorNumber {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.factorBadge {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #0369a1;
+  background-color: #e0f2fe;
+  border: 1px solid #bae6fd;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-pill);
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.factorInput {
+  width: 100%;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.8rem;
+  color: var(--color-text);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  outline: none;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.factorInput:focus {
+  border-color: var(--color-primary);
+}
+
 

@@ -63,6 +63,7 @@ function AutoExpandingTextarea({
       readOnly={readOnly}
       rows={1}
       className={className}
+      style={{ overflow: "hidden" }}
     />
   );
 }

@@ -262,80 +262,23 @@ interface ClinicalNotesQuality {
 
 function checkClinicalNotesQuality(
   notes: string,
-  currentCaseId: string,
-  batchCases: CaseDetail[],
-  annotationsMap: Record<string, ExpertAnnotationRecord>,
-  isBigQueryEdit: boolean
+  _currentCaseId: string,
+  _batchCases: CaseDetail[],
+  _annotationsMap: Record<string, ExpertAnnotationRecord>,
+  _isBigQueryEdit: boolean
 ): ClinicalNotesQuality {
   const trimmed = notes.trim();
-  const errors: string[] = [];
   const charCount = trimmed.length;
 
-  // 0. Nghiêm cấm nhận xét mẫu khuôn sáo
-  if (isFakeDefaultNote(trimmed)) {
-    errors.push("Bác sĩ không được dùng câu mẫu mặc định hoặc sao chép khuôn sáo. Vui lòng tự tay nhập nhận xét chuyên môn thực tế.");
-  }
-
-  if (charCount < 20) {
-    errors.push("Biện giải lâm sàng phải có tối thiểu 20 ký tự.");
-  }
-
-  // 1. Check character repetition
-  const hasSpamRepeat = /(.)\1{4,}/i.test(trimmed);
-  if (hasSpamRepeat) {
-    errors.push("Phát hiện ký tự lặp vô nghĩa. Vui lòng nhập nhận xét thực tế.");
-  }
-
-  // 2. Word count & diversity
-  const rawWords = trimmed.toLowerCase().split(/\s+/).filter(Boolean);
-  const wordCount = rawWords.length;
-  const uniqueWordsSet = new Set(rawWords);
-  const uniqueWords = uniqueWordsSet.size;
-
-  if (charCount >= 20 && wordCount < 5) {
-    errors.push("Biện giải phải có tối thiểu 5 từ diễn đạt câu hoàn chỉnh.");
-  }
-  if (wordCount >= 5 && uniqueWords < 4) {
-    errors.push("Từ ngữ nhận xét bị lặp lại quá nhiều. Vui lòng nêu rõ lý do lâm sàng.");
-  }
-
-  // 3. Vietnamese accent check
-  const hasAccent = /[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i.test(trimmed);
-  if (charCount >= 10 && !hasAccent) {
-    errors.push("Nhận xét bắt buộc phải gõ Tiếng Việt có dấu đầy đủ, đúng ngữ pháp y văn.");
-  }
-
-  // 4. Domain keyword check
-  const lower = trimmed.toLowerCase();
-  const hasDomainKeywords = CLINICAL_DOMAIN_KEYWORDS.some((kw) => lower.includes(kw));
-  if (charCount >= 20 && !hasDomainKeywords) {
-    errors.push(
-      "Nhận xét phải chứa thuật ngữ chuyên ngành Răng Hàm Mặt hoặc căn cứ y khoa (ví dụ: răng, nướu, tiền sử, lâm sàng, phác đồ, an toàn, đối chứng...)."
-    );
-  }
-
-  // 5. Cross-case similarity in current batch (Non-blocking: control questions may have valid identical notes)
-  let duplicateWithCaseId: string | undefined;
-  let duplicateSimilarity: number | undefined;
-
-  // 6. If big query edit (>50% change), require explanation in notes
-  if (isBigQueryEdit && charCount < 35) {
-    errors.push(
-      "Vì câu hỏi có sự thay đổi lớn (>50%), Bác sĩ cần ghi chú chi tiết tối thiểu 35 ký tự giải trình lý do chuyên môn."
-    );
-  }
-
   return {
-    isValid: errors.length === 0,
-    errors,
+    isValid: true,
+    errors: [],
     charCount,
-    wordCount,
-    uniqueWords,
-    hasAccent,
-    hasDomainKeywords,
-    hasSpamRepeat,
-    duplicateWithCaseId,
-    duplicateSimilarity,
+    wordCount: trimmed ? trimmed.split(/\s+/).filter(Boolean).length : 0,
+    uniqueWords: trimmed ? new Set(trimmed.toLowerCase().split(/\s+/).filter(Boolean)).size : 0,
+    hasAccent: true,
+    hasDomainKeywords: true,
+    hasSpamRepeat: false,
   };
 }
 
@@ -624,7 +567,7 @@ export default function LabelDataPage() {
               const val = localStorage.getItem(k);
               if (val) {
                 const parsed = JSON.parse(val);
-                if (isFakeDefaultNote(parsed?.clinicalNotes) || !parsed?.clinicalNotes?.trim()) {
+                if (isFakeDefaultNote(parsed?.clinicalNotes)) {
                   keysToRemove.push(k);
                 }
               }
@@ -928,7 +871,7 @@ export default function LabelDataPage() {
             const rawDraft = localStorage.getItem(draftKey);
             if (rawDraft) {
               const parsed = JSON.parse(rawDraft);
-              if (parsed && !isFakeDefaultNote(parsed.clinicalNotes) && parsed.clinicalNotes?.trim()) {
+              if (parsed && !isFakeDefaultNote(parsed.clinicalNotes)) {
                 draftData = parsed;
               } else {
                 // Xoa bo ban nhap bi nhiem cau mau hoac khong hop le
@@ -1126,20 +1069,6 @@ export default function LabelDataPage() {
     }, 50);
   }, [timeline]);
 
-  const handleNextSession = useCallback(() => {
-    if (!timeline?.sessions || visibleSessions.length === 0) return;
-    const currentSess = timeline.sessions[activeSessionIndex];
-    if (!currentSess) return;
-    const currentVisibleIdx = visibleSessions.findIndex((s) => s.session_id === currentSess.session_id);
-    if (currentVisibleIdx >= 0 && currentVisibleIdx < visibleSessions.length - 1) {
-      const nextSess = visibleSessions[currentVisibleIdx + 1];
-      const actualIdx = timeline.sessions.findIndex((s) => s.session_id === nextSess.session_id);
-      if (actualIdx >= 0) {
-        handleSelectSession(actualIdx);
-      }
-    }
-  }, [timeline, visibleSessions, activeSessionIndex, handleSelectSession]);
-
   // Current case index calculations for seamless navigation
   const currentCaseIndexInBatch = useMemo(() => {
     return batchCases.findIndex((c) => c.case_id === selectedCaseId);
@@ -1198,7 +1127,7 @@ export default function LabelDataPage() {
             const rawDraft = localStorage.getItem(draftKey);
             if (rawDraft) {
               const parsed = JSON.parse(rawDraft);
-              if (parsed && !isFakeDefaultNote(parsed.clinicalNotes) && parsed.clinicalNotes?.trim()) {
+              if (parsed && !isFakeDefaultNote(parsed.clinicalNotes)) {
                 draftData = parsed;
               } else {
                 localStorage.removeItem(draftKey);
@@ -1357,24 +1286,6 @@ export default function LabelDataPage() {
 
   const handleConfirmAndNextCase = () => {
     if (!activeCase || !activeDoctor) return;
-
-    if (!clinicalNotes.trim()) {
-      const msg = "Bác sĩ vui lòng nhập nhận xét chuyên môn hoặc lý do hiệu chỉnh (tối thiểu 20 ký tự).";
-      setSaveMessage({
-        text: msg,
-        isError: true,
-      });
-      alert(msg);
-      return;
-    } else if (!notesQuality.isValid) {
-      const msg = notesQuality.errors[0] || "Nhận xét chuyên môn chưa đạt chuẩn chất lượng tối thiểu.";
-      setSaveMessage({
-        text: msg,
-        isError: true,
-      });
-      alert(msg);
-      return;
-    }
 
     const success = handleSaveAnnotation();
     if (success) {
@@ -1558,15 +1469,6 @@ export default function LabelDataPage() {
   const handleSaveAnnotation = (): boolean => {
     if (!activeCase || !activeDoctor) return false;
 
-    // Check notes quality
-    if (!notesQuality.isValid) {
-      setSaveMessage({
-        text: notesQuality.errors[0] || "Biện giải lâm sàng chưa đạt chuẩn chất lượng.",
-        isError: true,
-      });
-      return false;
-    }
-
     setSaving(true);
     setSaveMessage(null);
 
@@ -1592,10 +1494,15 @@ export default function LabelDataPage() {
       }
     }
 
+    const hasTurnEdits = editedTurnsList.length > 0;
+    const hasQueryEdit = Boolean(activeCase.current_query && editedQuery.trim() !== activeCase.current_query.trim());
+    const resolvedVerdict: "APPROVED" | "EDITED" | "FLAGGED" = (hasTurnEdits || hasQueryEdit) ? "EDITED" : "APPROVED";
+    setCurrentVerdict(resolvedVerdict);
+
     const record: ExpertAnnotationRecord = {
       case_id: activeCase.case_id,
       user_id: activeCase.user_id,
-      verdict: currentVerdict,
+      verdict: resolvedVerdict,
       clinical_notes: clinicalNotes.trim(),
       original_query: activeCase.current_query,
       edited_query: editedQuery.trim() !== activeCase.current_query.trim() ? editedQuery.trim() : undefined,
@@ -1681,47 +1588,21 @@ export default function LabelDataPage() {
   const handleSaveBatch = () => {
     if (!activeDoctor || batchCases.length === 0) return;
 
-    // 1. If currently open case has notes and passes quality, commit it
-    if (notesQuality.isValid && canConfirmCase) {
+    // 1. Commit ca hiện tại nếu đang mở
+    if (activeCase) {
       handleSaveAnnotation();
     }
 
-    // 2. Strict check: All 10 cases in current batch must be explicitly confirmed by doctor
+    // 2. Kiểm tra tất cả 10 ca trong gói đã được bác sĩ bấm xác nhận
     const unconfirmed = batchCases.filter((c) => !confirmedCaseIds.has(c.case_id));
     if (unconfirmed.length > 0) {
       alert(
-        `Gói ${currentBatchIndex} còn ${unconfirmed.length}/10 ca chưa được Bác sĩ bấm nút "Xác nhận thẩm định ca này" (ví dụ ca: ${unconfirmed[0].case_id}).\n\nBác sĩ vui lòng đọc hồ sơ, nhập nhận xét chuyên môn và bấm "Xác nhận thẩm định ca này" cho đủ cả 10 ca trước khi Lưu gói.`
+        `Gói ${currentBatchIndex} còn ${unconfirmed.length}/10 ca chưa được Bác sĩ bấm nút xác nhận (ví dụ ca: ${unconfirmed[0].case_id}).\n\nBác sĩ vui lòng rà soát hồ sơ và bấm nút xác nhận cho đủ cả 10 ca trước khi Lưu gói.`
       );
       return;
     }
 
-    // 3. Strict superficial evaluation detection using checkClinicalNotesQuality
-    const findings: string[] = [];
-    batchCases.forEach((c) => {
-      const rec = annotationsMap[c.case_id];
-      const note = rec?.clinical_notes?.trim() || "";
-      if (!note) {
-        findings.push(`Ca ${c.case_id}: Hoàn toàn chưa có nhận xét chuyên môn cụ thể.`);
-        return;
-      }
-      const isBigEdit = Boolean(
-        rec.edited_query &&
-        rec.original_query &&
-        calculateQueryChangePercent(rec.original_query, rec.edited_query) > 50
-      );
-      const quality = checkClinicalNotesQuality(note, c.case_id, batchCases, annotationsMap, isBigEdit);
-      if (!quality.isValid) {
-        findings.push(`Ca ${c.case_id}: ${quality.errors[0]}`);
-      }
-    });
-
-    if (findings.length > 0) {
-      setQualityFindings(findings);
-      setShowQualityWarning(true);
-      return;
-    }
-
-    // Passed quality check -> proceed to final save and unlock
+    // Đã xác nhận đủ 10 ca -> thực hiện lưu và mở khóa gói tiếp theo
     executeBatchSaveAndUnlock();
   };
 
@@ -2572,45 +2453,6 @@ export default function LabelDataPage() {
                               );
                             })}
                           </div>
-
-                          {/* Seamless Session Stepper Footer */}
-                          {visibleSessions.length > 1 && (
-                            <div className={styles.sessionFooterAction} style={{ marginTop: "0.85rem", padding: "0.6rem 0.85rem" }}>
-                              <div className={styles.sessionFooterInfo}>
-                                <span>
-                                  Lần {currentSession.session_number} / {visibleSessions.length} lần khám của ca này (Đã xem: {inspectedCount}/{visibleSessions.length})
-                                </span>
-                              </div>
-                              <div className={styles.sessionFooterBtns}>
-                                {(() => {
-                                  const currentVisibleIdx = visibleSessions.findIndex(
-                                    (s) => s.session_id === currentSession.session_id
-                                  );
-                                  const hasNextSess =
-                                    currentVisibleIdx >= 0 && currentVisibleIdx < visibleSessions.length - 1;
-                                  const nextSessNum = hasNextSess
-                                    ? visibleSessions[currentVisibleIdx + 1]?.session_number
-                                    : null;
-
-                                  if (hasNextSess && nextSessNum !== null) {
-                                    return (
-                                      <button
-                                        type="button"
-                                        className={styles.sessionNextConfirmBtn}
-                                        onClick={handleNextSession}
-                                        title={`Chuyển tiếp sang xem Lần ${nextSessNum}`}
-                                        style={{ padding: "0.35rem 0.85rem", fontSize: "0.75rem", borderRadius: "6px" }}
-                                      >
-                                        <span>Xem tiếp Lần {nextSessNum} &gt;</span>
-                                      </button>
-                                    );
-                                  }
-
-                                  return null;
-                                })()}
-                              </div>
-                            </div>
-                          )}
                         </div>
                       )}
                     </div>
@@ -2649,7 +2491,7 @@ export default function LabelDataPage() {
                     )}
                   </div>
                   <p className={styles.sectionSubtitle}>
-                    Chọn kết luận và ghi chú điểm hiệu chỉnh (nếu có)
+                    Ghi chú điểm lưu ý lâm sàng (nếu có) và xác nhận ca
                   </p>
                 </div>
 
@@ -2663,75 +2505,11 @@ export default function LabelDataPage() {
                     justifyContent: "space-between",
                   }}
                 >
-                  {/* Mục 1: Kết luận thẩm định */}
-                  <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem", flexShrink: 0 }}>
-                    <div className={styles.checklistTitle}>1. Kết luận thẩm định:</div>
-                    <div className={styles.verdictButtonGroup}>
-                      <button
-                        type="button"
-                        className={[
-                          styles.verdictBtn,
-                          currentVerdict === "APPROVED" ? styles.verdictBtnActiveApproved : "",
-                        ].filter(Boolean).join(" ")}
-                        onClick={() => handleSelectVerdict("APPROVED")}
-                        title="Câu hỏi và tư vấn đạt chuẩn y khoa"
-                      >
-                        Đạt chuẩn lâm sàng
-                      </button>
-                      <button
-                        type="button"
-                        className={[
-                          styles.verdictBtn,
-                          currentVerdict === "EDITED" ? styles.verdictBtnActiveNeedsRevision : "",
-                        ].filter(Boolean).join(" ")}
-                        onClick={() => handleSelectVerdict("EDITED")}
-                        title="Đã trau chuốt và chuẩn hóa lại câu từ"
-                      >
-                        Hiệu chỉnh câu từ
-                      </button>
-                      <button
-                        type="button"
-                        className={[
-                          styles.verdictBtn,
-                          currentVerdict === "FLAGGED" ? styles.verdictBtnActiveRejected : "",
-                        ].filter(Boolean).join(" ")}
-                        onClick={() => handleSelectVerdict("FLAGGED")}
-                        title="Có điểm cần lưu ý hoặc mâu thuẫn bệnh lý"
-                      >
-                        Cần lưu ý thêm
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Mục 2: Nhận xét chuyên môn & Hướng dẫn quy tắc */}
+                  {/* Ghi chú bổ sung (tùy chọn) */}
                   <div className={styles.textareaWrapper}>
                     <div className={styles.bubbleHeaderRow}>
-                      <div className={styles.checklistTitle}>2. Nhận xét & Lý do hiệu chỉnh:</div>
+                      <div className={styles.checklistTitle}>Ghi chú bổ sung (tùy chọn):</div>
                       <div className={styles.bubbleGroup}>
-                        <button
-                          type="button"
-                          className={[
-                            styles.bubbleTag,
-                            styles.bubbleTagRules,
-                            activeBubble === "RULES" ? styles.bubbleTagActive : "",
-                          ].filter(Boolean).join(" ")}
-                          onClick={() => handleToggleBubble("RULES")}
-                          title="Xem quy tắc hiệu chỉnh câu hỏi và câu trả lời"
-                        >
-                          Quy tắc
-                        </button>
-                        <button
-                          type="button"
-                          className={[
-                            styles.bubbleTag,
-                            styles.bubbleTagEdited,
-                            activeBubble === "EDITED" ? styles.bubbleTagActive : "",
-                          ].filter(Boolean).join(" ")}
-                          onClick={() => handleToggleBubble("EDITED")}
-                          title="Xem ví dụ mẫu nhận xét khi hiệu chỉnh"
-                        >
-                          Ví dụ Hiệu chỉnh
-                        </button>
                         <button
                           type="button"
                           className={styles.bubbleTag}
@@ -2743,70 +2521,19 @@ export default function LabelDataPage() {
                       </div>
                     </div>
 
-                    {/* Popover Bubble Content */}
-                    {activeBubble !== "NONE" && (
-                      <div className={styles.bubblePopover}>
-                        <div className={styles.bubblePopoverHeader}>
-                          <span className={styles.bubblePopoverTitle}>
-                            {activeBubble === "RULES" && "Quy tắc hiệu chỉnh câu thoại:"}
-                            {activeBubble === "EDITED" && "Ví dụ mẫu: Hiệu chỉnh câu từ"}
-                          </span>
-                          <button
-                            type="button"
-                            className={styles.bubbleCloseBtn}
-                            onClick={() => setActiveBubble("NONE")}
-                          >
-                            [Đóng]
-                          </button>
-                        </div>
-
-                        {activeBubble === "RULES" && (
-                          <ul className={styles.bubbleRuleList}>
-                            <li><strong>Câu hỏi Người hỏi:</strong> Nếu câu hỏi thiếu tự nhiên, cộc lốc hoặc lủng củng &rarr; Bác sĩ chỉnh lại cho trôi chảy tự nhiên, <strong>TUYỆT ĐỐI KHÔNG ĐƯỢC THAY ĐỔI HOÀN TOÀN NGỮ NGHĨA</strong>.</li>
-                            <li><strong>Câu trả lời Bác sĩ:</strong> Nếu khó hiểu, sai kiến thức, hoặc cụt ngủn chưa đầy đủ &rarr; <strong>BẮT BUỘC PHẢI CHỈNH LẠI</strong> cho chuẩn xác, dễ hiểu và đầy đủ chuyên môn.</li>
-                            <li><strong>Ghi chú nhận xét:</strong> Tối thiểu 20 ký tự, nêu tóm tắt điểm đã hiệu chỉnh.</li>
-                          </ul>
-                        )}
-
-                        {activeBubble === "EDITED" && (
-                          <>
-                            <div className={styles.bubbleExampleBox}>
-                              "Đã chỉnh lại câu hỏi của người hỏi cho tự nhiên hơn (giữ nguyên ngữ nghĩa gốc). Hiệu chỉnh các câu trả lời của bác sĩ: sửa câu cụt ngủn, bổ sung đầy đủ chỉ dẫn chuyên môn và sửa lại kiến thức chưa chuẩn xác."
-                            </div>
-                            <button
-                              type="button"
-                              className={styles.bubbleInsertBtn}
-                              onClick={() => handleInsertSkeleton("Đã chỉnh câu hỏi tự nhiên hơn (giữ nguyên ý gốc). Đã sửa câu trả lời của bác sĩ cho rõ ràng, chuẩn xác kiến thức và đầy đủ chỉ dẫn chuyên môn.")}
-                            >
-                              Dùng khung sườn này
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    )}
                     <textarea
                       value={clinicalNotes}
                       onChange={(e) => setClinicalNotes(e.target.value)}
-                      placeholder="Nhập nhận xét hoặc ghi chú điểm hiệu chỉnh (tối thiểu 20 ký tự)..."
+                      placeholder="Nhập ghi chú thêm nếu có (không bắt buộc)..."
                       className={styles.notesTextarea}
-                      rows={2}
+                      rows={3}
                       spellCheck={false}
                     />
                     <div className={styles.charCountRow}>
-                      <span
-                        className={
-                          notesQuality.isValid
-                            ? styles.charCountValid
-                            : styles.charCountWarning
-                        }
-                      >
-                        {notesQuality.isValid
-                          ? `Ghi chú hợp lệ (${clinicalNotes.trim().length} ký tự)`
-                          : clinicalNotes.trim().length === 0
-                          ? "Bắt buộc nhập nhận xét (tối thiểu 20 ký tự)"
-                          : clinicalNotes.trim().length < 20
-                          ? `Tối thiểu 20 ký tự (${clinicalNotes.trim().length}/20)`
-                          : `Chưa đạt chuẩn (${clinicalNotes.trim().length} ký tự)`}
+                      <span className={styles.charCountValid}>
+                        {clinicalNotes.trim().length > 0
+                          ? `Ghi chú: ${clinicalNotes.trim().length} ký tự`
+                          : "Không bắt buộc"}
                       </span>
                       <button
                         type="button"
@@ -2817,11 +2544,6 @@ export default function LabelDataPage() {
                         Làm mới ca này
                       </button>
                     </div>
-                    {notesQuality.errors.length > 0 && clinicalNotes.trim().length > 0 && (
-                      <div className={styles.notesNoticeBox}>
-                        {notesQuality.errors[0]}
-                      </div>
-                    )}
                   </div>
 
                   {/* Primary Action Button */}
@@ -2837,11 +2559,7 @@ export default function LabelDataPage() {
                       .join(" ")}
                     disabled={saving}
                     onClick={handleConfirmAndNextCase}
-                    title={
-                      !notesQuality.isValid
-                        ? "Nhận xét chuyên môn chưa đạt chuẩn (tối thiểu 20 ký tự)"
-                        : "Xác nhận thẩm định ca này và chuyển sang ca tiếp theo"
-                    }
+                    title="Xác nhận thẩm định ca này và chuyển sang ca tiếp theo"
                   >
                     <svg
                       width="15"

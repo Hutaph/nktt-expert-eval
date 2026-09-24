@@ -1042,7 +1042,7 @@ export default function LabelDataPage() {
   // Yêu cầu thẩm định: Đánh dấu đủ 3 tiêu chuẩn + nhận xét đạt chuẩn + xem qua toàn bộ các lần khám của ca
   const canConfirmCase = isChecklistComplete && notesQuality.isValid && hasInspectedAllSessions;
 
-  const handleSelectSession = (idx: number) => {
+  const handleSelectSession = useCallback((idx: number) => {
     setActiveSessionIndex(idx);
     if (timeline?.sessions?.[idx]) {
       const sNum = timeline.sessions[idx].session_number;
@@ -1053,7 +1053,27 @@ export default function LabelDataPage() {
         return next;
       });
     }
-  };
+    setTimeout(() => {
+      const chatEl = document.getElementById("clinical-chat-area");
+      if (chatEl) {
+        chatEl.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    }, 50);
+  }, [timeline]);
+
+  const handleNextSession = useCallback(() => {
+    if (!timeline?.sessions || visibleSessions.length === 0) return;
+    const currentSess = timeline.sessions[activeSessionIndex];
+    if (!currentSess) return;
+    const currentVisibleIdx = visibleSessions.findIndex((s) => s.session_id === currentSess.session_id);
+    if (currentVisibleIdx >= 0 && currentVisibleIdx < visibleSessions.length - 1) {
+      const nextSess = visibleSessions[currentVisibleIdx + 1];
+      const actualIdx = timeline.sessions.findIndex((s) => s.session_id === nextSess.session_id);
+      if (actualIdx >= 0) {
+        handleSelectSession(actualIdx);
+      }
+    }
+  }, [timeline, visibleSessions, activeSessionIndex, handleSelectSession]);
 
   // Current case index calculations for seamless navigation
   const currentCaseIndexInBatch = useMemo(() => {
@@ -1168,23 +1188,6 @@ export default function LabelDataPage() {
     [allCases, annotationsMap, activeDoctor, doctorCases, confirmedCaseIds]
   );
 
-  const handlePrevCase = () => {
-    if (currentCaseIndexInBatch > 0) {
-      handleSelectCase(batchCases[currentCaseIndexInBatch - 1].case_id);
-    }
-  };
-
-  const handleNextCase = () => {
-    if (currentCaseIndexInBatch < batchCases.length - 1) {
-      const nextCase = batchCases[currentCaseIndexInBatch + 1];
-      const nextIdx = doctorCases.findIndex((c) => c.case_id === nextCase.case_id);
-      if (nextIdx > 0 && !confirmedCaseIds.has(doctorCases[nextIdx - 1].case_id)) {
-        alert(`Ca tiếp theo hiện đang khóa. Bạn cần hoàn thành và xác nhận Ca hiện tại trước.`);
-        return;
-      }
-      handleSelectCase(nextCase.case_id);
-    }
-  };
 
   const handleConfirmAndNextCase = () => {
     const success = handleSaveAnnotation();
@@ -2016,31 +2019,9 @@ export default function LabelDataPage() {
                   <div className={styles.queryCard}>
                     <div className={styles.queryCardHeader}>
                       <div className={styles.queryTitleRow}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                          <button
-                            type="button"
-                            className={styles.sessionPrevBtn}
-                            disabled={currentCaseIndexInBatch <= 0}
-                            onClick={handlePrevCase}
-                            title="Quay lại ca trước"
-                            style={{ padding: "0.2rem 0.55rem", fontSize: "0.75rem", borderRadius: "6px" }}
-                          >
-                            &lt; Ca trước
-                          </button>
-                          <h2 className={styles.sectionTitle} style={{ margin: 0 }}>
-                            Ca {doctorCases.findIndex((c) => c.case_id === activeCase.case_id) + 1} / 100: Câu hỏi của người bệnh
-                          </h2>
-                          <button
-                            type="button"
-                            className={styles.sessionPrevBtn}
-                            disabled={currentCaseIndexInBatch >= batchCases.length - 1}
-                            onClick={handleNextCase}
-                            title="Chuyển sang ca tiếp theo"
-                            style={{ padding: "0.2rem 0.55rem", fontSize: "0.75rem", borderRadius: "6px" }}
-                          >
-                            Ca sau &gt;
-                          </button>
-                        </div>
+                        <h2 className={styles.sectionTitle} style={{ margin: 0 }}>
+                          Ca {doctorCases.findIndex((c) => c.case_id === activeCase.case_id) + 1} / 100: Câu hỏi của người bệnh
+                        </h2>
                         {activeCase.user_id && (
                           <span
                             style={{
@@ -2158,7 +2139,7 @@ export default function LabelDataPage() {
                       </div>
                     </div>
 
-                    <div className={styles.chatArea}>
+                    <div id="clinical-chat-area" className={styles.chatArea}>
                       {!currentSession ? (
                         <div className={styles.emptyPlaceholder}>
                           Ca bệnh này là câu hỏi độc lập, chưa ghi nhận hồ sơ khám trước đó
@@ -2273,47 +2254,71 @@ export default function LabelDataPage() {
                             })}
                           </div>
 
-                          {/* Case Navigation Footer (Seamlessly moves between cases, no confusing session confirmation) */}
-                          <div className={styles.sessionFooterAction} style={{ marginTop: "0.85rem", padding: "0.6rem 0.85rem" }}>
-                            <div className={styles.sessionFooterInfo}>
-                              <span>
-                                Đang xem Ca {currentCaseIndexInDoctor + 1} / 100 &bull; Đợt {currentBatchIndex} ({timeline?.sessions?.length || 1} đợt khám)
-                              </span>
-                            </div>
-                            <div className={styles.sessionFooterBtns}>
-                              <button
-                                type="button"
-                                className={styles.sessionPrevBtn}
-                                disabled={currentCaseIndexInBatch <= 0}
-                                onClick={handlePrevCase}
-                                title="Quay lại ca trước"
-                              >
-                                <span>&lt; Ca trước</span>
-                              </button>
-
-                              <button
-                                type="button"
-                                className={styles.sessionNextConfirmBtn}
-                                onClick={handleConfirmAndNextCase}
-                                disabled={saving || !canConfirmCase}
-                                title={
-                                  !hasInspectedAllSessions
-                                    ? `Cần nhấp xem qua toàn bộ các lần khám của ca này (Đã xem ${inspectedCount}/${visibleSessions.length} lần)`
-                                    : !isChecklistComplete
-                                    ? "Cần đánh dấu đủ 3 tiêu chuẩn thẩm định"
-                                    : !notesQuality.isValid
-                                    ? "Biện giải lâm sàng chưa đạt chuẩn chất lượng (tối thiểu 20 ký tự)"
-                                    : "Lưu thẩm định ca này và chuyển ngay sang ca tiếp theo"
-                                }
-                              >
+                          {/* Seamless Session Stepper Footer */}
+                          {visibleSessions.length > 1 && (
+                            <div className={styles.sessionFooterAction} style={{ marginTop: "0.85rem", padding: "0.6rem 0.85rem" }}>
+                              <div className={styles.sessionFooterInfo}>
                                 <span>
-                                  {currentCaseIndexInBatch < batchCases.length - 1
-                                    ? `Lưu & Sang Ca ${currentCaseIndexInDoctor + 2} >`
-                                    : "Xác nhận Ca cuối của đợt"}
+                                  Lần {currentSession.session_number} / {visibleSessions.length} lần khám của ca này (Đã xem: {inspectedCount}/{visibleSessions.length})
                                 </span>
-                              </button>
+                              </div>
+                              <div className={styles.sessionFooterBtns}>
+                                {(() => {
+                                  const currentVisibleIdx = visibleSessions.findIndex(
+                                    (s) => s.session_id === currentSession.session_id
+                                  );
+                                  const hasNextSess =
+                                    currentVisibleIdx >= 0 && currentVisibleIdx < visibleSessions.length - 1;
+                                  const nextSessNum = hasNextSess
+                                    ? visibleSessions[currentVisibleIdx + 1]?.session_number
+                                    : null;
+
+                                  if (hasNextSess && nextSessNum !== null) {
+                                    return (
+                                      <button
+                                        type="button"
+                                        className={styles.sessionNextConfirmBtn}
+                                        onClick={handleNextSession}
+                                        title={`Chuyển tiếp sang xem Lần ${nextSessNum}`}
+                                        style={{ padding: "0.35rem 0.85rem", fontSize: "0.75rem", borderRadius: "6px" }}
+                                      >
+                                        <span>Xem tiếp Lần {nextSessNum} &gt;</span>
+                                      </button>
+                                    );
+                                  }
+
+                                  if (hasInspectedAllSessions) {
+                                    return (
+                                      <span
+                                        style={{
+                                          fontSize: "0.75rem",
+                                          color: "#059669",
+                                          fontWeight: 600,
+                                          display: "inline-flex",
+                                          alignItems: "center",
+                                          gap: "0.25rem",
+                                        }}
+                                      >
+                                        Đã xem đủ tất cả các lần khám &bull; Mời bác sĩ thẩm định ở cột bên phải
+                                      </span>
+                                    );
+                                  }
+
+                                  return (
+                                    <span
+                                      style={{
+                                        fontSize: "0.75rem",
+                                        color: "#b45309",
+                                        fontWeight: 600,
+                                      }}
+                                    >
+                                      Chưa xem đủ {visibleSessions.length} lần khám &bull; Vui lòng nhấp xem nốt các lần ở trên
+                                    </span>
+                                  );
+                                })()}
+                              </div>
                             </div>
-                          </div>
+                          )}
                         </div>
                       )}
                     </div>

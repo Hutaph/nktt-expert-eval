@@ -327,7 +327,7 @@ function checkClinicalNotesQuality(
 
 const STORAGE_KEY = "nktt_expert_annotations_v5";
 const DRAFT_PREFIX = "nktt_draft_v5_";
-const DATASET_VERSION_TAG = "v5_20260924_rel";
+const DATASET_VERSION_TAG = "v5_20260924_v5clean";
 
 function getAssetBase(): string {
   if (typeof window === "undefined") return "";

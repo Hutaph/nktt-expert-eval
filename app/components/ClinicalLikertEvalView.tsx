@@ -179,7 +179,7 @@ export default function ClinicalLikertEvalView() {
     async function loadData() {
       try {
         setLoadingCases(true);
-        const data = await fetchDatasetJson<PairedCase[]>("/dataset/clinical_eval_paired_cases.json");
+        const data = await fetchDatasetJson<PairedCase[]>("/dataset/clinical_eval_paired_cases.json?v=v5_20260924_v5clean");
         if (isMounted && data) {
           setPairedCases(data);
           if (data.length > 0) {

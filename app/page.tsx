@@ -465,10 +465,13 @@ export default function LabelDataPage() {
   const [readingCountdown, setReadingCountdown] = useState<number>(0);
   const [inspectedSessions, setInspectedSessions] = useState<Set<number>>(new Set());
 
-  // Clinical Verification Checklist
-  const [checklistHistory, setChecklistHistory] = useState<boolean>(true);
-  const [checklistSafety, setChecklistSafety] = useState<boolean>(true);
-  const [checklistCore, setChecklistCore] = useState<boolean>(true);
+  // Clinical Verification Checklist (Checkpoints)
+  const [checklistHistory, setChecklistHistory] = useState<boolean>(false);
+  const [checklistSafety, setChecklistSafety] = useState<boolean>(false);
+  const [checklistCore, setChecklistCore] = useState<boolean>(false);
+
+  // Autosave Inspection Modal state
+  const [showAutosaveModal, setShowAutosaveModal] = useState<boolean>(false);
 
   // Query editing toggle
   const [isEditingQuery, setIsEditingQuery] = useState<boolean>(false);
@@ -546,27 +549,36 @@ export default function LabelDataPage() {
     // Load completed batches for this doctor
     try {
       const saved = localStorage.getItem(`nktt_completed_batches_${activeDoctor.id}`);
+      let completedList: number[] = [];
       if (saved) {
         const list = JSON.parse(saved);
         if (Array.isArray(list)) {
+          completedList = list;
           setCompletedBatches(list);
-          // Auto select first incomplete batch
-          let foundFirstIncomplete = false;
-          for (let b = 1; b <= 10; b++) {
-            if (!list.includes(b)) {
-              setCurrentBatchIndex(b);
-              foundFirstIncomplete = true;
-              break;
-            }
-          }
-          if (!foundFirstIncomplete) {
-            setCurrentBatchIndex(10);
-          }
         }
       } else {
         setCompletedBatches([]);
-        setCurrentBatchIndex(1);
       }
+
+      // Check saved active batch for this doctor
+      let preferredBatch = 1;
+      const savedActiveBatch = localStorage.getItem(`nktt_active_batch_${activeDoctor.id}`);
+      if (savedActiveBatch) {
+        const parsed = parseInt(savedActiveBatch, 10);
+        if (parsed >= 1 && parsed <= 10) {
+          const isUnlocked = parsed === 1 || completedList.includes(parsed - 1) || completedList.includes(parsed);
+          if (isUnlocked) preferredBatch = parsed;
+        }
+      } else {
+        // Auto select first incomplete batch
+        for (let b = 1; b <= 10; b++) {
+          if (!completedList.includes(b)) {
+            preferredBatch = b;
+            break;
+          }
+        }
+      }
+      setCurrentBatchIndex(preferredBatch);
     } catch {
       setCompletedBatches([]);
       setCurrentBatchIndex(1);
@@ -684,14 +696,23 @@ export default function LabelDataPage() {
     return doctorCases.slice(start, start + 10);
   }, [doctorCases, currentBatchIndex]);
 
-  // Auto-select first case of current batch
+  // Auto-select case of current batch (prefer remembered active case)
   useEffect(() => {
     if (batchCases.length > 0) {
       if (!selectedCaseId || !batchCases.some((c) => c.case_id === selectedCaseId)) {
-        setSelectedCaseId(batchCases[0].case_id);
+        let targetCaseId = batchCases[0].case_id;
+        if (activeDoctor) {
+          try {
+            const savedCaseId = localStorage.getItem(`nktt_active_case_${activeDoctor.id}`);
+            if (savedCaseId && batchCases.some((c) => c.case_id === savedCaseId)) {
+              targetCaseId = savedCaseId;
+            }
+          } catch {}
+        }
+        setSelectedCaseId(targetCaseId);
       }
     }
-  }, [batchCases, selectedCaseId]);
+  }, [batchCases, selectedCaseId, activeDoctor]);
 
   // Cases filtered by search within the current batch
   const filteredCases = useMemo(() => {
@@ -913,9 +934,9 @@ export default function LabelDataPage() {
           setEditedRelevantEvents(draftData.editedRelevantEvents || "");
           setEditedStaleEvents(draftData.editedStaleEvents || "");
           setEditedForbiddenEvents(draftData.editedForbiddenEvents || "");
-          if (Array.isArray(draftData.inspectedSessions)) {
-            setInspectedSessions(new Set(draftData.inspectedSessions));
-          }
+          setChecklistHistory(Boolean(draftData.checklistHistory));
+          setChecklistSafety(Boolean(draftData.checklistSafety));
+          setChecklistCore(Boolean(draftData.checklistCore));
           if (typeof draftData.activeSessionIndex === "number") {
             initialSessionIdx = draftData.activeSessionIndex;
           }
@@ -958,6 +979,9 @@ export default function LabelDataPage() {
             setEditedStaleEvents("");
             setEditedForbiddenEvents("");
           }
+          setChecklistHistory(true);
+          setChecklistSafety(true);
+          setChecklistCore(true);
         } else {
           // Fresh default state
           setEditedQuery(matchedCase.current_query || "");
@@ -978,10 +1002,24 @@ export default function LabelDataPage() {
             setEditedStaleEvents("");
             setEditedForbiddenEvents("");
           }
+          setChecklistHistory(false);
+          setChecklistSafety(false);
+          setChecklistCore(false);
         }
+
         setActiveSessionIndex(initialSessionIdx);
-        const firstSessionNum = uTimeline?.sessions?.[initialSessionIdx]?.session_number;
-        setInspectedSessions(new Set(firstSessionNum ? [firstSessionNum] : []));
+
+        // Khôi phục checkpoint lần khám đã xem: nếu ca đã xác nhận thì mở toàn bộ; nếu có draft thì lấy từ draft; nếu ca mới thì lấy mốc đầu tiên
+        const allSessionNums = uTimeline?.sessions?.map((s) => s.session_number) || [];
+        const isConfirmed = confirmedCaseIds.has(matchedCase.case_id) || Boolean(saved);
+        if (isConfirmed && allSessionNums.length > 0) {
+          setInspectedSessions(new Set(allSessionNums));
+        } else if (draftData && Array.isArray(draftData.inspectedSessions) && draftData.inspectedSessions.length > 0) {
+          setInspectedSessions(new Set(draftData.inspectedSessions));
+        } else {
+          const firstSessionNum = uTimeline?.sessions?.[initialSessionIdx]?.session_number;
+          setInspectedSessions(new Set(firstSessionNum ? [firstSessionNum] : []));
+        }
       } catch (err) {
         console.error("Lỗi nạp ca bệnh:", err);
       } finally {
@@ -1085,6 +1123,13 @@ export default function LabelDataPage() {
     return doctorCases.findIndex((c) => c.case_id === activeCase.case_id);
   }, [doctorCases, activeCase]);
 
+  // Số ca đã xác nhận trong đợt hiện tại (khóa nút Lưu cho tới khi đủ 10/10 ca)
+  const currentBatchConfirmedCount = useMemo(() => {
+    return batchCases.filter((c) => confirmedCaseIds.has(c.case_id)).length;
+  }, [batchCases, confirmedCaseIds]);
+
+  const isCurrentBatchFullyConfirmed = batchCases.length > 0 && currentBatchConfirmedCount === batchCases.length;
+
   // Synchronous and immediate case switching - eliminating all question desync!
   const handleSelectCase = useCallback(
     (caseId: string) => {
@@ -1127,6 +1172,9 @@ export default function LabelDataPage() {
           }
           setEditedTurns({ ...(draftData.editedTurns || {}), ...sharedTurns });
           if (draftData.editedFactors) setEditedFactors(draftData.editedFactors);
+          setChecklistHistory(Boolean(draftData.checklistHistory));
+          setChecklistSafety(Boolean(draftData.checklistSafety));
+          setChecklistCore(Boolean(draftData.checklistCore));
         } else if (saved) {
           setEditedQuery(saved.edited_query || matched.current_query || "");
           setClinicalNotes(saved.clinical_notes || "");
@@ -1143,6 +1191,9 @@ export default function LabelDataPage() {
           }
           setEditedTurns({ ...tMap, ...sharedTurns });
           if (saved.factors) setEditedFactors(saved.factors);
+          setChecklistHistory(true);
+          setChecklistSafety(true);
+          setChecklistCore(true);
         } else {
           setEditedQuery(matched.current_query || "");
           setClinicalNotes("");
@@ -1151,6 +1202,9 @@ export default function LabelDataPage() {
           if (matched.targets?.factors) {
             setEditedFactors(JSON.parse(JSON.stringify(matched.targets.factors)));
           }
+          setChecklistHistory(false);
+          setChecklistSafety(false);
+          setChecklistCore(false);
         }
         // Cập nhật timeline và events ngay lập tức
         const uTimeline = cachedTimelinesMap?.get(matched.user_id) || null;
@@ -1180,9 +1234,25 @@ export default function LabelDataPage() {
           if (sIdx >= 0) targetSessionIdx = sIdx;
         }
         setActiveSessionIndex(targetSessionIdx);
-        const firstSessionNum = uTimeline?.sessions?.[targetSessionIdx]?.session_number;
-        setInspectedSessions(new Set(firstSessionNum ? [firstSessionNum] : []));
+
+        // Khôi phục mốc khám đã xem: nếu đã xác nhận thì mở toàn bộ; nếu có draft thì lấy từ draft; nếu chưa thì lấy mốc đầu tiên
+        const allSessionNums = uTimeline?.sessions?.map((s) => s.session_number) || [];
+        const isConfirmed = confirmedCaseIds.has(matched.case_id) || Boolean(saved);
+        if (isConfirmed && allSessionNums.length > 0) {
+          setInspectedSessions(new Set(allSessionNums));
+        } else if (draftData && Array.isArray(draftData.inspectedSessions) && draftData.inspectedSessions.length > 0) {
+          setInspectedSessions(new Set(draftData.inspectedSessions));
+        } else {
+          const firstSessionNum = uTimeline?.sessions?.[targetSessionIdx]?.session_number;
+          setInspectedSessions(new Set(firstSessionNum ? [firstSessionNum] : []));
+        }
+
         setIsEditingQuery(false);
+        if (activeDoctor) {
+          try {
+            localStorage.setItem(`nktt_active_case_${activeDoctor.id}`, matched.case_id);
+          } catch {}
+        }
       }
     },
     [allCases, annotationsMap, activeDoctor, doctorCases, confirmedCaseIds]
@@ -1216,6 +1286,9 @@ export default function LabelDataPage() {
           editedStaleEvents,
           editedForbiddenEvents,
           inspectedSessions: Array.from(inspectedSessions),
+          checklistHistory,
+          checklistSafety,
+          checklistCore,
           updatedAt: new Date().toISOString(),
         };
         localStorage.setItem(draftKey, JSON.stringify(draftObj));
@@ -1241,6 +1314,9 @@ export default function LabelDataPage() {
     editedStaleEvents,
     editedForbiddenEvents,
     inspectedSessions,
+    checklistHistory,
+    checklistSafety,
+    checklistCore,
     activeCase,
     activeDoctor,
   ]);
@@ -1431,7 +1507,19 @@ export default function LabelDataPage() {
       localStorage.setItem(`nktt_confirmed_cases_${activeDoctor.id}`, JSON.stringify(Array.from(nextConfirmed)));
     } catch {}
 
-    setSaveMessage({ text: "Đã xác nhận và lưu trữ ca bệnh này thành công!", isError: false });
+    const isBatchComplete = batchCases.length > 0 && batchCases.every((c) => nextConfirmed.has(c.case_id));
+    if (isBatchComplete) {
+      setSaveMessage({
+        text: `Đã hoàn thành xuất sắc toàn bộ 10/10 ca của Đợt ${currentBatchIndex}! Nút "Lưu" (Google Drive) trên thanh công cụ đã được mở khóa. Bác sĩ vui lòng bấm nút Lưu để đồng bộ dữ liệu và mở khóa Đợt tiếp theo.`,
+        isError: false,
+      });
+    } else {
+      const confirmedInBatch = batchCases.filter((c) => nextConfirmed.has(c.case_id)).length;
+      setSaveMessage({
+        text: `Đã xác nhận và lưu trữ ca bệnh này thành công! (Tiến độ Đợt ${currentBatchIndex}: ${confirmedInBatch}/10 ca)`,
+        isError: false,
+      });
+    }
     setSaving(false);
     return true;
   };
@@ -1458,12 +1546,21 @@ export default function LabelDataPage() {
             editedRelevantEvents,
             editedStaleEvents,
             editedForbiddenEvents,
+            checklistHistory,
+            checklistSafety,
+            checklistCore,
+            inspectedSessions: Array.from(inspectedSessions),
             updatedAt: new Date().toISOString(),
           })
         );
       } catch {}
     }
     setCurrentBatchIndex(batchNum);
+    if (activeDoctor) {
+      try {
+        localStorage.setItem(`nktt_active_batch_${activeDoctor.id}`, String(batchNum));
+      } catch {}
+    }
   };
 
   // Main "Lưu" button handler for the entire batch
@@ -1694,6 +1791,69 @@ export default function LabelDataPage() {
     return doctorCases.filter((c) => confirmedCaseIds.has(c.case_id)).length;
   }, [doctorCases, confirmedCaseIds]);
 
+  // Export all annotations & drafts for current doctor as JSON
+  const handleExportBackupJson = () => {
+    if (!activeDoctor) return;
+    const backupData: any = {
+      exportTime: new Date().toISOString(),
+      doctor: {
+        id: activeDoctor.id,
+        name: activeDoctor.name,
+        range: activeDoctor.caseRangeLabel,
+      },
+      confirmedCaseIds: Array.from(confirmedCaseIds),
+      completedBatches,
+      confirmedAnnotations: annotationsMap,
+      workingDrafts: {} as Record<string, any>,
+    };
+
+    doctorCases.forEach((c) => {
+      try {
+        const raw = localStorage.getItem(`${DRAFT_PREFIX}${activeDoctor.id}_${c.case_id}`);
+        if (raw) {
+          backupData.workingDrafts[c.case_id] = JSON.parse(raw);
+        }
+      } catch {}
+    });
+
+    const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `NKTT_Autosave_Backup_${activeDoctor.id}_${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // Export confirmed cases as JSONL
+  const handleExportBackupJsonl = () => {
+    if (!activeDoctor) return;
+    const lines: string[] = [];
+    doctorCases.forEach((c) => {
+      const rec = annotationsMap[c.case_id];
+      if (rec && confirmedCaseIds.has(c.case_id)) {
+        lines.push(JSON.stringify(rec));
+      }
+    });
+
+    if (lines.length === 0) {
+      alert("Chưa có ca bệnh nào được xác nhận để xuất file JSONL.");
+      return;
+    }
+
+    const blob = new Blob([lines.join("\n")], { type: "application/x-jsonlines" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `NKTT_Confirmed_${activeDoctor.id}_${new Date().toISOString().slice(0, 10)}.jsonl`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className={styles.container}>
       {/* Top Header - Streamlined for Doctor Focus */}
@@ -1769,13 +1929,30 @@ export default function LabelDataPage() {
                 Quy trình thao tác
               </button>
 
-              {/* Primary "Lưu" Button */}
+              {/* Autosave Tracker & Backup Button */}
               <button
                 type="button"
-                className={styles.saveMainBtn}
+                className={styles.autosaveTrackerBtn}
+                onClick={() => setShowAutosaveModal(true)}
+                title="Kiểm tra chi tiết các bản lưu nháp tự động và tải file sao lưu dự phòng"
+              >
+                Kiểm tra bản lưu nháp
+              </button>
+
+              {/* Primary "Lưu" Button - Locked until all 10 cases in current batch are confirmed */}
+              <button
+                type="button"
+                className={[
+                  styles.saveMainBtn,
+                  isCurrentBatchFullyConfirmed ? styles.saveMainBtnReady : styles.saveMainBtnLocked,
+                ].join(" ")}
                 onClick={handleSaveBatch}
-                disabled={syncingDrive}
-                title="Lưu đợt hiện tại, kiểm tra chất lượng và mở khóa đợt tiếp theo"
+                disabled={syncingDrive || !isCurrentBatchFullyConfirmed}
+                title={
+                  !isCurrentBatchFullyConfirmed
+                    ? `Cần xác nhận đủ 10/10 ca trong Đợt ${currentBatchIndex} để mở khóa nút Lưu (Hiện tại: ${currentBatchConfirmedCount}/10 ca). Hệ thống đang tự động lưu nháp liên tục.`
+                    : `Lưu Đợt ${currentBatchIndex}, kiểm tra chất lượng và đồng bộ lên Google Drive`
+                }
               >
                 <svg
                   width="14"
@@ -1787,11 +1964,26 @@ export default function LabelDataPage() {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 >
-                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                  <polyline points="17 21 17 13 7 13 7 21" />
-                  <polyline points="7 3 7 8 15 8" />
+                  {isCurrentBatchFullyConfirmed ? (
+                    <>
+                      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                      <polyline points="17 21 17 13 7 13 7 21" />
+                      <polyline points="7 3 7 8 15 8" />
+                    </>
+                  ) : (
+                    <>
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </>
+                  )}
                 </svg>
-                <span>{syncingDrive ? "Đang lưu..." : "Lưu"}</span>
+                <span>
+                  {syncingDrive
+                    ? "Đang lưu..."
+                    : isCurrentBatchFullyConfirmed
+                    ? `Lưu Đợt ${currentBatchIndex} (Google Drive)`
+                    : `Lưu đợt (${currentBatchConfirmedCount}/10 ca)`}
+                </span>
               </button>
             </div>
           </header>
@@ -1866,6 +2058,28 @@ export default function LabelDataPage() {
               })}
             </div>
           </div>
+
+          {/* Batch 10/10 Cases Completed Banner Notification */}
+          {isCurrentBatchFullyConfirmed && !completedBatches.includes(currentBatchIndex) && (
+            <div className={styles.batchReadyAlert}>
+              <div className={styles.batchReadyAlertContent}>
+                <span className={styles.batchReadyAlertBadge}>
+                  Đợt {currentBatchIndex} đã hoàn tất 10/10 ca
+                </span>
+                <span className={styles.batchReadyAlertText}>
+                  Tất cả 10 ca bệnh trong Đợt {currentBatchIndex} đã được Bác sĩ thẩm định và xác nhận. Nút <strong>Lưu Đợt {currentBatchIndex} (Google Drive)</strong> trên góc phải đã được mở khóa. Bác sĩ hãy bấm nút Lưu để đồng bộ dữ liệu và mở khóa Đợt tiếp theo.
+                </span>
+              </div>
+              <button
+                type="button"
+                className={styles.batchReadyAlertBtn}
+                onClick={handleSaveBatch}
+                disabled={syncingDrive}
+              >
+                {syncingDrive ? "Đang đồng bộ..." : `Bấm Lưu Đợt ${currentBatchIndex} ngay`}
+              </button>
+            </div>
+          )}
 
           {/* Drive & Batch Notice Banner */}
           {driveNotice && (
@@ -2678,6 +2892,218 @@ export default function LabelDataPage() {
             onBack={() => setShowQualityWarning(false)}
             onConfirmSave={executeBatchSaveAndUnlock}
           />
+
+          {/* Autosave Tracker & Data Backup Modal */}
+          {showAutosaveModal && (
+            <div className={styles.guideModalBackdrop} onClick={() => setShowAutosaveModal(false)}>
+              <div
+                className={styles.autosaveModalContent}
+                onClick={(e) => e.stopPropagation()}
+                role="dialog"
+                aria-modal="true"
+                aria-label="Kiem tra ban luu nhap va vi tri tep tin"
+              >
+                <div className={styles.guideModalHeader}>
+                  <div>
+                    <h2 className={styles.guideModalTitle}>Trung tâm Kiểm tra Bản lưu nháp (Autosave Tracker)</h2>
+                    <p className={styles.guideModalSubtitle}>
+                      Kiểm tra thời gian thực các tệp lưu nháp cục bộ, trạng thái từng ca bệnh và tải tệp sao lưu dữ liệu
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className={styles.guideModalCloseBtn}
+                    onClick={() => setShowAutosaveModal(false)}
+                    title="Đóng cửa sổ"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </button>
+                </div>
+
+                <div className={styles.autosaveModalBody}>
+                  {/* Storage Location Information Box */}
+                  <div className={styles.storageInfoBox}>
+                    <div className={styles.storageInfoHeader}>
+                      <span className={styles.storageInfoTitle}>Vị trí lưu trữ dữ liệu tự động (Autosave)</span>
+                      <span className={styles.storageInfoBadge}>Bảo toàn 100% trong bộ nhớ máy tính</span>
+                    </div>
+                    <p className={styles.storageInfoDesc}>
+                      Toàn bộ dữ liệu soạn thảo, chỉnh sửa câu thoại, nhận xét lâm sàng và trạng thái các nút bấm được hệ thống tự động lưu nháp (Autosave) liên tục sau mỗi thao tác vào bộ nhớ cục bộ <strong>Web LocalStorage</strong> của trình duyệt trên máy tính này. Dữ liệu này không bị mất khi mất kết nối mạng, khi tải lại trang (F5) hoặc khi tắt trình duyệt.
+                    </p>
+                    <div className={styles.storageKeyList}>
+                      <div className={styles.storageKeyItem}>
+                        <code>nktt_draft_v5_{activeDoctor?.id || "BS"}_[Mã_Ca]</code>
+                        <span>Bản lưu nháp chi tiết từng ca (câu thoại sửa, nhận xét, tiêu chuẩn lâm sàng)</span>
+                      </div>
+                      <div className={styles.storageKeyItem}>
+                        <code>nktt_confirmed_cases_{activeDoctor?.id || "BS"}</code>
+                        <span>Danh sách các ca đã được Bác sĩ bấm Xác nhận chính thức</span>
+                      </div>
+                      <div className={styles.storageKeyItem}>
+                        <code>nktt_expert_eval_annotations_v5</code>
+                        <span>Hồ sơ thẩm định hoàn chỉnh sẵn sàng đồng bộ Google Drive</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Summary Stats */}
+                  <div className={styles.autosaveStatsRow}>
+                    <div className={styles.autosaveStatCard}>
+                      <span className={styles.autosaveStatNum}>{batchCases.length}</span>
+                      <span className={styles.autosaveStatLabel}>Ca trong Đợt {currentBatchIndex}</span>
+                    </div>
+                    <div className={styles.autosaveStatCard}>
+                      <span className={styles.autosaveStatNum}>{currentBatchConfirmedCount} / {batchCases.length}</span>
+                      <span className={styles.autosaveStatLabel}>Đã xác nhận chính thức</span>
+                    </div>
+                    <div className={styles.autosaveStatCard}>
+                      <span className={styles.autosaveStatNum}>
+                        {batchCases.filter((c) => {
+                          if (!activeDoctor) return false;
+                          const raw = localStorage.getItem(`${DRAFT_PREFIX}${activeDoctor.id}_${c.case_id}`);
+                          return Boolean(raw);
+                        }).length}
+                      </span>
+                      <span className={styles.autosaveStatLabel}>Có bản lưu nháp</span>
+                    </div>
+                    <div className={styles.autosaveStatCard}>
+                      <span className={styles.autosaveStatNum}>{totalDoctorConfirmedCount} / 100</span>
+                      <span className={styles.autosaveStatLabel}>Tổng tiến độ phân công</span>
+                    </div>
+                  </div>
+
+                  {/* Batch Cases Inspection Table */}
+                  <div className={styles.autosaveTableContainer}>
+                    <h3 className={styles.autosaveTableTitle}>Danh sách chi tiết 10 ca trong Đợt {currentBatchIndex}</h3>
+                    <table className={styles.autosaveTable}>
+                      <thead>
+                        <tr>
+                          <th>Ca bệnh</th>
+                          <th>Trạng thái</th>
+                          <th>Thời điểm Autosave</th>
+                          <th>Tiến độ xem lần khám</th>
+                          <th>Tiêu chuẩn</th>
+                          <th>Thao tác</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {batchCases.map((c, idx) => {
+                          const isConfirmed = confirmedCaseIds.has(c.case_id);
+                          let draft: any = null;
+                          if (activeDoctor) {
+                            try {
+                              const raw = localStorage.getItem(`${DRAFT_PREFIX}${activeDoctor.id}_${c.case_id}`);
+                              if (raw) draft = JSON.parse(raw);
+                            } catch {}
+                          }
+                          const saved = annotationsMap[c.case_id];
+                          const lastTime = draft?.updatedAt
+                            ? new Date(draft.updatedAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", second: "2-digit" })
+                            : saved?.updated_at
+                            ? new Date(saved.updated_at).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", second: "2-digit" })
+                            : "--";
+                          const inspCount = isConfirmed
+                            ? "Đã xem đủ"
+                            : draft?.inspectedSessions?.length
+                            ? `${draft.inspectedSessions.length} lần`
+                            : "Mốc đầu";
+                          const checklistOk = isConfirmed || (draft?.checklistHistory && draft?.checklistSafety && draft?.checklistCore);
+
+                          return (
+                            <tr key={c.case_id} className={c.case_id === selectedCaseId ? styles.autosaveRowActive : ""}>
+                              <td>
+                                <div className={styles.autosaveCaseCell}>
+                                  <strong>Ca {(currentBatchIndex - 1) * 10 + idx + 1}</strong>
+                                  <span className={styles.autosaveCaseSub}>{c.case_id}</span>
+                                </div>
+                              </td>
+                              <td>
+                                {isConfirmed ? (
+                                  <span className={styles.badgeConfirmed}>Đã xác nhận</span>
+                                ) : draft ? (
+                                  <span className={styles.badgeDraft}>Đã lưu nháp</span>
+                                ) : (
+                                  <span className={styles.badgePending}>Chưa làm</span>
+                                )}
+                              </td>
+                              <td>
+                                <span className={styles.autosaveTimeText}>{lastTime}</span>
+                              </td>
+                              <td>
+                                <span className={styles.autosaveInspText}>{inspCount}</span>
+                              </td>
+                              <td>
+                                {checklistOk ? (
+                                  <span className={styles.badgeChecklistOk}>Đủ 3 tiêu chuẩn</span>
+                                ) : (
+                                  <span className={styles.badgeChecklistPending}>Chưa đủ</span>
+                                )}
+                              </td>
+                              <td>
+                                <button
+                                  type="button"
+                                  className={styles.autosaveSelectBtn}
+                                  onClick={() => {
+                                    handleSelectCase(c.case_id);
+                                    setShowAutosaveModal(false);
+                                  }}
+                                >
+                                  Mở ca
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Manual Developer Tools Inspection Guide */}
+                  <div className={styles.devToolsGuideBox}>
+                    <h4 className={styles.devToolsGuideTitle}>Cách kiểm tra kỹ thuật trực tiếp trên trình duyệt (F12):</h4>
+                    <ol className={styles.devToolsGuideList}>
+                      <li>Bấm phím <strong>F12</strong> (hoặc tổ hợp phím <strong>Ctrl + Shift + I</strong>) trên bàn phím.</li>
+                      <li>Chọn thẻ <strong>Application</strong> trên thanh công cụ phía trên của cửa sổ hiện ra.</li>
+                      <li>Ở khung bên trái, mở mục <strong>Storage</strong> - <strong>Local Storage</strong> - nhấp vào địa chỉ của trang web.</li>
+                      <li>Toàn bộ các khóa lưu nháp <code>nktt_draft_v5_...</code> hiển thị tại đây kèm toàn bộ nội dung văn bản.</li>
+                    </ol>
+                  </div>
+                </div>
+
+                {/* Modal Footer with Export & Action Buttons */}
+                <div className={styles.autosaveModalFooter}>
+                  <div className={styles.exportBtnGroup}>
+                    <button
+                      type="button"
+                      className={styles.exportJsonBtn}
+                      onClick={handleExportBackupJson}
+                      title="Tải toàn bộ hồ sơ lưu nháp và xác nhận dưới dạng tệp JSON về máy tính"
+                    >
+                      Tải bản sao lưu JSON (.json)
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.exportJsonlBtn}
+                      onClick={handleExportBackupJsonl}
+                      title="Xuất danh sách các ca đã xác nhận dưới định dạng JSONL"
+                    >
+                      Tải tệp huấn luyện (.jsonl)
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    className={styles.guideDismissBtn}
+                    onClick={() => setShowAutosaveModal(false)}
+                  >
+                    Đóng cửa sổ
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
     </div>
   );
 }

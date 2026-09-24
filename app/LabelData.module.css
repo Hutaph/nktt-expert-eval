@@ -2350,8 +2350,9 @@
 
 .charCountRow {
   display: flex;
-  justify-content: flex-end;
-  padding: 0 0.1rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.15rem 0.1rem;
 }
 
 .charCountValid {
@@ -2364,6 +2365,23 @@
   font-size: 0.68rem;
   font-weight: 600;
   color: #ea580c;
+}
+
+.resetCaseBtn {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  font-size: 0.68rem;
+  font-weight: 500;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0.1rem 0.25rem;
+  border-radius: 4px;
+}
+
+.resetCaseBtn:hover {
+  color: #dc2626;
+  background-color: #fef2f2;
 }
 
 /* Save / Confirm Button */

@@ -232,6 +232,20 @@ function calculateQueryChangePercent(orig: string, edited: string): number {
   return Math.min(100, Math.round((dist / maxLen) * 100));
 }
 
+const isFakeDefaultNote = (note?: string): boolean => {
+  if (!note) return false;
+  const trimmed = note.trim();
+  if (trimmed.length === 0) return false;
+  return (
+    trimmed.startsWith("Đã thẩm định:") ||
+    trimmed.includes("Đã đối chiếu các dữ kiện ẩn qua các đợt khám trước") ||
+    trimmed.includes("bảo đảm tính liên kết điều trị") ||
+    trimmed === "Đã đối chiếu các lần khám, câu hỏi và tư vấn đạt chuẩn chuyên môn và an toàn lâm sàng." ||
+    trimmed === "Đã trau chuốt và chuẩn hóa câu từ phù hợp thuật ngữ chuyên ngành Răng Hàm Mặt." ||
+    trimmed === "Cần lưu ý thêm về diễn tiến triệu chứng và tiền sử điều trị của Người hỏi."
+  );
+};
+
 interface ClinicalNotesQuality {
   isValid: boolean;
   errors: string[];
@@ -255,6 +269,11 @@ function checkClinicalNotesQuality(
   const trimmed = notes.trim();
   const errors: string[] = [];
   const charCount = trimmed.length;
+
+  // 0. Nghiêm cấm nhận xét mẫu khuôn sáo
+  if (isFakeDefaultNote(trimmed)) {
+    errors.push("Bác sĩ không được dùng câu mẫu mặc định hoặc sao chép khuôn sáo. Vui lòng tự tay nhập nhận xét chuyên môn thực tế.");
+  }
 
   if (charCount < 20) {
     errors.push("Biện giải lâm sàng phải có tối thiểu 20 ký tự.");
@@ -330,17 +349,6 @@ function getAssetBase(): string {
   }
   return "";
 }
-
-const isFakeDefaultNote = (note?: string): boolean => {
-  if (!note) return false;
-  const trimmed = note.trim();
-  return (
-    trimmed.startsWith("Đã thẩm định:") ||
-    trimmed === "Đã đối chiếu các lần khám, câu hỏi và tư vấn đạt chuẩn chuyên môn và an toàn lâm sàng." ||
-    trimmed === "Đã trau chuốt và chuẩn hóa câu từ phù hợp thuật ngữ chuyên ngành Răng Hàm Mặt." ||
-    trimmed === "Cần lưu ý thêm về diễn tiến triệu chứng và tiền sử điều trị của Người hỏi."
-  );
-};
 
 function getDoctorAnnotations(doctorId: string): Record<string, ExpertAnnotationRecord> {
   if (typeof window === "undefined" || !doctorId) return {};
@@ -589,7 +597,7 @@ export default function LabelDataPage() {
     setAnnotator(activeDoctor.name);
   }, [activeDoctor]);
 
-  // Clean up legacy v3/v4/v5 drafts and old caches from localStorage on mount
+  // Clean up legacy fake drafts and old caches from localStorage on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
       try {
@@ -597,11 +605,40 @@ export default function LabelDataPage() {
           "nktt_expert_annotations_v5",
           "nktt_expert_annotations_v4",
           "nktt_expert_annotations_v3",
+          "nktt_expert_annotations",
         ];
         for (let i = 0; i < localStorage.length; i++) {
           const k = localStorage.key(i);
-          if (k && k.startsWith("nktt_draft_BS")) {
-            keysToRemove.push(k);
+          if (!k) continue;
+          if (k.startsWith("nktt_draft_")) {
+            try {
+              const val = localStorage.getItem(k);
+              if (val) {
+                const parsed = JSON.parse(val);
+                if (isFakeDefaultNote(parsed?.clinicalNotes) || !parsed?.clinicalNotes?.trim()) {
+                  keysToRemove.push(k);
+                }
+              }
+            } catch {
+              keysToRemove.push(k);
+            }
+          } else if (k.startsWith("nktt_doctor_annotations_")) {
+            try {
+              const val = localStorage.getItem(k);
+              if (val) {
+                const parsed = JSON.parse(val);
+                let changed = false;
+                for (const cId of Object.keys(parsed)) {
+                  if (isFakeDefaultNote(parsed[cId]?.clinical_notes)) {
+                    delete parsed[cId];
+                    changed = true;
+                  }
+                }
+                if (changed) {
+                  localStorage.setItem(k, JSON.stringify(parsed));
+                }
+              }
+            } catch {}
           }
         }
         keysToRemove.forEach((k) => localStorage.removeItem(k));
@@ -878,18 +915,16 @@ export default function LabelDataPage() {
         let draftData: any = null;
         if (activeDoctor) {
           try {
-            const rawDraft = localStorage.getItem(`${DRAFT_PREFIX}${activeDoctor.id}_${matchedCase.case_id}`);
+            const draftKey = `${DRAFT_PREFIX}${activeDoctor.id}_${matchedCase.case_id}`;
+            const rawDraft = localStorage.getItem(draftKey);
             if (rawDraft) {
               const parsed = JSON.parse(rawDraft);
-              if (parsed && !isFakeDefaultNote(parsed.clinicalNotes)) {
+              if (parsed && !isFakeDefaultNote(parsed.clinicalNotes) && parsed.clinicalNotes?.trim()) {
                 draftData = parsed;
-              } else if (parsed) {
-                parsed.clinicalNotes = "";
-                parsed.checklistHistory = false;
-                parsed.checklistSafety = false;
-                parsed.checklistCore = false;
-                parsed.inspectedSessions = [];
-                draftData = parsed;
+              } else {
+                // Xoa bo ban nhap bi nhiem cau mau hoac khong hop le
+                localStorage.removeItem(draftKey);
+                draftData = null;
               }
             }
           } catch {}
@@ -1150,18 +1185,15 @@ export default function LabelDataPage() {
         let draftData: any = null;
         if (activeDoctor) {
           try {
-            const rawDraft = localStorage.getItem(`${DRAFT_PREFIX}${activeDoctor.id}_${matched.case_id}`);
+            const draftKey = `${DRAFT_PREFIX}${activeDoctor.id}_${matched.case_id}`;
+            const rawDraft = localStorage.getItem(draftKey);
             if (rawDraft) {
               const parsed = JSON.parse(rawDraft);
-              if (parsed && !isFakeDefaultNote(parsed.clinicalNotes)) {
+              if (parsed && !isFakeDefaultNote(parsed.clinicalNotes) && parsed.clinicalNotes?.trim()) {
                 draftData = parsed;
-              } else if (parsed) {
-                parsed.clinicalNotes = "";
-                parsed.checklistHistory = false;
-                parsed.checklistSafety = false;
-                parsed.checklistCore = false;
-                parsed.inspectedSessions = [];
-                draftData = parsed;
+              } else {
+                localStorage.removeItem(draftKey);
+                draftData = null;
               }
             }
           } catch {}
@@ -1721,11 +1753,156 @@ export default function LabelDataPage() {
   };
 
   // Execute batch save and unlock next batch
-  const executeBatchSaveAndUnlock = () => {
+  const executeBatchSaveAndUnlock = async () => {
     setShowQualityWarning(false);
-    if (!activeDoctor) return;
+    if (!activeDoctor || batchCases.length === 0) return;
 
-    // Mark current batch as completed
+    // Chuẩn hóa mã thư mục bác sĩ (BS01 .. BS05)
+    const doctorFolder = (
+      activeDoctor.folderCode ||
+      (activeDoctor.id === "bs_1"
+        ? "BS01"
+        : activeDoctor.id === "bs_2"
+        ? "BS02"
+        : activeDoctor.id === "bs_3"
+        ? "BS03"
+        : activeDoctor.id === "bs_4"
+        ? "BS04"
+        : "BS05")
+    ).toUpperCase();
+
+    // 1. Thu thập lượt thoại đã hiệu chỉnh dùng chung của bác sĩ
+    let sharedTurnsForDoctor: Record<string, string> = {};
+    try {
+      const rawShared = localStorage.getItem(`nktt_shared_turns_v5_${activeDoctor.id}`);
+      if (rawShared) sharedTurnsForDoctor = JSON.parse(rawShared);
+    } catch {}
+
+    // 2. Xây dựng cấu trúc dữ liệu đầy đủ text và trực quan cho từng ca trong Gói
+    const casesDetailed = batchCases.map((c) => {
+      const rec = annotationsMap[c.case_id];
+      const famKey = c.category?.primary_family || "";
+      const catMeta = FAMILY_FRIENDLY_NAMES[famKey] || {
+        label: "Kiến thức nha khoa đại cương",
+        desc: "Không yêu cầu xét tiền sử cá nhân",
+      };
+
+      // Tìm timeline của bệnh nhân từ cache
+      const userTimeline = cachedTimelinesMap?.get(c.user_id) || (c.user_id === activeCase?.user_id ? timeline : null);
+      const dialogueSessions = (userTimeline?.sessions || []).map((s) => ({
+        session_number: s.session_number,
+        session_timestamp: s.session_timestamp || "",
+        turns: (s.turns || []).map((t) => {
+          const editedText = sharedTurnsForDoctor[t.turn_id] || t.text;
+          const wasTurnEdited = editedText.trim() !== t.text.trim();
+          return {
+            turn_id: t.turn_id,
+            speaker: t.speaker === "PATIENT" || t.speaker === "USER" ? "Người hỏi" : "Bác sĩ / Trợ lý",
+            original_text: t.text,
+            final_text: editedText,
+            was_edited: wasTurnEdited,
+          };
+        }),
+      }));
+
+      const finalQuery = rec?.edited_query || c.current_query || "";
+      const wasQueryEdited = finalQuery.trim() !== (c.current_query || "").trim();
+
+      const verdictCode = rec?.verdict || "APPROVED";
+      const verdictLabel =
+        verdictCode === "APPROVED"
+          ? "Đạt chuẩn lâm sàng"
+          : verdictCode === "EDITED"
+          ? "Hiệu chỉnh câu từ"
+          : "Cần lưu ý thêm";
+
+      return {
+        case_id: c.case_id,
+        user_id: c.user_id,
+        checkpoint: c.metadata?.checkpoint || "Q1",
+        category: {
+          primary_family: famKey,
+          vietnamese_name: catMeta.label,
+          description: catMeta.desc,
+        },
+        user_query: {
+          original_text: c.current_query || "",
+          final_text: finalQuery,
+          was_edited: wasQueryEdited,
+          change_percent: wasQueryEdited ? calculateQueryChangePercent(c.current_query || "", finalQuery) : 0,
+        },
+        clinical_appraisal: {
+          verdict: verdictCode,
+          verdict_label: verdictLabel,
+          clinical_notes: rec?.clinical_notes || "",
+          checklists: {
+            history_correct: true,
+            safety_compliant: true,
+            clinical_grounded: true,
+          },
+          all_checklists_passed: true,
+          all_sessions_inspected: true,
+        },
+        dialogue_history: dialogueSessions,
+        clinical_factors: rec?.factors && rec.factors.length > 0 ? rec.factors : c.targets?.factors || [],
+        memory_events: rec?.memory_events || c.targets?.memory_events || {
+          relevant_event_ids: [],
+          stale_event_ids: [],
+          forbidden_event_ids: [],
+        },
+        annotated_by: activeDoctor.name,
+        annotated_at: rec?.updated_at || new Date().toISOString(),
+      };
+    });
+
+    const batchData = {
+      batch_meta: {
+        doctor_folder: doctorFolder,
+        doctor_id: activeDoctor.id,
+        doctor_name: activeDoctor.name,
+        batch_index: currentBatchIndex,
+        batch_name: `Gói ${currentBatchIndex}`,
+        case_range: `${batchCases[0]?.case_id} - ${batchCases[batchCases.length - 1]?.case_id}`,
+        total_cases: batchCases.length,
+        confirmed_cases_count: batchCases.length,
+        saved_at: new Date().toISOString(),
+        format_version: "v5_full_text",
+      },
+      cases: casesDetailed,
+    };
+
+    // 3. Gọi API lưu trực tiếp vào ổ cứng server Next.js (thư mục annotations/BS0X/batch_X.json)
+    try {
+      await fetch("/api/save-batch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          doctorFolder,
+          batchIndex: currentBatchIndex,
+          data: batchData,
+        }),
+      });
+    } catch (e) {
+      console.warn("Loi khi goi API save-batch:", e);
+    }
+
+    // 4. Kích hoạt tải tệp JSON về máy tính của bác sĩ để dự phòng
+    try {
+      const jsonStr = JSON.stringify(batchData, null, 2);
+      const blob = new Blob([jsonStr], { type: "application/json;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${doctorFolder}_batch_${currentBatchIndex}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error("Loi khi tai file batch:", e);
+    }
+
+    // 5. Đánh dấu gói đã hoàn thành
     const nextCompleted = Array.from(new Set([...completedBatches, currentBatchIndex]));
     setCompletedBatches(nextCompleted);
     try {
@@ -1733,15 +1910,18 @@ export default function LabelDataPage() {
     } catch {}
 
     setSaveMessage({
-      text: `Đã lưu thành công toàn bộ Gói ${currentBatchIndex}! Gói tiếp theo đã được mở khóa.`,
+      text: `Đã lưu thành công Gói ${currentBatchIndex} vào thư mục annotations/${doctorFolder}/batch_${currentBatchIndex}.json và tải tệp về máy!`,
       isError: false,
     });
 
     alert(
-      `Đã lưu thành công toàn bộ Gói ${currentBatchIndex}!\n\nGói ${currentBatchIndex < 10 ? currentBatchIndex + 1 : ""} đã được mở khóa để Bác sĩ tiếp tục làm việc.`
+      `Đã lưu thành công toàn bộ Gói ${currentBatchIndex}!\n\n` +
+      `• Đã ghi tệp hệ thống: annotations/${doctorFolder}/batch_${currentBatchIndex}.json\n` +
+      `• Trình duyệt đã tải xuống: ${doctorFolder}_batch_${currentBatchIndex}.json\n\n` +
+      `Gói ${currentBatchIndex < 10 ? currentBatchIndex + 1 : ""} đã được mở khóa để Bác sĩ tiếp tục làm việc.`
     );
 
-    // Advance to next batch if available
+    // Chuyển sang gói tiếp theo nếu có
     if (currentBatchIndex < 10) {
       const nextBatch = currentBatchIndex + 1;
       setCurrentBatchIndex(nextBatch);
@@ -2744,15 +2924,27 @@ export default function LabelDataPage() {
                     <div className={styles.charCountRow}>
                       <span
                         className={
-                          clinicalNotes.trim().length >= 20
+                          notesQuality.isValid
                             ? styles.charCountValid
                             : styles.charCountWarning
                         }
                       >
-                        {clinicalNotes.trim().length >= 20
+                        {notesQuality.isValid
                           ? `Ghi chú hợp lệ (${clinicalNotes.trim().length} ký tự)`
-                          : `Tối thiểu 20 ký tự (${clinicalNotes.trim().length}/20)`}
+                          : clinicalNotes.trim().length === 0
+                          ? "Bắt buộc nhập nhận xét (tối thiểu 20 ký tự)"
+                          : clinicalNotes.trim().length < 20
+                          ? `Tối thiểu 20 ký tự (${clinicalNotes.trim().length}/20)`
+                          : `Chưa đạt chuẩn (${clinicalNotes.trim().length} ký tự)`}
                       </span>
+                      <button
+                        type="button"
+                        onClick={handleResetCurrentCaseToV5}
+                        className={styles.resetCaseBtn}
+                        title="Xóa trắng bản nháp để tự nhập nhận xét mới từ đầu"
+                      >
+                        Làm mới ca này
+                      </button>
                     </div>
                     {notesQuality.errors.length > 0 && clinicalNotes.trim().length > 0 && (
                       <div className={styles.notesNoticeBox}>

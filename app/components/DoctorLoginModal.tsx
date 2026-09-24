@@ -5,6 +5,7 @@ import styles from "./DoctorAuth.module.css";
 
 export interface DoctorProfile {
   id: string;
+  folderCode: string; // BS01 .. BS05
   index: number; // 0 to 4
   name: string;
   role: string;
@@ -17,6 +18,7 @@ export interface DoctorProfile {
 export const DOCTORS_LIST: DoctorProfile[] = [
   {
     id: "bs_1",
+    folderCode: "BS01",
     index: 0,
     name: "Bác sĩ Thẩm định 01",
     role: "Chuyên khoa Răng Hàm Mặt - Nhóm 1",
@@ -27,6 +29,7 @@ export const DOCTORS_LIST: DoctorProfile[] = [
   },
   {
     id: "bs_2",
+    folderCode: "BS02",
     index: 1,
     name: "Bác sĩ Thẩm định 02",
     role: "Chuyên khoa Răng Hàm Mặt - Nhóm 2",
@@ -37,6 +40,7 @@ export const DOCTORS_LIST: DoctorProfile[] = [
   },
   {
     id: "bs_3",
+    folderCode: "BS03",
     index: 2,
     name: "Bác sĩ Thẩm định 03",
     role: "Chuyên khoa Răng Hàm Mặt - Nhóm 3",
@@ -47,6 +51,7 @@ export const DOCTORS_LIST: DoctorProfile[] = [
   },
   {
     id: "bs_4",
+    folderCode: "BS04",
     index: 3,
     name: "Bác sĩ Thẩm định 04",
     role: "Chuyên khoa Răng Hàm Mặt - Nhóm 4",
@@ -57,6 +62,7 @@ export const DOCTORS_LIST: DoctorProfile[] = [
   },
   {
     id: "bs_5",
+    folderCode: "BS05",
     index: 4,
     name: "Bác sĩ Thẩm định 05",
     role: "Chuyên khoa Răng Hàm Mặt - Nhóm 5",

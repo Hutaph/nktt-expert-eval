@@ -931,42 +931,59 @@
 .verdictButtonGroup {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: 0.4rem;
+  gap: 0.45rem;
+  margin-top: 0.2rem;
 }
 
 .verdictBtn {
-  padding: 0.5rem 0.4rem;
+  padding: 0.55rem 0.35rem;
   font-size: 0.75rem;
   font-weight: 700;
-  border: 1px solid var(--color-border);
+  border: 1.5px solid var(--color-border);
   border-radius: var(--radius-sm);
   background-color: var(--color-surface-muted);
   color: var(--color-text);
   cursor: pointer;
   text-align: center;
   transition: all var(--motion-fast);
+  line-height: 1.3;
 }
 
 .verdictBtn:hover {
   border-color: var(--color-border-strong);
+  background-color: var(--color-surface-accent);
 }
 
 .verdictBtnActiveApproved {
-  background-color: #237653;
-  color: #ffffff;
-  border-color: #237653;
+  background-color: #ecfdf5;
+  color: #065f46;
+  border-color: #059669;
+  box-shadow: 0 0 0 1.5px #059669;
 }
 
 .verdictBtnActiveNeedsRevision {
-  background-color: #d98962;
-  color: #ffffff;
-  border-color: #d98962;
+  background-color: #fffbeb;
+  color: #92400e;
+  border-color: #d97706;
+  box-shadow: 0 0 0 1.5px #d97706;
 }
 
 .verdictBtnActiveRejected {
-  background-color: #a13e3e;
-  color: #ffffff;
-  border-color: #a13e3e;
+  background-color: #fef2f2;
+  color: #991b1b;
+  border-color: #dc2626;
+  box-shadow: 0 0 0 1.5px #dc2626;
+}
+
+.notesNoticeBox {
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: #b91c1c;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  padding: 0.4rem 0.6rem;
+  margin-top: 0.2rem;
 }
 
 .notesTextarea {

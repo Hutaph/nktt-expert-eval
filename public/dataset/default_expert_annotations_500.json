@@ -3,7 +3,7 @@
     "case_id": "VL500_U0001_Q1",
     "user_id": "VL500_U0001",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Một người khỏe mạnh bình thường nên chăm sóc răng miệng hằng ngày theo những bước nào?",
     "factors": [],
     "memory_events": {
@@ -23,7 +23,7 @@
     "case_id": "VL500_U0001_Q2",
     "user_id": "VL500_U0001",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Mình muốn đổi cách vệ sinh quanh hàm duy trì, nên chọn dụng cụ và thao tác thế nào để không làm khí cụ lỏng hoặc kích nướu?",
     "factors": [
       {
@@ -57,7 +57,7 @@
     "case_id": "VL500_U0001_Q3",
     "user_id": "VL500_U0001",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Nếu thức ăn hay mắc quanh hàm duy trì thì nên dùng bàn chải kẽ, chỉ nha khoa hay tăm nước theo cách nào?",
     "factors": [
       {
@@ -129,7 +129,7 @@
     "case_id": "VL500_U0002_Q1",
     "user_id": "VL500_U0002",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Tăm nước và chỉ nha khoa làm sạch kẽ răng khác nhau thế nào?",
     "factors": [],
     "memory_events": {
@@ -149,7 +149,7 @@
     "case_id": "VL500_U0002_Q2",
     "user_id": "VL500_U0002",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Nếu thức ăn hay mắc quanh hàm duy trì thì nên dùng bàn chải kẽ, chỉ nha khoa hay tăm nước theo cách nào?",
     "factors": [
       {
@@ -256,7 +256,7 @@
     "case_id": "VL500_U0003_Q1",
     "user_id": "VL500_U0003",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Mỗi lần đánh răng nên kéo dài khoảng bao lâu?",
     "factors": [],
     "memory_events": {
@@ -346,7 +346,7 @@
     "case_id": "VL500_U0003_Q4",
     "user_id": "VL500_U0003",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Nếu dùng chỉ nha khoa hay tăm nước mà nướu chảy máu, mình nên giảm lực hay đổi dụng cụ như thế nào?",
     "factors": [
       {
@@ -382,7 +382,7 @@
     "case_id": "VL500_U0004_Q1",
     "user_id": "VL500_U0004",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Tăm nước và chỉ nha khoa làm sạch kẽ răng khác nhau thế nào?",
     "factors": [],
     "memory_events": {
@@ -402,7 +402,7 @@
     "case_id": "VL500_U0004_Q2",
     "user_id": "VL500_U0004",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Kế hoạch phục hồi chỗ mất răng của mình đang ở một bước chưa hoàn tất. Mình nên làm rõ những điểm nào với nha sĩ trước khi đi tiếp?",
     "factors": [
       {
@@ -471,7 +471,7 @@
     "case_id": "VL500_U0004_Q4",
     "user_id": "VL500_U0004",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (RESTORATIVE_FILLING_MONITORING), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (RESTORATIVE_FILLING_MONITORING), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Với miếng trám mà bác sĩ từng dặn theo dõi, nếu răng bắt đầu ê khi nhai thì mình nên làm gì trước?",
     "factors": [
       {
@@ -506,7 +506,7 @@
     "case_id": "VL500_U0005_Q1",
     "user_id": "VL500_U0005",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Một người khỏe mạnh bình thường nên chăm sóc răng miệng hằng ngày theo những bước nào?",
     "factors": [],
     "memory_events": {
@@ -630,7 +630,7 @@
     "case_id": "VL500_U0006_Q1",
     "user_id": "VL500_U0006",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Tăm nước và chỉ nha khoa làm sạch kẽ răng khác nhau thế nào?",
     "factors": [],
     "memory_events": {
@@ -684,7 +684,7 @@
     "case_id": "VL500_U0006_Q3",
     "user_id": "VL500_U0006",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Chải răng xong hay thấy ê hơn thì nên sửa cách chải trước hay đổi kem đánh răng?",
     "factors": [
       {
@@ -754,7 +754,7 @@
     "case_id": "VL500_U0007_Q1",
     "user_id": "VL500_U0007",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Tăm nước và chỉ nha khoa làm sạch kẽ răng khác nhau thế nào?",
     "factors": [],
     "memory_events": {
@@ -881,7 +881,7 @@
     "case_id": "VL500_U0008_Q1",
     "user_id": "VL500_U0008",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Một người khỏe mạnh bình thường nên chăm sóc răng miệng hằng ngày theo những bước nào?",
     "factors": [],
     "memory_events": {
@@ -970,7 +970,7 @@
     "case_id": "VL500_U0008_Q4",
     "user_id": "VL500_U0008",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Mình muốn đổi cách vệ sinh quanh hàm duy trì, nên chọn dụng cụ và thao tác thế nào để không làm khí cụ lỏng hoặc kích nướu?",
     "factors": [
       {
@@ -1007,7 +1007,7 @@
     "case_id": "VL500_U0009_Q1",
     "user_id": "VL500_U0009",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Tăm nước và chỉ nha khoa làm sạch kẽ răng khác nhau thế nào?",
     "factors": [],
     "memory_events": {
@@ -1133,7 +1133,7 @@
     "case_id": "VL500_U0010_Q1",
     "user_id": "VL500_U0010",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Mỗi lần đánh răng nên kéo dài khoảng bao lâu?",
     "factors": [],
     "memory_events": {
@@ -1153,7 +1153,7 @@
     "case_id": "VL500_U0010_Q2",
     "user_id": "VL500_U0010",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Lần trước nha sĩ có nói về kế hoạch phục hồi vùng mất răng của mình. Mình nên làm rõ những điểm nào trước khi quyết định bước tiếp theo?",
     "factors": [
       {
@@ -1187,7 +1187,7 @@
     "case_id": "VL500_U0010_Q3",
     "user_id": "VL500_U0010",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Sau khi đã làm implant, cách chăm sóc tại nhà có cần thay đổi theo giai đoạn lành thương hiện tại không?",
     "factors": [
       {
@@ -1222,7 +1222,7 @@
     "case_id": "VL500_U0010_Q4",
     "user_id": "VL500_U0010",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Sau khi đã làm implant, cách chăm sóc tại nhà có cần thay đổi theo giai đoạn lành thương hiện tại không?",
     "factors": [
       {
@@ -1257,7 +1257,7 @@
     "case_id": "VL500_U0011_Q1",
     "user_id": "VL500_U0011",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Tăm nước và chỉ nha khoa làm sạch kẽ răng khác nhau thế nào?",
     "factors": [],
     "memory_events": {
@@ -1345,7 +1345,7 @@
     "case_id": "VL500_U0011_Q4",
     "user_id": "VL500_U0011",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Nướu nhạy cảm thì nên chọn bàn chải, chỉ nha khoa và tăm nước thế nào để làm sạch mà không làm chảy máu nhiều hơn?",
     "factors": [
       {
@@ -1380,7 +1380,7 @@
     "case_id": "VL500_U0012_Q1",
     "user_id": "VL500_U0012",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Một người khỏe mạnh bình thường nên chăm sóc răng miệng hằng ngày theo những bước nào?",
     "factors": [],
     "memory_events": {
@@ -1434,7 +1434,7 @@
     "case_id": "VL500_U0012_Q3",
     "user_id": "VL500_U0012",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Mình muốn đổi bàn chải hoặc cách chải vì răng hay ê, nên điều chỉnh lực và đầu bàn chải thế nào trước?",
     "factors": [
       {
@@ -1504,7 +1504,7 @@
     "case_id": "VL500_U0013_Q1",
     "user_id": "VL500_U0013",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Tăm nước và chỉ nha khoa làm sạch kẽ răng khác nhau thế nào?",
     "factors": [],
     "memory_events": {
@@ -1558,7 +1558,7 @@
     "case_id": "VL500_U0013_Q3",
     "user_id": "VL500_U0013",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Vệ sinh vùng có hàm duy trì bằng chỉ nha khoa hoặc tăm nước thế nào để vừa sạch vừa không làm ảnh hưởng khí cụ?",
     "factors": [
       {
@@ -1631,7 +1631,7 @@
     "case_id": "VL500_U0014_Q1",
     "user_id": "VL500_U0014",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Một người khỏe mạnh bình thường nên chăm sóc răng miệng hằng ngày theo những bước nào?",
     "factors": [],
     "memory_events": {
@@ -1757,7 +1757,7 @@
     "case_id": "VL500_U0015_Q1",
     "user_id": "VL500_U0015",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Một người khỏe mạnh bình thường nên chăm sóc răng miệng hằng ngày theo những bước nào?",
     "factors": [],
     "memory_events": {
@@ -1881,7 +1881,7 @@
     "case_id": "VL500_U0016_Q1",
     "user_id": "VL500_U0016",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Tăm nước và chỉ nha khoa làm sạch kẽ răng khác nhau thế nào?",
     "factors": [],
     "memory_events": {
@@ -1900,7 +1900,7 @@
     "case_id": "VL500_U0016_Q2",
     "user_id": "VL500_U0016",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Mình đang cân nhắc phục hồi chỗ mất răng. Với giai đoạn đánh giá hiện tại thì nên hỏi nha sĩ những gì trước khi quyết định bước tiếp theo?",
     "factors": [
       {
@@ -1968,7 +1968,7 @@
     "case_id": "VL500_U0016_Q4",
     "user_id": "VL500_U0016",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Sau khi đã làm implant, cách chăm sóc tại nhà có cần thay đổi theo giai đoạn lành thương hiện tại không?",
     "factors": [
       {
@@ -2003,7 +2003,7 @@
     "case_id": "VL500_U0017_Q1",
     "user_id": "VL500_U0017",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Tăm nước và chỉ nha khoa làm sạch kẽ răng khác nhau thế nào?",
     "factors": [],
     "memory_events": {
@@ -2126,7 +2126,7 @@
     "case_id": "VL500_U0018_Q1",
     "user_id": "VL500_U0018",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Tăm nước và chỉ nha khoa làm sạch kẽ răng khác nhau thế nào?",
     "factors": [],
     "memory_events": {
@@ -2146,7 +2146,7 @@
     "case_id": "VL500_U0018_Q2",
     "user_id": "VL500_U0018",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Răng vẫn hơi ê sau khi vệ sinh. Với biện pháp mình đang dùng để giảm ê, nên đổi thao tác chải trước hay đổi sản phẩm trước?",
     "factors": [
       {
@@ -2180,7 +2180,7 @@
     "case_id": "VL500_U0018_Q3",
     "user_id": "VL500_U0018",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Nếu răng nhạy cảm, dùng bàn chải điện có cần đổi chế độ hoặc lực chải không?",
     "factors": [
       {
@@ -2250,7 +2250,7 @@
     "case_id": "VL500_U0019_Q1",
     "user_id": "VL500_U0019",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Tăm nước và chỉ nha khoa làm sạch kẽ răng khác nhau thế nào?",
     "factors": [],
     "memory_events": {
@@ -2340,7 +2340,7 @@
     "case_id": "VL500_U0019_Q4",
     "user_id": "VL500_U0019",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Mình muốn đổi cách vệ sinh quanh hàm duy trì, nên chọn dụng cụ và thao tác thế nào để không làm khí cụ lỏng hoặc kích nướu?",
     "factors": [
       {
@@ -2377,7 +2377,7 @@
     "case_id": "VL500_U0020_Q1",
     "user_id": "VL500_U0020",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Tăm nước và chỉ nha khoa làm sạch kẽ răng khác nhau thế nào?",
     "factors": [],
     "memory_events": {
@@ -2396,7 +2396,7 @@
     "case_id": "VL500_U0020_Q2",
     "user_id": "VL500_U0020",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Vệ sinh vùng có hàm duy trì bằng chỉ nha khoa hoặc tăm nước thế nào để vừa sạch vừa không làm ảnh hưởng khí cụ?",
     "factors": [
       {
@@ -2430,7 +2430,7 @@
     "case_id": "VL500_U0020_Q3",
     "user_id": "VL500_U0020",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Mình muốn đổi cách vệ sinh quanh hàm duy trì, nên chọn dụng cụ và thao tác thế nào để không làm khí cụ lỏng hoặc kích nướu?",
     "factors": [
       {
@@ -2503,7 +2503,7 @@
     "case_id": "VL500_U0021_Q1",
     "user_id": "VL500_U0021",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Tăm nước và chỉ nha khoa làm sạch kẽ răng khác nhau thế nào?",
     "factors": [],
     "memory_events": {
@@ -2592,7 +2592,7 @@
     "case_id": "VL500_U0021_Q4",
     "user_id": "VL500_U0021",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Nếu dùng chỉ nha khoa hay tăm nước mà nướu chảy máu, mình nên giảm lực hay đổi dụng cụ như thế nào?",
     "factors": [
       {
@@ -2628,7 +2628,7 @@
     "case_id": "VL500_U0022_Q1",
     "user_id": "VL500_U0022",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Tăm nước và chỉ nha khoa làm sạch kẽ răng khác nhau thế nào?",
     "factors": [],
     "memory_events": {
@@ -2649,7 +2649,7 @@
     "case_id": "VL500_U0022_Q2",
     "user_id": "VL500_U0022",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Kế hoạch phục hồi chỗ mất răng của mình đang ở một bước chưa hoàn tất. Mình nên làm rõ những điểm nào với nha sĩ trước khi đi tiếp?",
     "factors": [
       {
@@ -2683,7 +2683,7 @@
     "case_id": "VL500_U0022_Q3",
     "user_id": "VL500_U0022",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Sau khi đã làm implant, cách chăm sóc tại nhà có cần thay đổi theo giai đoạn lành thương hiện tại không?",
     "factors": [
       {
@@ -2718,7 +2718,7 @@
     "case_id": "VL500_U0022_Q4",
     "user_id": "VL500_U0022",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Sau khi đã làm implant, cách chăm sóc tại nhà có cần thay đổi theo giai đoạn lành thương hiện tại không?",
     "factors": [
       {
@@ -2753,7 +2753,7 @@
     "case_id": "VL500_U0023_Q1",
     "user_id": "VL500_U0023",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Tăm nước và chỉ nha khoa làm sạch kẽ răng khác nhau thế nào?",
     "factors": [],
     "memory_events": {
@@ -2842,7 +2842,7 @@
     "case_id": "VL500_U0023_Q4",
     "user_id": "VL500_U0023",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Nếu dùng chỉ nha khoa hay tăm nước mà nướu chảy máu, mình nên giảm lực hay đổi dụng cụ như thế nào?",
     "factors": [
       {
@@ -2877,7 +2877,7 @@
     "case_id": "VL500_U0024_Q1",
     "user_id": "VL500_U0024",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Tăm nước và chỉ nha khoa làm sạch kẽ răng khác nhau thế nào?",
     "factors": [],
     "memory_events": {
@@ -3000,7 +3000,7 @@
     "case_id": "VL500_U0025_Q1",
     "user_id": "VL500_U0025",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Một người khỏe mạnh bình thường nên chăm sóc răng miệng hằng ngày theo những bước nào?",
     "factors": [],
     "memory_events": {
@@ -3126,7 +3126,7 @@
     "case_id": "VL500_U0026_Q1",
     "user_id": "VL500_U0026",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Một người khỏe mạnh bình thường nên chăm sóc răng miệng hằng ngày theo những bước nào?",
     "factors": [],
     "memory_events": {
@@ -3215,7 +3215,7 @@
     "case_id": "VL500_U0026_Q4",
     "user_id": "VL500_U0026",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Vệ sinh vùng có hàm duy trì bằng chỉ nha khoa hoặc tăm nước thế nào để vừa sạch vừa không làm ảnh hưởng khí cụ?",
     "factors": [
       {
@@ -3252,7 +3252,7 @@
     "case_id": "VL500_U0027_Q1",
     "user_id": "VL500_U0027",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Tăm nước và chỉ nha khoa làm sạch kẽ răng khác nhau thế nào?",
     "factors": [],
     "memory_events": {
@@ -3271,7 +3271,7 @@
     "case_id": "VL500_U0027_Q2",
     "user_id": "VL500_U0027",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Sau đợt xử lý nướu gần đây, mình nên vệ sinh ở nhà và dùng nước súc miệng thế nào, có nên tự kéo dài sản phẩm sát khuẩn không?",
     "factors": [
       {
@@ -3376,7 +3376,7 @@
     "case_id": "VL500_U0028_Q1",
     "user_id": "VL500_U0028",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Tăm nước và chỉ nha khoa làm sạch kẽ răng khác nhau thế nào?",
     "factors": [],
     "memory_events": {
@@ -3396,7 +3396,7 @@
     "case_id": "VL500_U0028_Q2",
     "user_id": "VL500_U0028",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Mình đang cân nhắc phục hồi chỗ mất răng. Với giai đoạn đánh giá hiện tại thì nên hỏi nha sĩ những gì trước khi quyết định bước tiếp theo?",
     "factors": [
       {
@@ -3430,7 +3430,7 @@
     "case_id": "VL500_U0028_Q3",
     "user_id": "VL500_U0028",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Sau khi đã làm implant, cách chăm sóc tại nhà có cần thay đổi theo giai đoạn lành thương hiện tại không?",
     "factors": [
       {
@@ -3465,7 +3465,7 @@
     "case_id": "VL500_U0028_Q4",
     "user_id": "VL500_U0028",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Vùng cấy răng đang trong quá trình hồi phục. Với giai đoạn hiện tại thì mình nên vệ sinh, ăn nhai và theo dõi dấu hiệu gì?",
     "factors": [
       {
@@ -3500,7 +3500,7 @@
     "case_id": "VL500_U0029_Q1",
     "user_id": "VL500_U0029",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Tăm nước và chỉ nha khoa làm sạch kẽ răng khác nhau thế nào?",
     "factors": [],
     "memory_events": {
@@ -3554,7 +3554,7 @@
     "case_id": "VL500_U0029_Q3",
     "user_id": "VL500_U0029",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Nướu nhạy cảm thì nên chọn bàn chải, chỉ nha khoa và tăm nước thế nào để làm sạch mà không làm chảy máu nhiều hơn?",
     "factors": [
       {
@@ -3589,7 +3589,7 @@
     "case_id": "VL500_U0029_Q4",
     "user_id": "VL500_U0029",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Nếu dùng chỉ nha khoa hay tăm nước mà nướu chảy máu, mình nên giảm lực hay đổi dụng cụ như thế nào?",
     "factors": [
       {
@@ -3624,7 +3624,7 @@
     "case_id": "VL500_U0030_Q1",
     "user_id": "VL500_U0030",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Một người khỏe mạnh bình thường nên chăm sóc răng miệng hằng ngày theo những bước nào?",
     "factors": [],
     "memory_events": {
@@ -3748,7 +3748,7 @@
     "case_id": "VL500_U0031_Q1",
     "user_id": "VL500_U0031",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Mỗi lần đánh răng nên kéo dài khoảng bao lâu?",
     "factors": [],
     "memory_events": {
@@ -3768,7 +3768,7 @@
     "case_id": "VL500_U0031_Q2",
     "user_id": "VL500_U0031",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Mình đang đeo máng duy trì vài đêm mỗi tuần. Làm sao biết lịch hiện tại vẫn đủ để giữ răng ổn định và khi nào nên hỏi lại nha sĩ về thời gian đeo?",
     "factors": [
       {
@@ -3906,7 +3906,7 @@
     "case_id": "VL500_U0032_Q2",
     "user_id": "VL500_U0032",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Sau khi ăn đồ chua ngọt thì nên đợi bao nhiêu phút mới được đánh răng để không làm tổn thương lớp men răng?",
     "factors": [],
     "memory_events": {
@@ -4030,7 +4030,7 @@
     "case_id": "VL500_U0033_Q2",
     "user_id": "VL500_U0033",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Sau khi ăn đồ chua ngọt thì nên đợi bao nhiêu phút mới được đánh răng để không làm tổn thương lớp men răng?",
     "factors": [],
     "memory_events": {
@@ -4153,7 +4153,7 @@
     "case_id": "VL500_U0034_Q2",
     "user_id": "VL500_U0034",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Nước súc miệng thông thường có thể thay thế hoàn toàn cho việc dùng chỉ nha khoa hằng ngày được không?",
     "factors": [],
     "memory_events": {
@@ -4174,7 +4174,7 @@
     "case_id": "VL500_U0034_Q3",
     "user_id": "VL500_U0034",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Vùng cấy răng đang trong quá trình hồi phục. Với giai đoạn hiện tại thì mình nên vệ sinh, ăn nhai và theo dõi dấu hiệu gì?",
     "factors": [
       {
@@ -4209,7 +4209,7 @@
     "case_id": "VL500_U0034_Q4",
     "user_id": "VL500_U0034",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Vùng cấy răng đang trong quá trình hồi phục. Với giai đoạn hiện tại thì mình nên vệ sinh, ăn nhai và theo dõi dấu hiệu gì?",
     "factors": [
       {
@@ -4275,7 +4275,7 @@
     "case_id": "VL500_U0035_Q2",
     "user_id": "VL500_U0035",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Sau khi ăn đồ chua ngọt thì nên đợi bao nhiêu phút mới được đánh răng để không làm tổn thương lớp men răng?",
     "factors": [],
     "memory_events": {
@@ -4396,7 +4396,7 @@
     "case_id": "VL500_U0036_Q2",
     "user_id": "VL500_U0036",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Vì sao ăn nhiều đường và tinh bột lại làm tăng nguy cơ sâu răng?",
     "factors": [],
     "memory_events": {
@@ -4518,7 +4518,7 @@
     "case_id": "VL500_U0037_Q2",
     "user_id": "VL500_U0037",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Vì sao ăn nhiều đường và tinh bột lại làm tăng nguy cơ sâu răng?",
     "factors": [],
     "memory_events": {
@@ -4641,7 +4641,7 @@
     "case_id": "VL500_U0038_Q2",
     "user_id": "VL500_U0038",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Vì sao ăn nhiều đường và tinh bột lại làm tăng nguy cơ sâu răng?",
     "factors": [],
     "memory_events": {
@@ -4697,7 +4697,7 @@
     "case_id": "VL500_U0038_Q4",
     "user_id": "VL500_U0038",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Mình muốn đổi cách vệ sinh quanh hàm duy trì, nên chọn dụng cụ và thao tác thế nào để không làm khí cụ lỏng hoặc kích nướu?",
     "factors": [
       {
@@ -4764,7 +4764,7 @@
     "case_id": "VL500_U0039_Q2",
     "user_id": "VL500_U0039",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Vì sao ăn nhiều đường và tinh bột lại làm tăng nguy cơ sâu răng?",
     "factors": [],
     "memory_events": {
@@ -4820,7 +4820,7 @@
     "case_id": "VL500_U0039_Q4",
     "user_id": "VL500_U0039",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Nếu dùng chỉ nha khoa hay tăm nước mà nướu chảy máu, mình nên giảm lực hay đổi dụng cụ như thế nào?",
     "factors": [
       {
@@ -4856,7 +4856,7 @@
     "case_id": "VL500_U0040_Q1",
     "user_id": "VL500_U0040",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (MISSING_TOOTH_PROSTHODONTICS), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (MISSING_TOOTH_PROSTHODONTICS), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Mình đang cân nhắc phục hồi một chỗ mất răng hàm. Với tình trạng hiện tại thì nên ưu tiên kiểm tra gì trước khi chọn phương án?",
     "factors": [
       {
@@ -4887,7 +4887,7 @@
     "case_id": "VL500_U0040_Q2",
     "user_id": "VL500_U0040",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Nước súc miệng thông thường có thể thay thế hoàn toàn cho việc dùng chỉ nha khoa hằng ngày được không?",
     "factors": [],
     "memory_events": {
@@ -4908,7 +4908,7 @@
     "case_id": "VL500_U0040_Q3",
     "user_id": "VL500_U0040",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Sau khi đã làm implant, cách chăm sóc tại nhà có cần thay đổi theo giai đoạn lành thương hiện tại không?",
     "factors": [
       {
@@ -4943,7 +4943,7 @@
     "case_id": "VL500_U0040_Q4",
     "user_id": "VL500_U0040",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Sau khi đã làm implant, cách chăm sóc tại nhà có cần thay đổi theo giai đoạn lành thương hiện tại không?",
     "factors": [
       {
@@ -5009,7 +5009,7 @@
     "case_id": "VL500_U0041_Q2",
     "user_id": "VL500_U0041",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Nước súc miệng thông thường có thể thay thế hoàn toàn cho việc dùng chỉ nha khoa hằng ngày được không?",
     "factors": [],
     "memory_events": {
@@ -5030,7 +5030,7 @@
     "case_id": "VL500_U0041_Q3",
     "user_id": "VL500_U0041",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Nướu nhạy cảm thì nên chọn bàn chải, chỉ nha khoa và tăm nước thế nào để làm sạch mà không làm chảy máu nhiều hơn?",
     "factors": [
       {
@@ -5131,7 +5131,7 @@
     "case_id": "VL500_U0042_Q2",
     "user_id": "VL500_U0042",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Nước súc miệng thông thường có thể thay thế hoàn toàn cho việc dùng chỉ nha khoa hằng ngày được không?",
     "factors": [],
     "memory_events": {
@@ -5253,7 +5253,7 @@
     "case_id": "VL500_U0043_Q2",
     "user_id": "VL500_U0043",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Vì sao ăn nhiều đường và tinh bột lại làm tăng nguy cơ sâu răng?",
     "factors": [],
     "memory_events": {
@@ -5346,7 +5346,7 @@
     "case_id": "VL500_U0044_Q1",
     "user_id": "VL500_U0044",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Đang chỉnh nha mà có chỗ cọ vào má thì nên xử lý tạm ở nhà thế nào và dấu hiệu nào cần liên hệ bác sĩ sớm?",
     "factors": [
       {
@@ -5377,7 +5377,7 @@
     "case_id": "VL500_U0044_Q2",
     "user_id": "VL500_U0044",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Vì sao ăn nhiều đường và tinh bột lại làm tăng nguy cơ sâu răng?",
     "factors": [],
     "memory_events": {
@@ -5501,7 +5501,7 @@
     "case_id": "VL500_U0045_Q2",
     "user_id": "VL500_U0045",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Sau khi ăn đồ chua ngọt thì nên đợi bao nhiêu phút mới được đánh răng để không làm tổn thương lớp men răng?",
     "factors": [],
     "memory_events": {
@@ -5521,7 +5521,7 @@
     "case_id": "VL500_U0045_Q3",
     "user_id": "VL500_U0045",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Nếu dùng chỉ nha khoa hay tăm nước mà nướu chảy máu, mình nên giảm lực hay đổi dụng cụ như thế nào?",
     "factors": [
       {
@@ -5593,7 +5593,7 @@
     "case_id": "VL500_U0046_Q1",
     "user_id": "VL500_U0046",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (MISSING_TOOTH_PROSTHODONTICS), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (MISSING_TOOTH_PROSTHODONTICS), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Mình đang cân nhắc phục hồi một chỗ mất răng hàm. Với tình trạng hiện tại thì nên ưu tiên kiểm tra gì trước khi chọn phương án?",
     "factors": [
       {
@@ -5624,7 +5624,7 @@
     "case_id": "VL500_U0046_Q2",
     "user_id": "VL500_U0046",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Nước súc miệng thông thường có thể thay thế hoàn toàn cho việc dùng chỉ nha khoa hằng ngày được không?",
     "factors": [],
     "memory_events": {
@@ -5645,7 +5645,7 @@
     "case_id": "VL500_U0046_Q3",
     "user_id": "VL500_U0046",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (RESTORATIVE_FILLING_MONITORING), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (RESTORATIVE_FILLING_MONITORING), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Lần trước bác sĩ có dặn theo dõi một miếng trám ở răng hàm. Ở nhà mình nên để ý những dấu hiệu nào và khi nào cần quay lại kiểm tra?",
     "factors": [
       {
@@ -5680,7 +5680,7 @@
     "case_id": "VL500_U0046_Q4",
     "user_id": "VL500_U0046",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Sau khi đã làm implant, cách chăm sóc tại nhà có cần thay đổi theo giai đoạn lành thương hiện tại không?",
     "factors": [
       {
@@ -5746,7 +5746,7 @@
     "case_id": "VL500_U0047_Q2",
     "user_id": "VL500_U0047",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Sau khi ăn đồ chua ngọt thì nên đợi bao nhiêu phút mới được đánh răng để không làm tổn thương lớp men răng?",
     "factors": [],
     "memory_events": {
@@ -5802,7 +5802,7 @@
     "case_id": "VL500_U0047_Q4",
     "user_id": "VL500_U0047",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Mình muốn làm sạch kỹ hơn nhưng nướu dễ khó chịu, nên bắt đầu với dụng cụ nào và theo dõi phản ứng ra sao?",
     "factors": [
       {
@@ -5837,7 +5837,7 @@
     "case_id": "VL500_U0048_Q1",
     "user_id": "VL500_U0048",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Nếu răng nhạy cảm, dùng bàn chải điện có cần đổi chế độ hoặc lực chải không?",
     "factors": [
       {
@@ -5868,7 +5868,7 @@
     "case_id": "VL500_U0048_Q2",
     "user_id": "VL500_U0048",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Vì sao ăn nhiều đường và tinh bột lại làm tăng nguy cơ sâu răng?",
     "factors": [],
     "memory_events": {
@@ -5889,7 +5889,7 @@
     "case_id": "VL500_U0048_Q3",
     "user_id": "VL500_U0048",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Nếu răng nhạy cảm, dùng bàn chải điện có cần đổi chế độ hoặc lực chải không?",
     "factors": [
       {
@@ -5990,7 +5990,7 @@
     "case_id": "VL500_U0049_Q2",
     "user_id": "VL500_U0049",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Vì sao ăn nhiều đường và tinh bột lại làm tăng nguy cơ sâu răng?",
     "factors": [],
     "memory_events": {
@@ -6010,7 +6010,7 @@
     "case_id": "VL500_U0049_Q3",
     "user_id": "VL500_U0049",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Vệ sinh vùng có hàm duy trì bằng chỉ nha khoa hoặc tăm nước thế nào để vừa sạch vừa không làm ảnh hưởng khí cụ?",
     "factors": [
       {
@@ -6114,7 +6114,7 @@
     "case_id": "VL500_U0050_Q2",
     "user_id": "VL500_U0050",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Sau khi ăn đồ chua ngọt thì nên đợi bao nhiêu phút mới được đánh răng để không làm tổn thương lớp men răng?",
     "factors": [],
     "memory_events": {
@@ -6135,7 +6135,7 @@
     "case_id": "VL500_U0050_Q3",
     "user_id": "VL500_U0050",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Hàm duy trì gần đây hơi cộm hơn trước. Với loại mình đang dùng thì nên theo dõi dấu hiệu nào và khi nào cần mang đi kiểm tra?",
     "factors": [
       {
@@ -6171,7 +6171,7 @@
     "case_id": "VL500_U0050_Q4",
     "user_id": "VL500_U0050",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Hàm duy trì gần đây cộm hoặc vướng hơn trước. Với loại mình đang dùng thì nên vệ sinh, theo dõi thế nào và khi nào cần hẹn nha sĩ kiểm tra?",
     "factors": [
       {
@@ -6239,7 +6239,7 @@
     "case_id": "VL500_U0051_Q2",
     "user_id": "VL500_U0051",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Nước súc miệng thông thường có thể thay thế hoàn toàn cho việc dùng chỉ nha khoa hằng ngày được không?",
     "factors": [],
     "memory_events": {
@@ -6330,7 +6330,7 @@
     "case_id": "VL500_U0052_Q1",
     "user_id": "VL500_U0052",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (MISSING_TOOTH_PROSTHODONTICS), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (MISSING_TOOTH_PROSTHODONTICS), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Mình đang cân nhắc phục hồi chỗ mất răng hàm. Có những yếu tố nào trong tình trạng hiện tại cần được đánh giá trước khi chọn phương án?",
     "factors": [
       {
@@ -6360,7 +6360,7 @@
     "case_id": "VL500_U0052_Q2",
     "user_id": "VL500_U0052",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Nước súc miệng thông thường có thể thay thế hoàn toàn cho việc dùng chỉ nha khoa hằng ngày được không?",
     "factors": [],
     "memory_events": {
@@ -6381,7 +6381,7 @@
     "case_id": "VL500_U0052_Q3",
     "user_id": "VL500_U0052",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Sau khi đã làm implant, cách chăm sóc tại nhà có cần thay đổi theo giai đoạn lành thương hiện tại không?",
     "factors": [
       {
@@ -6482,7 +6482,7 @@
     "case_id": "VL500_U0053_Q2",
     "user_id": "VL500_U0053",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Nước súc miệng thông thường có thể thay thế hoàn toàn cho việc dùng chỉ nha khoa hằng ngày được không?",
     "factors": [],
     "memory_events": {
@@ -6572,7 +6572,7 @@
     "case_id": "VL500_U0054_Q1",
     "user_id": "VL500_U0054",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Răng mình hay buốt khi gặp lạnh, với tình trạng hiện tại thì nên thử chăm sóc tại nhà bao lâu trước khi đi khám?",
     "factors": [
       {
@@ -6603,7 +6603,7 @@
     "case_id": "VL500_U0054_Q2",
     "user_id": "VL500_U0054",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Vì sao ăn nhiều đường và tinh bột lại làm tăng nguy cơ sâu răng?",
     "factors": [],
     "memory_events": {
@@ -6724,7 +6724,7 @@
     "case_id": "VL500_U0055_Q2",
     "user_id": "VL500_U0055",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Nước súc miệng thông thường có thể thay thế hoàn toàn cho việc dùng chỉ nha khoa hằng ngày được không?",
     "factors": [],
     "memory_events": {
@@ -6744,7 +6744,7 @@
     "case_id": "VL500_U0055_Q3",
     "user_id": "VL500_U0055",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Hàm duy trì gần đây cộm hoặc vướng hơn trước. Với loại mình đang dùng thì nên vệ sinh, theo dõi thế nào và khi nào cần hẹn nha sĩ kiểm tra?",
     "factors": [
       {
@@ -6847,7 +6847,7 @@
     "case_id": "VL500_U0056_Q2",
     "user_id": "VL500_U0056",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Vì sao ăn nhiều đường và tinh bột lại làm tăng nguy cơ sâu răng?",
     "factors": [],
     "memory_events": {
@@ -6970,7 +6970,7 @@
     "case_id": "VL500_U0057_Q2",
     "user_id": "VL500_U0057",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Sau khi ăn đồ chua ngọt thì nên đợi bao nhiêu phút mới được đánh răng để không làm tổn thương lớp men răng?",
     "factors": [],
     "memory_events": {
@@ -7061,7 +7061,7 @@
     "case_id": "VL500_U0058_Q1",
     "user_id": "VL500_U0058",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (MISSING_TOOTH_PROSTHODONTICS), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (MISSING_TOOTH_PROSTHODONTICS), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Mình đang cân nhắc phục hồi chỗ mất răng hàm. Có những yếu tố nào trong tình trạng hiện tại cần được đánh giá trước khi chọn phương án?",
     "factors": [
       {
@@ -7091,7 +7091,7 @@
     "case_id": "VL500_U0058_Q2",
     "user_id": "VL500_U0058",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Sau khi ăn đồ chua ngọt thì nên đợi bao nhiêu phút mới được đánh răng để không làm tổn thương lớp men răng?",
     "factors": [],
     "memory_events": {
@@ -7112,7 +7112,7 @@
     "case_id": "VL500_U0058_Q3",
     "user_id": "VL500_U0058",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Sau khi đã làm implant, cách chăm sóc tại nhà có cần thay đổi theo giai đoạn lành thương hiện tại không?",
     "factors": [
       {
@@ -7147,7 +7147,7 @@
     "case_id": "VL500_U0058_Q4",
     "user_id": "VL500_U0058",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Vùng cấy răng đang trong quá trình hồi phục. Với giai đoạn hiện tại thì mình nên vệ sinh, ăn nhai và theo dõi dấu hiệu gì?",
     "factors": [
       {
@@ -7212,7 +7212,7 @@
     "case_id": "VL500_U0059_Q2",
     "user_id": "VL500_U0059",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Sau khi ăn đồ chua ngọt thì nên đợi bao nhiêu phút mới được đánh răng để không làm tổn thương lớp men răng?",
     "factors": [],
     "memory_events": {
@@ -7334,7 +7334,7 @@
     "case_id": "VL500_U0060_Q2",
     "user_id": "VL500_U0060",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Vì sao ăn nhiều đường và tinh bột lại làm tăng nguy cơ sâu răng?",
     "factors": [],
     "memory_events": {
@@ -7390,7 +7390,7 @@
     "case_id": "VL500_U0060_Q4",
     "user_id": "VL500_U0060",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Nếu ê buốt đã thay đổi sau một thời gian dùng kem chuyên dụng thì mình nên tiếp tục, đổi sản phẩm hay đi kiểm tra?",
     "factors": [
       {
@@ -7456,7 +7456,7 @@
     "case_id": "VL500_U0061_Q2",
     "user_id": "VL500_U0061",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Sau khi ăn đồ chua ngọt thì nên đợi bao nhiêu phút mới được đánh răng để không làm tổn thương lớp men răng?",
     "factors": [],
     "memory_events": {
@@ -7579,7 +7579,7 @@
     "case_id": "VL500_U0062_Q2",
     "user_id": "VL500_U0062",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Vì sao ăn nhiều đường và tinh bột lại làm tăng nguy cơ sâu răng?",
     "factors": [],
     "memory_events": {
@@ -7635,7 +7635,7 @@
     "case_id": "VL500_U0062_Q4",
     "user_id": "VL500_U0062",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Hàm duy trì gần đây cộm hoặc vướng hơn trước. Với loại mình đang dùng thì nên vệ sinh, theo dõi thế nào và khi nào cần hẹn nha sĩ kiểm tra?",
     "factors": [
       {
@@ -7672,7 +7672,7 @@
     "case_id": "VL500_U0063_Q1",
     "user_id": "VL500_U0063",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Mình muốn làm sạch kỹ hơn nhưng nướu dễ khó chịu, nên bắt đầu với dụng cụ nào và theo dõi phản ứng ra sao?",
     "factors": [
       {
@@ -7735,7 +7735,7 @@
     "case_id": "VL500_U0063_Q3",
     "user_id": "VL500_U0063",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Cao răng hình thành từ đâu và vì sao việc tự cạo vôi răng tại nhà lại bị các nha sĩ cảnh báo nguy hiểm?",
     "factors": [],
     "memory_events": {
@@ -7793,7 +7793,7 @@
     "case_id": "VL500_U0064_Q1",
     "user_id": "VL500_U0064",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (MISSING_TOOTH_PROSTHODONTICS), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (MISSING_TOOTH_PROSTHODONTICS), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Mình đang cân nhắc phục hồi một chỗ mất răng hàm. Với tình trạng hiện tại thì nên ưu tiên kiểm tra gì trước khi chọn phương án?",
     "factors": [
       {
@@ -7824,7 +7824,7 @@
     "case_id": "VL500_U0064_Q2",
     "user_id": "VL500_U0064",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Kế hoạch phục hồi chỗ mất răng của mình đang ở một bước chưa hoàn tất. Mình nên làm rõ những điểm nào với nha sĩ trước khi đi tiếp?",
     "factors": [
       {
@@ -7858,7 +7858,7 @@
     "case_id": "VL500_U0064_Q3",
     "user_id": "VL500_U0064",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Tăm nước và chỉ nha khoa khác nhau thế nào, có cần dùng cả hai mỗi ngày không?",
     "factors": [],
     "memory_events": {
@@ -7880,7 +7880,7 @@
     "case_id": "VL500_U0064_Q4",
     "user_id": "VL500_U0064",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Vùng cấy răng đang trong quá trình hồi phục. Với giai đoạn hiện tại thì mình nên vệ sinh, ăn nhai và theo dõi dấu hiệu gì?",
     "factors": [
       {
@@ -7915,7 +7915,7 @@
     "case_id": "VL500_U0065_Q1",
     "user_id": "VL500_U0065",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Khi nướu nhạy cảm, có nên dùng thêm nước súc miệng hoặc tăm nước không, và cần lưu ý gì trước khi chọn?",
     "factors": [
       {
@@ -7979,7 +7979,7 @@
     "case_id": "VL500_U0065_Q3",
     "user_id": "VL500_U0065",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Nướu hay chảy máu khi chải thì chăm sóc ở nhà thế nào và khi nào nên đi khám?",
     "factors": [],
     "memory_events": {
@@ -8101,7 +8101,7 @@
     "case_id": "VL500_U0066_Q3",
     "user_id": "VL500_U0066",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Cao răng hình thành từ đâu và vì sao việc tự cạo vôi răng tại nhà lại bị các nha sĩ cảnh báo nguy hiểm?",
     "factors": [],
     "memory_events": {
@@ -8157,7 +8157,7 @@
     "case_id": "VL500_U0067_Q1",
     "user_id": "VL500_U0067",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Mình muốn đổi cách vệ sinh quanh hàm duy trì, nên chọn dụng cụ và thao tác thế nào để không làm khí cụ lỏng hoặc kích nướu?",
     "factors": [
       {
@@ -8188,7 +8188,7 @@
     "case_id": "VL500_U0067_Q2",
     "user_id": "VL500_U0067",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Hàm duy trì gần đây không còn dễ chịu như trước. Với loại mình đang dùng thì nên vệ sinh, đeo tiếp hay mang đi chỉnh?",
     "factors": [
       {
@@ -8222,7 +8222,7 @@
     "case_id": "VL500_U0067_Q3",
     "user_id": "VL500_U0067",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Kem đánh răng có fluoride dùng hằng ngày giúp phòng sâu răng như thế nào?",
     "factors": [],
     "memory_events": {
@@ -8344,7 +8344,7 @@
     "case_id": "VL500_U0068_Q3",
     "user_id": "VL500_U0068",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Răng buốt khi uống lạnh thì có thể theo dõi ở nhà bao lâu trước khi nên đi khám?",
     "factors": [],
     "memory_events": {
@@ -8467,7 +8467,7 @@
     "case_id": "VL500_U0069_Q3",
     "user_id": "VL500_U0069",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Đang niềng mà mắc cài cọ vào má thì có thể xử lý tạm ở nhà thế nào?",
     "factors": [],
     "memory_events": {
@@ -8524,7 +8524,7 @@
     "case_id": "VL500_U0070_Q1",
     "user_id": "VL500_U0070",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (MISSING_TOOTH_PROSTHODONTICS), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (MISSING_TOOTH_PROSTHODONTICS), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Mình đang cân nhắc phục hồi chỗ mất răng hàm. Có những yếu tố nào trong tình trạng hiện tại cần được đánh giá trước khi chọn phương án?",
     "factors": [
       {
@@ -8554,7 +8554,7 @@
     "case_id": "VL500_U0070_Q2",
     "user_id": "VL500_U0070",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Mình đang cân nhắc phục hồi chỗ mất răng. Với giai đoạn đánh giá hiện tại thì nên hỏi nha sĩ những gì trước khi quyết định bước tiếp theo?",
     "factors": [
       {
@@ -8588,7 +8588,7 @@
     "case_id": "VL500_U0070_Q3",
     "user_id": "VL500_U0070",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Cao răng hình thành từ đâu và vì sao việc tự cạo vôi răng tại nhà lại bị các nha sĩ cảnh báo nguy hiểm?",
     "factors": [],
     "memory_events": {
@@ -8610,7 +8610,7 @@
     "case_id": "VL500_U0070_Q4",
     "user_id": "VL500_U0070",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Sau khi đã làm implant, cách chăm sóc tại nhà có cần thay đổi theo giai đoạn lành thương hiện tại không?",
     "factors": [
       {
@@ -8708,7 +8708,7 @@
     "case_id": "VL500_U0071_Q3",
     "user_id": "VL500_U0071",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Cao răng hình thành từ đâu và vì sao việc tự cạo vôi răng tại nhà lại bị các nha sĩ cảnh báo nguy hiểm?",
     "factors": [],
     "memory_events": {
@@ -8829,7 +8829,7 @@
     "case_id": "VL500_U0072_Q3",
     "user_id": "VL500_U0072",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Đeo hàm duy trì bị cộm hơn trước thì khi nào nên mang đi chỉnh?",
     "factors": [],
     "memory_events": {
@@ -8851,7 +8851,7 @@
     "case_id": "VL500_U0072_Q4",
     "user_id": "VL500_U0072",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Răng mình hay buốt khi gặp lạnh, với tình trạng hiện tại thì nên thử chăm sóc tại nhà bao lâu trước khi đi khám?",
     "factors": [
       {
@@ -8917,7 +8917,7 @@
     "case_id": "VL500_U0073_Q2",
     "user_id": "VL500_U0073",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Hàm duy trì gần đây cộm hoặc vướng hơn trước. Với loại mình đang dùng thì nên vệ sinh, theo dõi thế nào và khi nào cần hẹn nha sĩ kiểm tra?",
     "factors": [
       {
@@ -8951,7 +8951,7 @@
     "case_id": "VL500_U0073_Q3",
     "user_id": "VL500_U0073",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Đang mang thai mà nướu dễ chảy máu thì khi nào nên đi khám nha khoa?",
     "factors": [],
     "memory_events": {
@@ -9072,7 +9072,7 @@
     "case_id": "VL500_U0074_Q3",
     "user_id": "VL500_U0074",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Bé nên dùng lượng kem đánh răng fluoride bao nhiêu và có cần người lớn chải lại không?",
     "factors": [],
     "memory_events": {
@@ -9162,7 +9162,7 @@
     "case_id": "VL500_U0075_Q2",
     "user_id": "VL500_U0075",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Sau một đợt điều trị nướu, mình vẫn còn băn khoăn về việc súc miệng và vệ sinh ở nhà. Có nên tự kéo dài sản phẩm sát khuẩn hay cần tái khám trước?",
     "factors": [
       {
@@ -9196,7 +9196,7 @@
     "case_id": "VL500_U0075_Q3",
     "user_id": "VL500_U0075",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Cao răng hình thành từ đâu và vì sao việc tự cạo vôi răng tại nhà lại bị các nha sĩ cảnh báo nguy hiểm?",
     "factors": [],
     "memory_events": {
@@ -9317,7 +9317,7 @@
     "case_id": "VL500_U0076_Q3",
     "user_id": "VL500_U0076",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Bàn chải điện cứ báo đỏ thì có phải mình đang ấn mạnh quá không?",
     "factors": [],
     "memory_events": {
@@ -9339,7 +9339,7 @@
     "case_id": "VL500_U0076_Q4",
     "user_id": "VL500_U0076",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Vùng cấy răng đang trong quá trình hồi phục. Với giai đoạn hiện tại thì mình nên vệ sinh, ăn nhai và theo dõi dấu hiệu gì?",
     "factors": [
       {
@@ -9439,7 +9439,7 @@
     "case_id": "VL500_U0077_Q3",
     "user_id": "VL500_U0077",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Cao răng hình thành từ đâu và vì sao việc tự cạo vôi răng tại nhà lại bị các nha sĩ cảnh báo nguy hiểm?",
     "factors": [],
     "memory_events": {
@@ -9530,7 +9530,7 @@
     "case_id": "VL500_U0078_Q2",
     "user_id": "VL500_U0078",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Ê răng khi uống lạnh có thể theo dõi ở nhà thế nào để biết đang đỡ hay có dấu hiệu cần khám?",
     "factors": [
       {
@@ -9564,7 +9564,7 @@
     "case_id": "VL500_U0078_Q3",
     "user_id": "VL500_U0078",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Cao răng hình thành từ đâu và vì sao việc tự cạo vôi răng tại nhà lại bị các nha sĩ cảnh báo nguy hiểm?",
     "factors": [],
     "memory_events": {
@@ -9586,7 +9586,7 @@
     "case_id": "VL500_U0078_Q4",
     "user_id": "VL500_U0078",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Nếu ê buốt đã thay đổi sau một thời gian dùng kem chuyên dụng thì mình nên tiếp tục, đổi sản phẩm hay đi kiểm tra?",
     "factors": [
       {
@@ -9689,7 +9689,7 @@
     "case_id": "VL500_U0079_Q3",
     "user_id": "VL500_U0079",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Cao răng hình thành như thế nào và vì sao không nên tự cạo ở nhà?",
     "factors": [],
     "memory_events": {
@@ -9812,7 +9812,7 @@
     "case_id": "VL500_U0080_Q3",
     "user_id": "VL500_U0080",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Cao răng hình thành từ đâu và vì sao việc tự cạo vôi răng tại nhà lại bị các nha sĩ cảnh báo nguy hiểm?",
     "factors": [],
     "memory_events": {
@@ -9870,7 +9870,7 @@
     "case_id": "VL500_U0081_Q1",
     "user_id": "VL500_U0081",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Mình muốn làm sạch kỹ hơn nhưng nướu dễ khó chịu. Nên bắt đầu với dụng cụ nào và theo dõi phản ứng thế nào?",
     "factors": [
       {
@@ -9933,7 +9933,7 @@
     "case_id": "VL500_U0081_Q3",
     "user_id": "VL500_U0081",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Cao răng hình thành từ đâu và vì sao việc tự cạo vôi răng tại nhà lại bị các nha sĩ cảnh báo nguy hiểm?",
     "factors": [],
     "memory_events": {
@@ -9990,7 +9990,7 @@
     "case_id": "VL500_U0082_Q1",
     "user_id": "VL500_U0082",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (MISSING_TOOTH_PROSTHODONTICS), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (MISSING_TOOTH_PROSTHODONTICS), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Mình đang cân nhắc phục hồi chỗ mất răng hàm. Có những yếu tố nào trong tình trạng hiện tại cần được đánh giá trước khi chọn phương án?",
     "factors": [
       {
@@ -10021,7 +10021,7 @@
     "case_id": "VL500_U0082_Q2",
     "user_id": "VL500_U0082",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Kế hoạch phục hồi chỗ mất răng của mình đang ở một bước chưa hoàn tất. Mình nên làm rõ những điểm nào với nha sĩ trước khi đi tiếp?",
     "factors": [
       {
@@ -10055,7 +10055,7 @@
     "case_id": "VL500_U0082_Q3",
     "user_id": "VL500_U0082",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Ăn đồ ngọt nhiều lần trong ngày làm tăng nguy cơ sâu răng vì sao?",
     "factors": [],
     "memory_events": {
@@ -10176,7 +10176,7 @@
     "case_id": "VL500_U0083_Q3",
     "user_id": "VL500_U0083",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Cao răng hình thành từ đâu và vì sao việc tự cạo vôi răng tại nhà lại bị các nha sĩ cảnh báo nguy hiểm?",
     "factors": [],
     "memory_events": {
@@ -10198,7 +10198,7 @@
     "case_id": "VL500_U0083_Q4",
     "user_id": "VL500_U0083",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Nướu vẫn dễ chảy máu, với tình trạng hiện tại của mình thì nên chăm sóc ở nhà thế nào và khi nào cần khám sớm?",
     "factors": [
       {
@@ -10301,7 +10301,7 @@
     "case_id": "VL500_U0084_Q3",
     "user_id": "VL500_U0084",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Cao răng hình thành từ đâu và vì sao việc tự cạo vôi răng tại nhà lại bị các nha sĩ cảnh báo nguy hiểm?",
     "factors": [],
     "memory_events": {
@@ -10323,7 +10323,7 @@
     "case_id": "VL500_U0084_Q4",
     "user_id": "VL500_U0084",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Răng mình hay buốt khi gặp lạnh, với tình trạng hiện tại thì nên thử chăm sóc tại nhà bao lâu trước khi đi khám?",
     "factors": [
       {
@@ -10421,7 +10421,7 @@
     "case_id": "VL500_U0085_Q3",
     "user_id": "VL500_U0085",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Chải răng xong thấy ê hơn thì nên sửa lực chải hay đổi kem đánh răng trước?",
     "factors": [],
     "memory_events": {
@@ -10543,7 +10543,7 @@
     "case_id": "VL500_U0086_Q3",
     "user_id": "VL500_U0086",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Cao răng hình thành từ đâu và vì sao việc tự cạo vôi răng tại nhà lại bị các nha sĩ cảnh báo nguy hiểm?",
     "factors": [],
     "memory_events": {
@@ -10564,7 +10564,7 @@
     "case_id": "VL500_U0086_Q4",
     "user_id": "VL500_U0086",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Hàm duy trì gần đây không còn dễ chịu như trước. Với loại mình đang dùng thì nên vệ sinh, đeo tiếp hay mang đi chỉnh?",
     "factors": [
       {
@@ -10664,7 +10664,7 @@
     "case_id": "VL500_U0087_Q3",
     "user_id": "VL500_U0087",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Khi niềng răng nên vệ sinh quanh mắc cài và dây cung thế nào để đỡ đọng thức ăn?",
     "factors": [],
     "memory_events": {
@@ -10686,7 +10686,7 @@
     "case_id": "VL500_U0087_Q4",
     "user_id": "VL500_U0087",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Nướu vẫn dễ chảy máu, với tình trạng hiện tại của mình thì nên chăm sóc ở nhà thế nào và khi nào cần khám sớm?",
     "factors": [
       {
@@ -10722,7 +10722,7 @@
     "case_id": "VL500_U0088_Q1",
     "user_id": "VL500_U0088",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (MISSING_TOOTH_PROSTHODONTICS), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (MISSING_TOOTH_PROSTHODONTICS), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Mình đang cân nhắc phục hồi chỗ mất răng hàm. Có những yếu tố nào trong tình trạng hiện tại cần được đánh giá trước khi chọn phương án?",
     "factors": [
       {
@@ -10786,7 +10786,7 @@
     "case_id": "VL500_U0088_Q3",
     "user_id": "VL500_U0088",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Dùng kem đánh răng để chà hàm duy trì có được không?",
     "factors": [],
     "memory_events": {
@@ -10808,7 +10808,7 @@
     "case_id": "VL500_U0088_Q4",
     "user_id": "VL500_U0088",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Sau khi đã làm implant, cách chăm sóc tại nhà có cần thay đổi theo giai đoạn lành thương hiện tại không?",
     "factors": [
       {
@@ -10907,7 +10907,7 @@
     "case_id": "VL500_U0089_Q3",
     "user_id": "VL500_U0089",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Sau khi nôn nghén có nên đánh răng ngay không hay nên chờ một lúc?",
     "factors": [],
     "memory_events": {
@@ -10929,7 +10929,7 @@
     "case_id": "VL500_U0089_Q4",
     "user_id": "VL500_U0089",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Nướu vẫn dễ chảy máu, với tình trạng hiện tại của mình thì nên chăm sóc ở nhà thế nào và khi nào cần khám sớm?",
     "factors": [
       {
@@ -11029,7 +11029,7 @@
     "case_id": "VL500_U0090_Q3",
     "user_id": "VL500_U0090",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Cao răng hình thành từ đâu và vì sao việc tự cạo vôi răng tại nhà lại bị các nha sĩ cảnh báo nguy hiểm?",
     "factors": [],
     "memory_events": {
@@ -11117,7 +11117,7 @@
     "case_id": "VL500_U0091_Q2",
     "user_id": "VL500_U0091",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Hàm duy trì gần đây cộm hoặc vướng hơn trước. Với loại mình đang dùng thì nên vệ sinh, theo dõi thế nào và khi nào cần hẹn nha sĩ kiểm tra?",
     "factors": [
       {
@@ -11151,7 +11151,7 @@
     "case_id": "VL500_U0091_Q3",
     "user_id": "VL500_U0091",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Răng sữa lung lay thì khi nào nên để tự rụng, khi nào cần đưa bé đi khám?",
     "factors": [],
     "memory_events": {
@@ -11209,7 +11209,7 @@
     "case_id": "VL500_U0092_Q1",
     "user_id": "VL500_U0092",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Mình muốn dùng thêm tăm nước khi đang chỉnh nha, nên chọn đầu và mức áp lực thế nào để làm sạch mà không ảnh hưởng khí cụ?",
     "factors": [
       {
@@ -11273,7 +11273,7 @@
     "case_id": "VL500_U0092_Q3",
     "user_id": "VL500_U0092",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Nếu nướu hơi rát sau khi chải thì nên giảm lực hay đổi đầu bàn chải trước?",
     "factors": [],
     "memory_events": {
@@ -11294,7 +11294,7 @@
     "case_id": "VL500_U0092_Q4",
     "user_id": "VL500_U0092",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Nếu đeo hàm duy trì thấy chật hoặc cộm hơn trước thì với lịch đeo hiện tại mình nên xử lý thế nào, có nên cố đeo tiếp không?",
     "factors": [
       {
@@ -11361,7 +11361,7 @@
     "case_id": "VL500_U0093_Q2",
     "user_id": "VL500_U0093",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Nướu đã được xử lý ở phòng khám nhưng mình chưa biết nên duy trì nước súc miệng bao lâu. Khi nào cần hỏi lại nha sĩ thay vì tự dùng tiếp?",
     "factors": [
       {
@@ -11395,7 +11395,7 @@
     "case_id": "VL500_U0093_Q3",
     "user_id": "VL500_U0093",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Nướu sưng đỏ vài ngày thì dấu hiệu nào cho thấy nên hẹn nha sĩ sớm?",
     "factors": [],
     "memory_events": {
@@ -11453,7 +11453,7 @@
     "case_id": "VL500_U0094_Q1",
     "user_id": "VL500_U0094",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (MISSING_TOOTH_PROSTHODONTICS), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (MISSING_TOOTH_PROSTHODONTICS), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Mình đang cân nhắc phục hồi chỗ mất răng hàm. Có những yếu tố nào trong tình trạng hiện tại cần được đánh giá trước khi chọn phương án?",
     "factors": [
       {
@@ -11484,7 +11484,7 @@
     "case_id": "VL500_U0094_Q2",
     "user_id": "VL500_U0094",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Kế hoạch phục hồi chỗ mất răng của mình đang ở một bước chưa hoàn tất. Mình nên làm rõ những điểm nào với nha sĩ trước khi đi tiếp?",
     "factors": [
       {
@@ -11552,7 +11552,7 @@
     "case_id": "VL500_U0094_Q4",
     "user_id": "VL500_U0094",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Nếu muốn đổi kem đánh răng fluoride thì nên dựa vào những yếu tố nào?",
     "factors": [],
     "memory_events": {
@@ -11671,7 +11671,7 @@
     "case_id": "VL500_U0095_Q4",
     "user_id": "VL500_U0095",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Răng nhạy cảm thì dùng bàn chải điện có cần chọn chế độ nhẹ hơn không?",
     "factors": [],
     "memory_events": {
@@ -11693,7 +11693,7 @@
     "case_id": "VL500_U0096_Q1",
     "user_id": "VL500_U0096",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Mình muốn đổi bàn chải hoặc cách chải vì răng hay ê, nên điều chỉnh lực và đầu bàn chải thế nào trước?",
     "factors": [
       {
@@ -11793,7 +11793,7 @@
     "case_id": "VL500_U0096_Q4",
     "user_id": "VL500_U0096",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Đang niềng mà một mắc cài hơi lỏng thì nên làm gì trước khi tới lịch hẹn?",
     "factors": [],
     "memory_events": {
@@ -11916,7 +11916,7 @@
     "case_id": "VL500_U0097_Q4",
     "user_id": "VL500_U0097",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Hàm duy trì có mùi thì nên vệ sinh và ngâm rửa thế nào?",
     "factors": [],
     "memory_events": {
@@ -12039,7 +12039,7 @@
     "case_id": "VL500_U0098_Q4",
     "user_id": "VL500_U0098",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Mang thai có đi lấy cao răng và kiểm tra nướu định kỳ được không?",
     "factors": [],
     "memory_events": {
@@ -12162,7 +12162,7 @@
     "case_id": "VL500_U0099_Q4",
     "user_id": "VL500_U0099",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Bé chưa nhổ kem đánh răng tốt thì người lớn nên kiểm soát lượng kem thế nào?",
     "factors": [],
     "memory_events": {
@@ -12184,7 +12184,7 @@
     "case_id": "VL500_U0100_Q1",
     "user_id": "VL500_U0100",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (MISSING_TOOTH_PROSTHODONTICS), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (MISSING_TOOTH_PROSTHODONTICS), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Mình đang cân nhắc phục hồi chỗ mất răng hàm. Có những yếu tố nào trong tình trạng hiện tại cần được đánh giá trước khi chọn phương án?",
     "factors": [
       {
@@ -12214,7 +12214,7 @@
     "case_id": "VL500_U0100_Q2",
     "user_id": "VL500_U0100",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Kế hoạch phục hồi chỗ mất răng của mình đang ở một bước chưa hoàn tất. Mình nên làm rõ những điểm nào với nha sĩ trước khi đi tiếp?",
     "factors": [
       {
@@ -12282,7 +12282,7 @@
     "case_id": "VL500_U0100_Q4",
     "user_id": "VL500_U0100",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Làm sạch kẽ răng hằng ngày thì bàn chải kẽ và chỉ nha khoa dùng trong trường hợp nào?",
     "factors": [],
     "memory_events": {
@@ -12403,7 +12403,7 @@
     "case_id": "VL500_U0101_Q4",
     "user_id": "VL500_U0101",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Làm sao biết nướu đã khỏe lại chứ không chỉ tạm hết chảy máu?",
     "factors": [],
     "memory_events": {
@@ -12525,7 +12525,7 @@
     "case_id": "VL500_U0102_Q4",
     "user_id": "VL500_U0102",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Dùng kem fluoride lâu dài có cần đổi loại định kỳ không?",
     "factors": [],
     "memory_events": {
@@ -12547,7 +12547,7 @@
     "case_id": "VL500_U0103_Q1",
     "user_id": "VL500_U0103",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Làm sao biết lịch đeo hàm duy trì hiện tại vẫn đủ để giữ răng ổn định, và dấu hiệu nào cho thấy cần kiểm tra lại?",
     "factors": [
       {
@@ -12615,7 +12615,7 @@
     "case_id": "VL500_U0103_Q3",
     "user_id": "VL500_U0103",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Hàm duy trì gần đây không còn dễ chịu như trước. Với loại mình đang dùng thì nên vệ sinh, đeo tiếp hay mang đi chỉnh?",
     "factors": [
       {
@@ -12651,7 +12651,7 @@
     "case_id": "VL500_U0103_Q4",
     "user_id": "VL500_U0103",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Kem chống ê buốt thường cần dùng một thời gian mới đánh giá được hiệu quả đúng không?",
     "factors": [],
     "memory_events": {
@@ -12704,7 +12704,7 @@
     "case_id": "VL500_U0104_Q2",
     "user_id": "VL500_U0104",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Dạo này hàm duy trì hơi khó chịu, với loại hàm và lịch đeo hiện tại của mình thì nên tiếp tục theo dõi hay hẹn nha sĩ chỉnh sớm?",
     "factors": [
       {
@@ -12774,7 +12774,7 @@
     "case_id": "VL500_U0104_Q4",
     "user_id": "VL500_U0104",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Trong lúc niềng nên tránh những loại đồ ăn nào để hạn chế bung khí cụ?",
     "factors": [],
     "memory_events": {
@@ -12826,7 +12826,7 @@
     "case_id": "VL500_U0105_Q2",
     "user_id": "VL500_U0105",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Nướu đã được xử lý ở phòng khám nhưng mình chưa biết nên duy trì nước súc miệng bao lâu. Khi nào cần hỏi lại nha sĩ thay vì tự dùng tiếp?",
     "factors": [
       {
@@ -12896,7 +12896,7 @@
     "case_id": "VL500_U0105_Q4",
     "user_id": "VL500_U0105",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Nếu quên đeo hàm duy trì vài hôm rồi đeo lại thấy chật thì nên xử lý thế nào?",
     "factors": [],
     "memory_events": {
@@ -12981,7 +12981,7 @@
     "case_id": "VL500_U0106_Q3",
     "user_id": "VL500_U0106",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Sau khi đã làm implant, cách chăm sóc tại nhà có cần thay đổi theo giai đoạn lành thương hiện tại không?",
     "factors": [
       {
@@ -13016,7 +13016,7 @@
     "case_id": "VL500_U0106_Q4",
     "user_id": "VL500_U0106",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Đang mang thai mà nướu dễ chảy máu thì khi nào nên đi khám nha khoa?",
     "factors": [],
     "memory_events": {
@@ -13137,7 +13137,7 @@
     "case_id": "VL500_U0107_Q4",
     "user_id": "VL500_U0107",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Bé nên dùng lượng kem đánh răng fluoride bao nhiêu và có cần người lớn chải lại không?",
     "factors": [],
     "memory_events": {
@@ -13258,7 +13258,7 @@
     "case_id": "VL500_U0108_Q4",
     "user_id": "VL500_U0108",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Sau khi ăn đồ chua thì có nên đánh răng ngay không hay nên chờ một lúc?",
     "factors": [],
     "memory_events": {
@@ -13380,7 +13380,7 @@
     "case_id": "VL500_U0109_Q4",
     "user_id": "VL500_U0109",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Nướu hay chảy máu khi chải thì chăm sóc ở nhà thế nào và khi nào nên đi khám?",
     "factors": [],
     "memory_events": {
@@ -13502,7 +13502,7 @@
     "case_id": "VL500_U0110_Q4",
     "user_id": "VL500_U0110",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Kem đánh răng có fluoride dùng hằng ngày giúp phòng sâu răng như thế nào?",
     "factors": [],
     "memory_events": {
@@ -13588,7 +13588,7 @@
     "case_id": "VL500_U0111_Q3",
     "user_id": "VL500_U0111",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Nướu vẫn dễ chảy máu, với tình trạng hiện tại của mình thì nên chăm sóc ở nhà thế nào và khi nào cần khám sớm?",
     "factors": [
       {
@@ -13624,7 +13624,7 @@
     "case_id": "VL500_U0111_Q4",
     "user_id": "VL500_U0111",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Răng buốt khi uống lạnh thì có thể theo dõi ở nhà bao lâu trước khi nên đi khám?",
     "factors": [],
     "memory_events": {
@@ -13646,7 +13646,7 @@
     "case_id": "VL500_U0112_Q1",
     "user_id": "VL500_U0112",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (MISSING_TOOTH_PROSTHODONTICS), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (MISSING_TOOTH_PROSTHODONTICS), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Mình đang cân nhắc phục hồi một chỗ mất răng hàm. Với tình trạng hiện tại thì nên ưu tiên kiểm tra gì trước khi chọn phương án?",
     "factors": [
       {
@@ -13676,7 +13676,7 @@
     "case_id": "VL500_U0112_Q2",
     "user_id": "VL500_U0112",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Mình đang cân nhắc phục hồi chỗ mất răng. Với giai đoạn đánh giá hiện tại thì nên hỏi nha sĩ những gì trước khi quyết định bước tiếp theo?",
     "factors": [
       {
@@ -13710,7 +13710,7 @@
     "case_id": "VL500_U0112_Q3",
     "user_id": "VL500_U0112",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Vùng cấy răng đang trong quá trình hồi phục. Với giai đoạn hiện tại thì mình nên vệ sinh, ăn nhai và theo dõi dấu hiệu gì?",
     "factors": [
       {
@@ -13745,7 +13745,7 @@
     "case_id": "VL500_U0112_Q4",
     "user_id": "VL500_U0112",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Đang niềng mà mắc cài cọ vào má thì có thể xử lý tạm ở nhà thế nào?",
     "factors": [],
     "memory_events": {
@@ -13832,7 +13832,7 @@
     "case_id": "VL500_U0113_Q3",
     "user_id": "VL500_U0113",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Làm sao biết tình trạng nướu của mình đang cải thiện thật sự chứ không chỉ hết chảy máu tạm thời?",
     "factors": [
       {
@@ -13867,7 +13867,7 @@
     "case_id": "VL500_U0113_Q4",
     "user_id": "VL500_U0113",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Đeo hàm duy trì bị cộm hơn trước thì khi nào nên mang đi chỉnh?",
     "factors": [],
     "memory_events": {
@@ -13889,7 +13889,7 @@
     "case_id": "VL500_U0114_Q1",
     "user_id": "VL500_U0114",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Ê răng khi uống lạnh có thể theo dõi ở nhà thế nào để biết đang đỡ hay có dấu hiệu cần khám?",
     "factors": [
       {
@@ -13990,7 +13990,7 @@
     "case_id": "VL500_U0114_Q4",
     "user_id": "VL500_U0114",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Sau khi nôn nghén có nên đánh răng ngay không hay nên chờ một lúc?",
     "factors": [],
     "memory_events": {
@@ -14111,7 +14111,7 @@
     "case_id": "VL500_U0115_Q4",
     "user_id": "VL500_U0115",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Răng sữa lung lay thì khi nào nên để tự rụng, khi nào cần đưa bé đi khám?",
     "factors": [],
     "memory_events": {
@@ -14236,7 +14236,7 @@
     "case_id": "VL500_U0116_Q4",
     "user_id": "VL500_U0116",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Dùng tăm nước hằng ngày có thay được chỉ nha khoa hoàn toàn không?",
     "factors": [],
     "memory_events": {
@@ -14321,7 +14321,7 @@
     "case_id": "VL500_U0117_Q3",
     "user_id": "VL500_U0117",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Nướu vẫn dễ chảy máu, với tình trạng hiện tại của mình thì nên chăm sóc ở nhà thế nào và khi nào cần khám sớm?",
     "factors": [
       {
@@ -14357,7 +14357,7 @@
     "case_id": "VL500_U0117_Q4",
     "user_id": "VL500_U0117",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Cao răng hình thành như thế nào và vì sao không nên tự cạo ở nhà?",
     "factors": [],
     "memory_events": {
@@ -14379,7 +14379,7 @@
     "case_id": "VL500_U0118_Q1",
     "user_id": "VL500_U0118",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (MISSING_TOOTH_PROSTHODONTICS), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (MISSING_TOOTH_PROSTHODONTICS), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Mình đang cân nhắc phục hồi chỗ mất răng hàm. Có những yếu tố nào trong tình trạng hiện tại cần được đánh giá trước khi chọn phương án?",
     "factors": [
       {
@@ -14409,7 +14409,7 @@
     "case_id": "VL500_U0118_Q2",
     "user_id": "VL500_U0118",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (IMPLANT), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Vùng cấy răng đang trong quá trình hồi phục. Với giai đoạn hiện tại thì mình nên vệ sinh, ăn nhai và theo dõi dấu hiệu gì?",
     "factors": [
       {
@@ -14478,7 +14478,7 @@
     "case_id": "VL500_U0118_Q4",
     "user_id": "VL500_U0118",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Ăn đồ ngọt nhiều lần trong ngày làm tăng nguy cơ sâu răng vì sao?",
     "factors": [],
     "memory_events": {
@@ -14599,7 +14599,7 @@
     "case_id": "VL500_U0119_Q4",
     "user_id": "VL500_U0119",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Chải răng xong thấy ê hơn thì nên sửa lực chải hay đổi kem đánh răng trước?",
     "factors": [],
     "memory_events": {
@@ -14685,7 +14685,7 @@
     "case_id": "VL500_U0120_Q3",
     "user_id": "VL500_U0120",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Răng mình hay buốt khi gặp lạnh, với tình trạng hiện tại thì nên thử chăm sóc tại nhà bao lâu trước khi đi khám?",
     "factors": [
       {
@@ -14720,7 +14720,7 @@
     "case_id": "VL500_U0120_Q4",
     "user_id": "VL500_U0120",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Khi niềng răng nên vệ sinh quanh mắc cài và dây cung thế nào để đỡ đọng thức ăn?",
     "factors": [],
     "memory_events": {
@@ -14843,7 +14843,7 @@
     "case_id": "VL500_U0121_Q4",
     "user_id": "VL500_U0121",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Dùng kem đánh răng để chà hàm duy trì có được không?",
     "factors": [],
     "memory_events": {
@@ -14895,7 +14895,7 @@
     "case_id": "VL500_U0122_Q2",
     "user_id": "VL500_U0122",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, loại bỏ nguy cơ ô nhiễm ngữ cảnh.",
+    "clinical_notes": "Đã thẩm định: Đã xác nhận thông tin can thiệp mới nhất thay thế tiền sử cũ, bảo đảm tính chuẩn xác và đúng thời điểm của thông tin y khoa.",
     "edited_query": "Làm sao biết lịch đeo hàm duy trì hiện tại vẫn đủ để giữ răng ổn định, và dấu hiệu nào cho thấy cần kiểm tra lại?",
     "factors": [
       {
@@ -14964,7 +14964,7 @@
     "case_id": "VL500_U0122_Q4",
     "user_id": "VL500_U0122",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Mang thai có đi lấy cao răng và kiểm tra nướu định kỳ được không?",
     "factors": [],
     "memory_events": {
@@ -15086,7 +15086,7 @@
     "case_id": "VL500_U0123_Q4",
     "user_id": "VL500_U0123",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Bé chưa nhổ kem đánh răng tốt thì người lớn nên kiểm soát lượng kem thế nào?",
     "factors": [],
     "memory_events": {
@@ -15108,7 +15108,7 @@
     "case_id": "VL500_U0124_Q1",
     "user_id": "VL500_U0124",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (MISSING_TOOTH_PROSTHODONTICS), đã chuẩn hóa dữ kiện truy hồi và yêu cầu an toàn.",
+    "clinical_notes": "Đã thẩm định: Ca lâm sàng chuyên đề đặc thù (MISSING_TOOTH_PROSTHODONTICS), đã chuẩn hóa dữ kiện đối chiếu và yêu cầu an toàn.",
     "edited_query": "Mình đang cân nhắc phục hồi chỗ mất răng hàm. Có những yếu tố nào trong tình trạng hiện tại cần được đánh giá trước khi chọn phương án?",
     "factors": [
       {
@@ -15208,7 +15208,7 @@
     "case_id": "VL500_U0124_Q4",
     "user_id": "VL500_U0124",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Tăm nước và chỉ nha khoa khác nhau thế nào, có cần dùng cả hai mỗi ngày không?",
     "factors": [],
     "memory_events": {
@@ -15330,7 +15330,7 @@
     "case_id": "VL500_U0125_Q4",
     "user_id": "VL500_U0125",
     "verdict": "APPROVED",
-    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, đối chứng âm không yêu cầu truy hồi bệnh sử cá nhân.",
+    "clinical_notes": "Đã thẩm định: Câu hỏi kiến thức đại cương chuẩn xác, câu hỏi phổ quát, áp dụng chung mà không cần phụ thuộc bệnh sử riêng.",
     "edited_query": "Nướu sưng đỏ vài ngày thì dấu hiệu nào cho thấy nên hẹn nha sĩ sớm?",
     "factors": [],
     "memory_events": {

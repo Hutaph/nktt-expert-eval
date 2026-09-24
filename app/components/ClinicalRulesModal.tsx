@@ -48,7 +48,7 @@ export default function ClinicalRulesModal({
                 Quy chuẩn & Cam kết Thẩm định Lâm sàng
               </h2>
               <p className={styles.rulesSubtitle}>
-                Bộ tiêu chuẩn đánh giá dữ liệu y khoa cho nghiên cứu Trí tuệ Nhân tạo Nha khoa ViDent
+                Bộ tiêu chuẩn đánh giá và chuẩn hóa hồ sơ lâm sàng chuyên khoa Răng Hàm Mặt
               </p>
             </div>
           </div>
@@ -67,7 +67,7 @@ export default function ClinicalRulesModal({
         {/* Content Body */}
         <div className={styles.rulesBody}>
           <div className={styles.rulesNoticeBox}>
-            <strong>Kính gửi Bác sĩ {doctorName || "chuyên khoa"}:</strong> Bộ dữ liệu ViDent-LongMem-500 được dùng làm chuẩn vàng (Gold Standard) để huấn luyện và kiểm định mô hình AI tư vấn nha khoa. Đề nghị Bác sĩ thực hiện nghiêm túc 5 nguyên tắc chuyên môn dưới đây:
+            <strong>Kính gửi Bác sĩ {doctorName || "chuyên khoa"}:</strong> Chương trình thẩm định chuyên môn nha khoa nhằm chuẩn hóa hồ sơ tư vấn lâm sàng chất lượng cao. Đề nghị Bác sĩ thực hiện nghiêm túc 5 nguyên tắc chuyên môn dưới đây:
           </div>
 
           <div className={styles.rulesList}>
@@ -89,7 +89,7 @@ export default function ClinicalRulesModal({
               <div className={styles.ruleBadge}>Nguyên tắc 2</div>
               <div className={styles.ruleContent}>
                 <h4 className={styles.ruleHeading}>
-                  Đối chiếu Diễn tiến Hồ sơ & Kiểm soát Ô nhiễm Ngữ cảnh
+                  Đối chiếu Diễn tiến Hồ sơ & Tránh Nhầm lẫn Tiền sử
                 </h4>
                 <p className={styles.ruleDesc}>
                   Bác sĩ bắt buộc phải bấm xem lại các đợt khám trước trong dòng thời gian. Phải phân biệt chính xác dữ liệu tiền sử đang còn hiệu lực (như cơ địa dị ứng, đang mang mắc cài niềng răng) với các thủ thuật đã hoàn tất từ lâu (đã tháo niềng, răng khôn đã nhổ lành thương) để tránh tình trạng tư vấn sai lệch.

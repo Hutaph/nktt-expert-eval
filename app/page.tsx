@@ -473,6 +473,9 @@ export default function LabelDataPage() {
   // Query editing toggle
   const [isEditingQuery, setIsEditingQuery] = useState<boolean>(false);
 
+  // Toggle xem lại tiền sử của các ca trước (mặc định chỉ hiện chặng khám của ca hiện tại)
+  const [showPriorSessions, setShowPriorSessions] = useState<boolean>(false);
+
   // Clinical Verdict State
   const [currentVerdict, setCurrentVerdict] = useState<"APPROVED" | "EDITED" | "FLAGGED">("APPROVED");
 
@@ -708,6 +711,68 @@ export default function LabelDataPage() {
     return list;
   }, [batchCases, searchQuery]);
 
+  // Danh sách các ca của cùng bệnh nhân hiện tại, sắp xếp theo mốc khám tăng dần
+  const patientCases = useMemo(() => {
+    if (!activeCase || allCases.length === 0) return [];
+    const list = allCases.filter((c) => c.user_id === activeCase.user_id);
+    return list.sort((a, b) => {
+      const aMatch = a.visible_history?.up_to_session?.match(/\d+/);
+      const bMatch = b.visible_history?.up_to_session?.match(/\d+/);
+      const aNum = aMatch ? parseInt(aMatch[0], 10) : 0;
+      const bNum = bMatch ? parseInt(bMatch[0], 10) : 0;
+      return aNum - bNum;
+    });
+  }, [activeCase, allCases]);
+
+  // Phân đoạn diễn tiến khám cho ca này: từ sau mốc ca trước đến mốc ca hiện tại
+  const sessionSegmentation = useMemo(() => {
+    if (!activeCase || !timeline?.sessions) {
+      return { start: 1, end: timeline?.sessions?.length || 1, previousEnd: 0 };
+    }
+    const currentCutoffMatch = activeCase.visible_history?.up_to_session?.match(/\d+/);
+    const endNum = currentCutoffMatch ? parseInt(currentCutoffMatch[0], 10) : timeline.sessions.length;
+
+    const caseIdx = patientCases.findIndex((c) => c.case_id === activeCase.case_id);
+    let startNum = 1;
+    let prevEnd = 0;
+    if (caseIdx > 0) {
+      const prevCase = patientCases[caseIdx - 1];
+      const prevCutoffMatch = prevCase.visible_history?.up_to_session?.match(/\d+/);
+      if (prevCutoffMatch) {
+        prevEnd = parseInt(prevCutoffMatch[0], 10);
+        startNum = prevEnd + 1;
+      }
+    }
+
+    return { start: startNum, end: endNum, previousEnd: prevEnd };
+  }, [activeCase, timeline, patientCases]);
+
+  // Các lần khám hiển thị trên thanh tab (không hiển thị các lần sau mốc; mặc định chỉ hiện chặng của ca này)
+  const visibleSessions = useMemo(() => {
+    if (!timeline?.sessions) return [];
+    return timeline.sessions.filter((s) => {
+      // Tuyệt đối không hiển thị các lần khám tương lai (sau mốc câu hỏi của ca hiện tại)
+      if (s.session_number > sessionSegmentation.end) return false;
+      // Nếu chưa bật xem lại tiền sử thì chỉ hiển thị từ startNum trở đi
+      if (!showPriorSessions && s.session_number < sessionSegmentation.start) return false;
+      return true;
+    });
+  }, [timeline, sessionSegmentation, showPriorSessions]);
+
+  // Đảm bảo activeSessionIndex luôn thuộc các lần khám hiển thị của ca hiện tại
+  useEffect(() => {
+    if (!timeline?.sessions || visibleSessions.length === 0) return;
+    const currentSession = timeline.sessions[activeSessionIndex];
+    const isCurrentVisible = currentSession && visibleSessions.some((s) => s.session_id === currentSession.session_id);
+    if (!isCurrentVisible) {
+      const targetSession = visibleSessions[visibleSessions.length - 1];
+      const actualIdx = timeline.sessions.findIndex((s) => s.session_id === targetSession.session_id);
+      if (actualIdx >= 0) {
+        setActiveSessionIndex(actualIdx);
+      }
+    }
+  }, [visibleSessions, timeline, activeSessionIndex]);
+
   // Load detail for selected case (with draft restoration)
   useEffect(() => {
     if (!selectedCaseId || allCases.length === 0) return;
@@ -775,12 +840,24 @@ export default function LabelDataPage() {
         // Tự động mở đúng mốc khám xảy ra câu hỏi (up_to_session) để nêu bật giai đoạn lâm sàng riêng biệt của ca này
         let initialSessionIdx = 0;
         if (matchedCase.visible_history?.up_to_session && uTimeline?.sessions) {
+          const cutoffMatch = matchedCase.visible_history.up_to_session.match(/\d+/);
+          const cutoffNum = cutoffMatch ? parseInt(cutoffMatch[0], 10) : 0;
           const sIdx = uTimeline.sessions.findIndex(
             (s: any) =>
+              s.session_number === cutoffNum ||
               s.session_id === matchedCase.visible_history.up_to_session ||
               s.session_id.endsWith(`_${matchedCase.visible_history.up_to_session}`)
           );
           if (sIdx >= 0) initialSessionIdx = sIdx;
+        }
+
+        // Tự động đồng bộ kho lượt thoại chung của toàn bộ các ca
+        let sharedTurns: Record<string, string> = {};
+        if (activeDoctor) {
+          try {
+            const rawShared = localStorage.getItem(`nktt_shared_turns_v5_${activeDoctor.id}`);
+            if (rawShared) sharedTurns = JSON.parse(rawShared);
+          } catch {}
         }
 
         // Check for local working draft first
@@ -803,7 +880,7 @@ export default function LabelDataPage() {
           } else {
             setCurrentVerdict("APPROVED");
           }
-          setEditedTurns(draftData.editedTurns || {});
+          setEditedTurns({ ...(draftData.editedTurns || {}), ...sharedTurns });
           setEditedFactors(
             draftData.editedFactors ||
               (matchedCase.targets?.factors ? JSON.parse(JSON.stringify(matchedCase.targets.factors)) : [])
@@ -833,7 +910,7 @@ export default function LabelDataPage() {
               tMap[t.turn_id] = t.text;
             });
           }
-          setEditedTurns(tMap);
+          setEditedTurns({ ...tMap, ...sharedTurns });
 
           if (saved.factors && saved.factors.length > 0) {
             setEditedFactors(JSON.parse(JSON.stringify(saved.factors)));
@@ -861,7 +938,7 @@ export default function LabelDataPage() {
           setEditedQuery(matchedCase.current_query || "");
           setClinicalNotes("");
           setCurrentVerdict("APPROVED");
-          setEditedTurns({});
+          setEditedTurns({ ...sharedTurns });
           if (matchedCase.targets?.factors) {
             setEditedFactors(JSON.parse(JSON.stringify(matchedCase.targets.factors)));
           } else {
@@ -877,6 +954,7 @@ export default function LabelDataPage() {
             setEditedForbiddenEvents("");
           }
         }
+        setShowPriorSessions(false);
         setActiveSessionIndex(initialSessionIdx);
       } catch (err) {
         console.error("Lỗi nạp ca bệnh:", err);
@@ -966,6 +1044,13 @@ export default function LabelDataPage() {
             if (rawDraft) draftData = JSON.parse(rawDraft);
           } catch {}
         }
+        let sharedTurns: Record<string, string> = {};
+        if (activeDoctor) {
+          try {
+            const rawShared = localStorage.getItem(`nktt_shared_turns_v5_${activeDoctor.id}`);
+            if (rawShared) sharedTurns = JSON.parse(rawShared);
+          } catch {}
+        }
         const saved = annotationsMap[matched.case_id];
         if (draftData) {
           setEditedQuery(draftData.editedQuery || matched.current_query || "");
@@ -975,7 +1060,7 @@ export default function LabelDataPage() {
           } else {
             setCurrentVerdict("APPROVED");
           }
-          setEditedTurns(draftData.editedTurns || {});
+          setEditedTurns({ ...(draftData.editedTurns || {}), ...sharedTurns });
           if (draftData.editedFactors) setEditedFactors(draftData.editedFactors);
         } else if (saved) {
           setEditedQuery(saved.edited_query || matched.current_query || "");
@@ -991,13 +1076,13 @@ export default function LabelDataPage() {
               tMap[t.turn_id] = t.text;
             });
           }
-          setEditedTurns(tMap);
+          setEditedTurns({ ...tMap, ...sharedTurns });
           if (saved.factors) setEditedFactors(saved.factors);
         } else {
           setEditedQuery(matched.current_query || "");
           setClinicalNotes("");
           setCurrentVerdict("APPROVED");
-          setEditedTurns({});
+          setEditedTurns({ ...sharedTurns });
           if (matched.targets?.factors) {
             setEditedFactors(JSON.parse(JSON.stringify(matched.targets.factors)));
           }
@@ -1011,13 +1096,17 @@ export default function LabelDataPage() {
         // Tự động nhảy tới đúng mốc khám xảy ra câu hỏi
         let targetSessionIdx = 0;
         if (matched.visible_history?.up_to_session && uTimeline?.sessions) {
+          const cutoffMatch = matched.visible_history.up_to_session.match(/\d+/);
+          const cutoffNum = cutoffMatch ? parseInt(cutoffMatch[0], 10) : 0;
           const sIdx = uTimeline.sessions.findIndex(
             (s) =>
+              s.session_number === cutoffNum ||
               s.session_id === matched.visible_history.up_to_session ||
               s.session_id.endsWith(`_${matched.visible_history.up_to_session}`)
           );
           if (sIdx >= 0) targetSessionIdx = sIdx;
         }
+        setShowPriorSessions(false);
         setActiveSessionIndex(targetSessionIdx);
         setIsEditingQuery(false);
       }
@@ -1093,12 +1182,63 @@ export default function LabelDataPage() {
     activeDoctor,
   ]);
 
-  // Handle Turn edit
+  // Handle Turn edit & cross-case auto sync
   const handleTurnChange = (turnId: string, text: string) => {
+    // 1. Cập nhật ngay trên giao diện ca hiện tại
     setEditedTurns((prev) => ({
       ...prev,
       [turnId]: text,
     }));
+
+    // 2. Tự động đồng bộ ngầm ở backend (kho dùng chung cho toàn bộ các ca của bác sĩ)
+    if (activeDoctor) {
+      try {
+        const storageKey = `nktt_shared_turns_v5_${activeDoctor.id}`;
+        const raw = localStorage.getItem(storageKey);
+        const shared = raw ? JSON.parse(raw) : {};
+        shared[turnId] = text;
+        localStorage.setItem(storageKey, JSON.stringify(shared));
+
+        // 3. Tự động đồng bộ vào bản nháp của các ca khác cùng người bệnh
+        if (patientCases.length > 0) {
+          for (const pc of patientCases) {
+            const pcDraftKey = `${DRAFT_PREFIX}${activeDoctor.id}_${pc.case_id}`;
+            const pcRaw = localStorage.getItem(pcDraftKey);
+            if (pcRaw) {
+              try {
+                const pcDraft = JSON.parse(pcRaw);
+                pcDraft.editedTurns = {
+                  ...(pcDraft.editedTurns || {}),
+                  [turnId]: text,
+                };
+                localStorage.setItem(pcDraftKey, JSON.stringify(pcDraft));
+              } catch {}
+            }
+          }
+        }
+
+        // 4. Tự động đồng bộ vào các ca đã lưu trữ nếu chứa lượt thoại này
+        setAnnotationsMap((prev) => {
+          let hasChange = false;
+          const nextMap = { ...prev };
+          for (const [cId, rec] of Object.entries(nextMap)) {
+            if (rec.user_id === activeCase?.user_id && rec.edited_turns) {
+              const turnIdx = rec.edited_turns.findIndex((t) => t.turn_id === turnId);
+              if (turnIdx >= 0) {
+                const updatedTurns = [...rec.edited_turns];
+                updatedTurns[turnIdx] = { ...updatedTurns[turnIdx], text };
+                nextMap[cId] = { ...rec, edited_turns: updatedTurns };
+                saveStoredAnnotation(nextMap[cId]);
+                hasChange = true;
+              }
+            }
+          }
+          return hasChange ? nextMap : prev;
+        });
+      } catch (err) {
+        console.error("Lỗi đồng bộ lượt thoại:", err);
+      }
+    }
   };
 
   // Handle Factor edit
@@ -1961,22 +2101,35 @@ export default function LabelDataPage() {
                         </h2>
                         {activeCase && (
                           <span style={{ fontSize: "0.78rem", color: "#64748b", fontWeight: 500 }}>
-                            (Hồ sơ {activeCase.user_id})
+                            (Hồ sơ {activeCase.user_id} - Chặng Lần {sessionSegmentation.start === sessionSegmentation.end ? sessionSegmentation.start : `${sessionSegmentation.start} đến ${sessionSegmentation.end}`})
                           </span>
                         )}
                       </div>
                       <div className={styles.sessionPills}>
-                        {timeline && timeline.sessions && timeline.sessions.length > 0 ? (
-                          timeline.sessions.map((s, idx) => {
-                            const isSelected = idx === activeSessionIndex;
-                            const cutoffIdx = timeline.sessions.findIndex(
-                              (sess) =>
-                                activeCase?.visible_history?.up_to_session &&
-                                (sess.session_id === activeCase.visible_history.up_to_session ||
-                                  sess.session_id.endsWith(`_${activeCase.visible_history.up_to_session}`))
-                            );
-                            const isCutoffSession = idx === cutoffIdx;
-                            const isFutureSession = cutoffIdx >= 0 && idx > cutoffIdx;
+                        {sessionSegmentation.previousEnd > 0 && (
+                          <button
+                            type="button"
+                            className={styles.priorHistoryBtn}
+                            onClick={() => setShowPriorSessions((prev) => !prev)}
+                            title={
+                              showPriorSessions
+                                ? "Thu gọn các lần khám của ca trước"
+                                : `Mở xem lại các lần khám của ca trước (Lần 1 đến Lần ${sessionSegmentation.previousEnd})`
+                            }
+                          >
+                            {showPriorSessions
+                              ? "Thu gọn tiền sử cũ"
+                              : `Xem tiền sử cũ (Lần 1 - ${sessionSegmentation.previousEnd})`}
+                          </button>
+                        )}
+                        {visibleSessions && visibleSessions.length > 0 ? (
+                          visibleSessions.map((s) => {
+                            const actualIdx = timeline?.sessions?.findIndex(
+                              (sess) => sess.session_id === s.session_id
+                            ) ?? -1;
+                            const isSelected = actualIdx === activeSessionIndex;
+                            const isCutoffSession = s.session_number === sessionSegmentation.end;
+                            const isPriorSession = s.session_number < sessionSegmentation.start;
 
                             return (
                               <button
@@ -1986,21 +2139,19 @@ export default function LabelDataPage() {
                                   styles.sessionPill,
                                   isSelected ? styles.sessionPillActive : "",
                                   isCutoffSession && !isSelected ? styles.sessionPillCompleted : "",
+                                  isPriorSession && !isSelected ? styles.sessionPillPrior : "",
                                 ]
                                   .filter(Boolean)
                                   .join(" ")}
-                                style={
-                                  isFutureSession
-                                    ? { opacity: 0.5, borderStyle: "dashed" }
-                                    : undefined
-                                }
-                                onClick={() => handleSelectSession(idx)}
+                                onClick={() => {
+                                  if (actualIdx >= 0) handleSelectSession(actualIdx);
+                                }}
                                 title={`Lần ${s.session_number}${
                                   isCutoffSession
                                     ? " (Mốc câu hỏi hiện tại)"
-                                    : isFutureSession
-                                    ? " (Diễn ra sau mốc câu hỏi)"
-                                    : " (Tiền sử trước đó)"
+                                    : isPriorSession
+                                    ? " (Tiền sử của ca trước)"
+                                    : " (Chặng khám ca hiện tại)"
                                 }`}
                               >
                                 <span>Lần {s.session_number}</span>
@@ -2009,9 +2160,9 @@ export default function LabelDataPage() {
                                     (Mốc hỏi)
                                   </span>
                                 )}
-                                {isFutureSession && (
-                                  <span style={{ fontSize: "0.6rem", opacity: 0.7, marginLeft: "2px" }}>
-                                    (Sau)
+                                {isPriorSession && (
+                                  <span style={{ fontSize: "0.6rem", opacity: 0.75, marginLeft: "2px" }}>
+                                    (Trước)
                                   </span>
                                 )}
                               </button>

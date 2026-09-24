@@ -1639,6 +1639,36 @@
   color: #94a3b8 !important;
 }
 
+.priorHistoryBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.18rem 0.5rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #0f766e;
+  background-color: #f0fdfa;
+  border: 1px dashed #99f6e4;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.priorHistoryBtn:hover {
+  background-color: #ccfbf1;
+  border-color: #0d9488;
+  color: #115e59;
+}
+
+.sessionPillPrior {
+  background-color: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  color: #64748b;
+  opacity: 0.85;
+}
+
 .sessionPillEvidence {
   border-color: #f59e0b;
 }

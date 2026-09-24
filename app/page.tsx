@@ -300,37 +300,9 @@ function checkClinicalNotesQuality(
     );
   }
 
-  // 5. Cross-case similarity in current batch
+  // 5. Cross-case similarity in current batch (Non-blocking: control questions may have valid identical notes)
   let duplicateWithCaseId: string | undefined;
   let duplicateSimilarity: number | undefined;
-
-  if (charCount >= 20 && batchCases.length > 0) {
-    const curWords = new Set(rawWords.filter((w) => w.length > 2));
-    if (curWords.size >= 3) {
-      for (const otherCase of batchCases) {
-        if (otherCase.case_id === currentCaseId) continue;
-        const otherRec = annotationsMap[otherCase.case_id];
-        if (!otherRec || !otherRec.clinical_notes) continue;
-        const otherWords = new Set(
-          otherRec.clinical_notes.toLowerCase().split(/\s+/).filter((w) => w.length > 2)
-        );
-        let intersection = 0;
-        curWords.forEach((w) => {
-          if (otherWords.has(w)) intersection++;
-        });
-        const union = new Set([...curWords, ...otherWords]).size;
-        const sim = union > 0 ? intersection / union : 0;
-        if (sim >= 0.7) {
-          duplicateWithCaseId = otherCase.case_id;
-          duplicateSimilarity = Math.round(sim * 100);
-          errors.push(
-            `Nhận xét này trùng lặp ${duplicateSimilarity}% với ca ${otherCase.case_id}. Bác sĩ vui lòng biện giải riêng theo tình huống cụ thể của ca này.`
-          );
-          break;
-        }
-      }
-    }
-  }
 
   // 6. If big query edit (>50% change), require explanation in notes
   if (isBigQueryEdit && charCount < 35) {
@@ -885,30 +857,12 @@ export default function LabelDataPage() {
     };
   }, [selectedCaseId, allCases, annotationsMap, activeDoctor]);
 
-  // Reset speedrun countdown and inspected sessions when switching cases
+  // Seamless case switching without speedrun blocking (stress-free for doctors)
   useEffect(() => {
     if (!selectedCaseId) return;
-    const isAlreadyConfirmed = confirmedCaseIds.has(selectedCaseId);
-    if (isAlreadyConfirmed) {
-      setReadingCountdown(0);
-      if (timeline && timeline.sessions) {
-        setInspectedSessions(new Set(timeline.sessions.map((_, i) => i)));
-      }
-    } else {
-      setReadingCountdown(15);
-      setInspectedSessions(new Set());
-    }
+    setReadingCountdown(0);
     setIsEditingQuery(false);
-  }, [selectedCaseId, confirmedCaseIds, timeline]);
-
-  // Reading countdown timer tick
-  useEffect(() => {
-    if (readingCountdown <= 0) return;
-    const timer = setInterval(() => {
-      setReadingCountdown((prev) => Math.max(0, prev - 1));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [readingCountdown]);
+  }, [selectedCaseId]);
 
   const originalQuery = activeCase?.current_query || "";
   const queryChangePercent = useMemo(
@@ -939,18 +893,88 @@ export default function LabelDataPage() {
     );
   }, [clinicalNotes, activeCase, batchCases, annotationsMap, isSignificantQueryEdit]);
 
-  const hasMultipleSessions = Boolean(timeline && timeline.sessions && timeline.sessions.length > 1);
-  const hasInspectedRequiredSessions = !hasMultipleSessions || inspectedSessions.size >= 2;
   const isChecklistComplete = checklistHistory && checklistSafety && checklistCore;
 
-  const canConfirmCase =
-    readingCountdown === 0 &&
-    hasInspectedRequiredSessions &&
-    isChecklistComplete &&
-    notesQuality.isValid;
+  // Stress-free confirmation: Doctor can confirm as soon as checklist and notes are valid
+  const canConfirmCase = isChecklistComplete && notesQuality.isValid;
 
   const handleSelectSession = (idx: number) => {
     setActiveSessionIndex(idx);
+  };
+
+  // Current case index calculations for seamless navigation
+  const currentCaseIndexInBatch = useMemo(() => {
+    return batchCases.findIndex((c) => c.case_id === selectedCaseId);
+  }, [batchCases, selectedCaseId]);
+
+  const currentCaseIndexInDoctor = useMemo(() => {
+    if (!activeCase) return 0;
+    return doctorCases.findIndex((c) => c.case_id === activeCase.case_id);
+  }, [doctorCases, activeCase]);
+
+  // Synchronous and immediate case switching - eliminating all question desync!
+  const handleSelectCase = useCallback(
+    (caseId: string) => {
+      setSelectedCaseId(caseId);
+      const matched = allCases.find((c) => c.case_id === caseId);
+      if (matched) {
+        setActiveCase(matched);
+        let draftData: any = null;
+        if (activeDoctor) {
+          try {
+            const rawDraft = localStorage.getItem(`${DRAFT_PREFIX}${activeDoctor.id}_${matched.case_id}`);
+            if (rawDraft) draftData = JSON.parse(rawDraft);
+          } catch {}
+        }
+        const saved = annotationsMap[matched.case_id];
+        if (draftData) {
+          setEditedQuery(draftData.editedQuery || matched.current_query || "");
+          setClinicalNotes(draftData.clinicalNotes || "");
+          setEditedTurns(draftData.editedTurns || {});
+          if (draftData.editedFactors) setEditedFactors(draftData.editedFactors);
+        } else if (saved) {
+          setEditedQuery(saved.edited_query || matched.current_query || "");
+          setClinicalNotes(saved.clinical_notes || "");
+          const tMap: Record<string, string> = {};
+          if (saved.edited_turns) {
+            saved.edited_turns.forEach((t) => {
+              tMap[t.turn_id] = t.text;
+            });
+          }
+          setEditedTurns(tMap);
+          if (saved.factors) setEditedFactors(saved.factors);
+        } else {
+          setEditedQuery(matched.current_query || "");
+          setClinicalNotes("");
+          setEditedTurns({});
+          if (matched.targets?.factors) {
+            setEditedFactors(JSON.parse(JSON.stringify(matched.targets.factors)));
+          }
+        }
+        setActiveSessionIndex(0);
+        setIsEditingQuery(false);
+      }
+    },
+    [allCases, annotationsMap, activeDoctor]
+  );
+
+  const handlePrevCase = () => {
+    if (currentCaseIndexInBatch > 0) {
+      handleSelectCase(batchCases[currentCaseIndexInBatch - 1].case_id);
+    }
+  };
+
+  const handleNextCase = () => {
+    if (currentCaseIndexInBatch < batchCases.length - 1) {
+      handleSelectCase(batchCases[currentCaseIndexInBatch + 1].case_id);
+    }
+  };
+
+  const handleConfirmAndNextCase = () => {
+    handleSaveAnnotation();
+    if (currentCaseIndexInBatch < batchCases.length - 1) {
+      handleSelectCase(batchCases[currentCaseIndexInBatch + 1].case_id);
+    }
   };
 
   // Real-time Auto-save Draft
@@ -1054,23 +1078,7 @@ export default function LabelDataPage() {
   const handleSaveAnnotation = () => {
     if (!activeCase || !activeDoctor) return;
 
-    // Check anti-speedrun
-    if (readingCountdown > 0) {
-      setSaveMessage({
-        text: `Vui lòng dành thời gian thẩm định kỹ hồ sơ ca bệnh (còn ${readingCountdown} giây).`,
-        isError: true,
-      });
-      return;
-    }
 
-    // Check session inspection
-    if (!hasInspectedRequiredSessions) {
-      setSaveMessage({
-        text: "Ca bệnh có nhiều lần khám trong quá khứ. Bác sĩ vui lòng bấm xem ít nhất 1 đợt khám khác trước đó để kiểm tra tiền sử.",
-        isError: true,
-      });
-      return;
-    }
 
     // Check checklist
     if (!isChecklistComplete) {
@@ -1706,7 +1714,7 @@ export default function LabelDataPage() {
                         className={[styles.caseCard, isActive ? styles.caseCardActive : ""]
                           .filter(Boolean)
                           .join(" ")}
-                        onClick={() => setSelectedCaseId(c.case_id)}
+                        onClick={() => handleSelectCase(c.case_id)}
                       >
                         <div className={styles.caseCardHeader}>
                           <span className={styles.caseId}>
@@ -1766,9 +1774,31 @@ export default function LabelDataPage() {
                   <div className={styles.queryCard}>
                     <div className={styles.queryCardHeader}>
                       <div className={styles.queryTitleRow}>
-                        <h2 className={styles.sectionTitle}>
-                          Ca {doctorCases.findIndex((c) => c.case_id === activeCase.case_id) + 1} / 100: Câu hỏi của người bệnh
-                        </h2>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                          <button
+                            type="button"
+                            className={styles.sessionPrevBtn}
+                            disabled={currentCaseIndexInBatch <= 0}
+                            onClick={handlePrevCase}
+                            title="Quay lại ca trước"
+                            style={{ padding: "0.2rem 0.55rem", fontSize: "0.75rem", borderRadius: "6px" }}
+                          >
+                            &lt; Ca trước
+                          </button>
+                          <h2 className={styles.sectionTitle} style={{ margin: 0 }}>
+                            Ca {doctorCases.findIndex((c) => c.case_id === activeCase.case_id) + 1} / 100: Câu hỏi của người bệnh
+                          </h2>
+                          <button
+                            type="button"
+                            className={styles.sessionPrevBtn}
+                            disabled={currentCaseIndexInBatch >= batchCases.length - 1}
+                            onClick={handleNextCase}
+                            title="Chuyển sang ca tiếp theo"
+                            style={{ padding: "0.2rem 0.55rem", fontSize: "0.75rem", borderRadius: "6px" }}
+                          >
+                            Ca sau &gt;
+                          </button>
+                        </div>
                         {activeCase.metadata?.checkpoint && (
                           <span
                             className={styles.checkpointTag}
@@ -1821,27 +1851,6 @@ export default function LabelDataPage() {
                             <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
                           </svg>
                           <span>{isEditingQuery ? "Thu gọn chỉnh sửa" : "Hiệu chỉnh câu từ"}</span>
-                        </button>
-                        <button
-                          type="button"
-                          className={styles.resetQueryBtn}
-                          onClick={handleResetCurrentCaseToV5}
-                          title="Đặt lại toàn bộ ca bệnh về dữ liệu gốc v5 mới nhất (xóa bản nháp cục bộ)"
-                        >
-                          <svg
-                            width="13"
-                            height="13"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2.2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
-                            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-                            <path d="M3 3v5h5" />
-                          </svg>
-                          <span>Làm mới chuẩn v5</span>
                         </button>
                         {editedQuery !== activeCase.current_query && (
                           <button
@@ -1946,72 +1955,30 @@ export default function LabelDataPage() {
                         {timeline && timeline.sessions && timeline.sessions.length > 0 ? (
                           timeline.sessions.map((s, idx) => {
                             const isSelected = idx === activeSessionIndex;
-                            const isInspected = inspectedSessions.has(idx);
                             const isCutoffSession =
                               activeCase?.visible_history?.up_to_session &&
                               (s.session_id === activeCase.visible_history.up_to_session ||
                                 s.session_id.endsWith(`_${activeCase.visible_history.up_to_session}`));
-                            const isCaseConfirmed = activeCase ? confirmedCaseIds.has(activeCase.case_id) : false;
-                            const isUnlocked =
-                              idx === 0 ||
-                              idx === activeSessionIndex ||
-                              isCaseConfirmed ||
-                              inspectedSessions.has(idx - 1) ||
-                              inspectedSessions.has(idx);
 
                             return (
                               <button
                                 key={s.session_id}
                                 type="button"
-                                disabled={!isUnlocked}
                                 className={[
                                   styles.sessionPill,
                                   isSelected ? styles.sessionPillActive : "",
-                                  isInspected && !isSelected ? styles.sessionPillCompleted : "",
-                                  !isUnlocked ? styles.sessionPillLocked : "",
+                                  isCutoffSession && !isSelected ? styles.sessionPillCompleted : "",
                                 ]
                                   .filter(Boolean)
                                   .join(" ")}
-                                onClick={() => {
-                                  if (isUnlocked) {
-                                    handleSelectSession(idx);
-                                  }
-                                }}
-                                title={
-                                  !isUnlocked
-                                    ? `Lần ${s.session_number} đang khóa (cần xem và xác nhận Lần ${timeline.sessions[idx - 1]?.session_number || idx} trước)`
-                                    : `Lần ${s.session_number}${isCutoffSession ? " (Mốc câu hỏi)" : ""} (${isInspected ? "Đã xác nhận" : isSelected ? "Đang thẩm định" : "Đã mở khóa"})`
-                                }
+                                onClick={() => handleSelectSession(idx)}
+                                title={`Lần ${s.session_number}${isCutoffSession ? " (Mốc câu hỏi hiện tại)" : ""}`}
                               >
-                                {!isUnlocked && (
-                                  <svg
-                                    width="10"
-                                    height="10"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2.5"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  >
-                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                                  </svg>
-                                )}
                                 <span>Lần {s.session_number}</span>
-                                {isUnlocked && isInspected && (
-                                  <svg
-                                    width="10"
-                                    height="10"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="3"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  >
-                                    <polyline points="20 6 9 17 4 12" />
-                                  </svg>
+                                {isCutoffSession && (
+                                  <span style={{ fontSize: "0.65rem", opacity: 0.85, fontWeight: 700, marginLeft: "2px" }}>
+                                    (Mốc)
+                                  </span>
                                 )}
                               </button>
                             );
@@ -2132,108 +2099,39 @@ export default function LabelDataPage() {
                             })}
                           </div>
 
-                          {/* Session Confirmation & Transition Bar */}
-                          {timeline && timeline.sessions && timeline.sessions.length > 0 && (
-                            <div className={styles.sessionFooterAction}>
-                              <div className={styles.sessionFooterInfo}>
-                                <span>
-                                  Lần {currentSession.session_number} / {timeline.sessions.length} (Đã xác nhận: {inspectedSessions.size}/{timeline.sessions.length} lần)
-                                </span>
-                              </div>
-                              <div className={styles.sessionFooterBtns}>
-                                {activeSessionIndex > 0 && (
-                                  <button
-                                    type="button"
-                                    className={styles.sessionPrevBtn}
-                                    onClick={() => handleSelectSession(activeSessionIndex - 1)}
-                                    title={`Quay lại Lần ${timeline.sessions[activeSessionIndex - 1].session_number}`}
-                                  >
-                                    <svg
-                                      width="13"
-                                      height="13"
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      strokeWidth="2.5"
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                    >
-                                      <polyline points="15 18 9 12 15 6" />
-                                    </svg>
-                                    <span>Lần trước</span>
-                                  </button>
-                                )}
-
-                                {activeSessionIndex < timeline.sessions.length - 1 ? (
-                                  <button
-                                    type="button"
-                                    className={styles.sessionNextConfirmBtn}
-                                    onClick={() => {
-                                      const nextIdx = activeSessionIndex + 1;
-                                      setInspectedSessions((prev) => new Set([...prev, activeSessionIndex]));
-                                      setActiveSessionIndex(nextIdx);
-                                    }}
-                                    title={`Xác nhận đã thẩm định Lần ${currentSession.session_number} và mở khóa Lần ${timeline.sessions[activeSessionIndex + 1].session_number}`}
-                                  >
-                                    <svg
-                                      width="14"
-                                      height="14"
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      strokeWidth="2.5"
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                    >
-                                      <polyline points="20 6 9 17 4 12" />
-                                    </svg>
-                                    <span>
-                                      Xác nhận Lần {currentSession.session_number} & Chuyển Lần {timeline.sessions[activeSessionIndex + 1].session_number}
-                                    </span>
-                                    <svg
-                                      width="13"
-                                      height="13"
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      strokeWidth="2.5"
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                    >
-                                      <polyline points="9 18 15 12 9 6" />
-                                    </svg>
-                                  </button>
-                                ) : (
-                                  <button
-                                    type="button"
-                                    className={styles.sessionFinalConfirmBtn}
-                                    onClick={() => {
-                                      setInspectedSessions((prev) => new Set([...prev, activeSessionIndex]));
-                                    }}
-                                    title="Xác nhận đã thẩm định xong toàn bộ các lần khám trong hồ sơ"
-                                  >
-                                    <svg
-                                      width="14"
-                                      height="14"
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      strokeWidth="2.5"
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                    >
-                                      <polyline points="20 6 9 17 4 12" />
-                                    </svg>
-                                    <span>
-                                      {inspectedSessions.has(activeSessionIndex)
-                                        ? `Đã xác nhận Lần ${currentSession.session_number} (Lần cuối)`
-                                        : `Xác nhận Lần ${currentSession.session_number} & Hoàn tất xem hồ sơ`}
-                                    </span>
-                                  </button>
-                                )}
-                              </div>
+                          {/* Case Navigation Footer (Seamlessly moves between cases, no confusing session confirmation) */}
+                          <div className={styles.sessionFooterAction} style={{ marginTop: "0.85rem", padding: "0.6rem 0.85rem" }}>
+                            <div className={styles.sessionFooterInfo}>
+                              <span>
+                                Đang xem Ca {currentCaseIndexInDoctor + 1} / 100 &bull; Đợt {currentBatchIndex} ({timeline?.sessions?.length || 1} đợt khám)
+                              </span>
                             </div>
-                          )}
+                            <div className={styles.sessionFooterBtns}>
+                              <button
+                                type="button"
+                                className={styles.sessionPrevBtn}
+                                disabled={currentCaseIndexInBatch <= 0}
+                                onClick={handlePrevCase}
+                                title="Quay lại ca trước"
+                              >
+                                <span>&lt; Ca trước</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                className={styles.sessionNextConfirmBtn}
+                                onClick={handleConfirmAndNextCase}
+                                disabled={saving || !canConfirmCase}
+                                title="Lưu thẩm định ca này và chuyển ngay sang ca tiếp theo"
+                              >
+                                <span>
+                                  {currentCaseIndexInBatch < batchCases.length - 1
+                                    ? `Lưu & Sang Ca ${currentCaseIndexInDoctor + 2} >`
+                                    : "Xác nhận Ca cuối của đợt"}
+                                </span>
+                              </button>
+                            </div>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -2404,47 +2302,7 @@ export default function LabelDataPage() {
                   )}
                 </div>
 
-                {/* Speedrun or Session Inspection Reminder */}
-                {readingCountdown > 0 ? (
-                  <div className={styles.speedrunNotice}>
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <circle cx="12" cy="12" r="10" />
-                      <polyline points="12 6 12 12 16 14" />
-                    </svg>
-                    <span>Đang thẩm định hồ sơ: Vui lòng đọc kỹ nội dung (còn {readingCountdown} giây)</span>
-                  </div>
-                ) : !hasInspectedRequiredSessions ? (
-                  <div
-                    className={styles.speedrunNotice}
-                    style={{ color: "#9a3412", backgroundColor: "#fff7ed", borderColor: "#ffedd5" }}
-                  >
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <circle cx="12" cy="12" r="10" />
-                      <line x1="12" y1="8" x2="12" y2="12" />
-                      <line x1="12" y1="16" x2="12.01" y2="16" />
-                    </svg>
-                    <span>Hồ sơ có nhiều đợt khám: Bác sĩ cần bấm xem ít nhất 1 đợt khám khác trước đó.</span>
-                  </div>
-                ) : null}
-
+                {/* Stress-free verification: Instant confirmation without timer blockers */}
                 <button
                   type="button"
                   className={[
@@ -2456,17 +2314,13 @@ export default function LabelDataPage() {
                     .filter(Boolean)
                     .join(" ")}
                   disabled={saving || !canConfirmCase}
-                  onClick={handleSaveAnnotation}
+                  onClick={handleConfirmAndNextCase}
                   title={
-                    readingCountdown > 0
-                      ? `Đang trong thời gian đọc hồ sơ (còn ${readingCountdown}s)`
-                      : !hasInspectedRequiredSessions
-                      ? "Cần bấm xem ít nhất 1 đợt khám trước đó"
-                      : !isChecklistComplete
+                    !isChecklistComplete
                       ? "Cần đánh dấu đủ 3 tiêu chuẩn thẩm định"
                       : !notesQuality.isValid
-                      ? "Biện giải lâm sàng chưa đạt chuẩn chất lượng"
-                      : "Xác nhận thẩm định ca này"
+                      ? "Biện giải lâm sàng chưa đạt chuẩn chất lượng (tối thiểu 20 ký tự)"
+                      : "Xác nhận thẩm định ca này và chuyển sang ca tiếp theo"
                   }
                 >
                   <svg
@@ -2484,9 +2338,9 @@ export default function LabelDataPage() {
                   <span>
                     {saving
                       ? "Đang lưu..."
-                      : activeCase && confirmedCaseIds.has(activeCase.case_id)
-                      ? `Cập nhật xác nhận Ca ${doctorCases.findIndex((c) => c.case_id === activeCase.case_id) + 1}`
-                      : `Xác nhận Ca ${activeCase ? doctorCases.findIndex((c) => c.case_id === activeCase.case_id) + 1 : ""}`}
+                      : currentCaseIndexInBatch < batchCases.length - 1
+                      ? `Xác nhận & Sang Ca ${currentCaseIndexInDoctor + 2} >`
+                      : `Xác nhận Ca ${currentCaseIndexInDoctor + 1} (Hoàn tất đợt)`}
                   </span>
                 </button>
 

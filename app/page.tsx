@@ -9,6 +9,7 @@ import DoctorLoginModal, {
 } from "./components/DoctorLoginModal";
 import QualityWarningModal from "./components/QualityWarningModal";
 import ClinicalRulesModal from "./components/ClinicalRulesModal";
+import ExampleComparisonModal from "./components/ExampleComparisonModal";
 
 interface AutoExpandingTextareaProps {
   value: string;
@@ -438,6 +439,7 @@ export default function LabelDataPage() {
   const [pendingDoctor, setPendingDoctor] = useState<DoctorProfile | null>(null);
   const [showDoctorModal, setShowDoctorModal] = useState<boolean>(false);
   const [showRulesModal, setShowRulesModal] = useState<boolean>(false);
+  const [showExampleModal, setShowExampleModal] = useState<boolean>(false);
 
   // Track explicit case confirmations made by the doctor
   const [confirmedCaseIds, setConfirmedCaseIds] = useState<Set<string>>(new Set());
@@ -481,8 +483,6 @@ export default function LabelDataPage() {
   const [saveMessage, setSaveMessage] = useState<{ text: string; isError: boolean } | null>(null);
   const [annotationsMap, setAnnotationsMap] = useState<Record<string, ExpertAnnotationRecord>>({});
 
-  const [showGuide, setShowGuide] = useState<boolean>(false);
-
   // Anti-speedrun & session inspection tracking
   const [readingCountdown, setReadingCountdown] = useState<number>(0);
   const [inspectedSessions, setInspectedSessions] = useState<Set<number>>(new Set());
@@ -491,9 +491,6 @@ export default function LabelDataPage() {
   const [checklistHistory, setChecklistHistory] = useState<boolean>(false);
   const [checklistSafety, setChecklistSafety] = useState<boolean>(false);
   const [checklistCore, setChecklistCore] = useState<boolean>(false);
-
-  // Autosave Inspection Modal state
-  const [showAutosaveModal, setShowAutosaveModal] = useState<boolean>(false);
 
   // Query editing toggle
   const [isEditingQuery, setIsEditingQuery] = useState<boolean>(false);
@@ -2075,68 +2072,6 @@ export default function LabelDataPage() {
     return doctorCases.filter((c) => confirmedCaseIds.has(c.case_id)).length;
   }, [doctorCases, confirmedCaseIds]);
 
-  // Export all annotations & drafts for current doctor as JSON
-  const handleExportBackupJson = () => {
-    if (!activeDoctor) return;
-    const backupData: any = {
-      exportTime: new Date().toISOString(),
-      doctor: {
-        id: activeDoctor.id,
-        name: activeDoctor.name,
-        range: activeDoctor.caseRangeLabel,
-      },
-      confirmedCaseIds: Array.from(confirmedCaseIds),
-      completedBatches,
-      confirmedAnnotations: annotationsMap,
-      workingDrafts: {} as Record<string, any>,
-    };
-
-    doctorCases.forEach((c) => {
-      try {
-        const raw = localStorage.getItem(`${DRAFT_PREFIX}${activeDoctor.id}_${c.case_id}`);
-        if (raw) {
-          backupData.workingDrafts[c.case_id] = JSON.parse(raw);
-        }
-      } catch {}
-    });
-
-    const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `NKTT_Autosave_Backup_${activeDoctor.id}_${new Date().toISOString().slice(0, 10)}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
-  // Export confirmed cases as JSONL
-  const handleExportBackupJsonl = () => {
-    if (!activeDoctor) return;
-    const lines: string[] = [];
-    doctorCases.forEach((c) => {
-      const rec = annotationsMap[c.case_id];
-      if (rec && confirmedCaseIds.has(c.case_id)) {
-        lines.push(JSON.stringify(rec));
-      }
-    });
-
-    if (lines.length === 0) {
-      alert("Chưa có ca bệnh nào được xác nhận để xuất file JSONL.");
-      return;
-    }
-
-    const blob = new Blob([lines.join("\n")], { type: "application/x-jsonlines" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `NKTT_Confirmed_${activeDoctor.id}_${new Date().toISOString().slice(0, 10)}.jsonl`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
 
   return (
     <div className={styles.container}>
@@ -2204,23 +2139,14 @@ export default function LabelDataPage() {
                 Quy chuẩn thẩm định
               </button>
 
+              {/* Example Comparison Button */}
               <button
                 type="button"
-                className={styles.guideBtn}
-                onClick={() => setShowGuide(true)}
-                title="Xem quy trình thao tác lâm sàng"
+                className={styles.exampleModalBtn}
+                onClick={() => setShowExampleModal(true)}
+                title="Xem bảng mẫu đối chiếu hồ sơ trước và sau khi thẩm định"
               >
-                Quy trình thao tác
-              </button>
-
-              {/* Autosave Tracker & Backup Button */}
-              <button
-                type="button"
-                className={styles.autosaveTrackerBtn}
-                onClick={() => setShowAutosaveModal(true)}
-                title="Kiểm tra chi tiết các bản lưu nháp tự động và tải file sao lưu dự phòng"
-              >
-                Kiểm tra bản lưu nháp
+                Mẫu ví dụ đối chiếu
               </button>
 
               {/* Primary "Lưu" Button - Locked until all 10 cases in current batch are confirmed */}
@@ -2974,6 +2900,14 @@ export default function LabelDataPage() {
                         >
                           Ví dụ Cần lưu ý
                         </button>
+                        <button
+                          type="button"
+                          className={styles.bubbleTag}
+                          onClick={() => setShowExampleModal(true)}
+                          title="Mở bảng mẫu đối chiếu hồ sơ trước và sau khi thẩm định"
+                        >
+                          Bảng mẫu Trước / Sau
+                        </button>
                       </div>
                     </div>
 
@@ -3150,82 +3084,7 @@ export default function LabelDataPage() {
             </section>
           </div>
 
-          {/* Guide Modal for Operating Process */}
-          {showGuide && (
-            <div className={styles.guideModalOverlay} onClick={() => setShowGuide(false)}>
-              <div className={styles.guideModal} onClick={(e) => e.stopPropagation()}>
-                <div className={styles.guideModalHeader}>
-                  <h3 className={styles.guideModalTitle}>
-                    Quy trình Thẩm định Lâm sàng Chuẩn mực
-                  </h3>
-                  <button
-                    type="button"
-                    className={styles.guideCloseIconBtn}
-                    onClick={() => setShowGuide(false)}
-                    title="Đóng cửa sổ hướng dẫn"
-                  >
-                    Đóng
-                  </button>
-                </div>
 
-                <div className={styles.guideModalBody}>
-                  <div className={styles.guideTipBox}>
-                    <strong>Mục tiêu:</strong> Chuẩn hóa dữ liệu bệnh án dọc và quy trình tư vấn nha khoa đạt chuẩn mực chuyên môn cao nhất, bảo đảm an toàn sinh học và căn cứ y văn chính xác.
-                  </div>
-
-                  <div className={styles.guideStepCard}>
-                    <div className={styles.guideStepHeader}>
-                      <span className={styles.guideStepNumber}>Bước 1</span>
-                      <span className={styles.guideStepTitle}>Đọc kỹ chủ đề câu hỏi của Người hỏi</span>
-                    </div>
-                    <p className={styles.guideStepDesc}>
-                      Xem chủ đề ở khung giữa để nắm bắt tình huống và câu hỏi tư vấn của Người hỏi.
-                    </p>
-                  </div>
-
-                  <div className={styles.guideStepCard}>
-                    <div className={styles.guideStepHeader}>
-                      <span className={styles.guideStepNumber}>Bước 2</span>
-                      <span className={styles.guideStepTitle}>Đối chiếu toàn bộ các lần khám trong chặng</span>
-                    </div>
-                    <p className={styles.guideStepDesc}>
-                      Bác sĩ cần nhấp xem qua toàn bộ các lần khám của ca này ở diễn tiến bên trái để mở khóa cột thẩm định bên phải.
-                    </p>
-                  </div>
-
-                  <div className={styles.guideStepCard}>
-                    <div className={styles.guideStepHeader}>
-                      <span className={styles.guideStepNumber}>Bước 3</span>
-                      <span className={styles.guideStepTitle}>Chọn kết luận & Nhận xét chuyên môn</span>
-                    </div>
-                    <p className={styles.guideStepDesc}>
-                      Ở cột bên phải, chọn 1 trong 3 kết luận thẩm định, nhập nhận xét chuyên môn (hoặc dùng gợi ý chuẩn y khoa), sau đó bấm nút <strong>"Xác nhận & Sang ca tiếp theo"</strong>.
-                    </p>
-                  </div>
-
-                  <div className={styles.guideStepCard}>
-                    <div className={styles.guideStepHeader}>
-                      <span className={styles.guideStepNumber}>Bước 4</span>
-                      <span className={styles.guideStepTitle}>Bấm Lưu gói để chuyển tiếp</span>
-                    </div>
-                    <p className={styles.guideStepDesc}>
-                      Sau khi hoàn tất đủ 10 ca trong gói, bấm nút <strong>"Lưu"</strong> trên thanh công cụ để hệ thống kiểm tra chất lượng chuyên môn và mở khóa gói kế tiếp.
-                    </p>
-                  </div>
-                </div>
-
-                <div className={styles.guideModalFooter}>
-                  <button
-                    type="button"
-                    className={styles.guideDismissBtn}
-                    onClick={() => setShowGuide(false)}
-                  >
-                    Đã hiểu và tiếp tục công việc
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
 
 
           {/* Doctor Selection & Authentication Portal */}
@@ -3255,217 +3114,13 @@ export default function LabelDataPage() {
             onConfirmSave={executeBatchSaveAndUnlock}
           />
 
-          {/* Autosave Tracker & Data Backup Modal */}
-          {showAutosaveModal && (
-            <div className={styles.guideModalBackdrop} onClick={() => setShowAutosaveModal(false)}>
-              <div
-                className={styles.autosaveModalContent}
-                onClick={(e) => e.stopPropagation()}
-                role="dialog"
-                aria-modal="true"
-                aria-label="Kiem tra ban luu nhap va vi tri tep tin"
-              >
-                <div className={styles.guideModalHeader}>
-                  <div>
-                    <h2 className={styles.guideModalTitle}>Trung tâm Kiểm tra Bản lưu nháp (Autosave Tracker)</h2>
-                    <p className={styles.guideModalSubtitle}>
-                      Kiểm tra thời gian thực các tệp lưu nháp cục bộ, trạng thái từng ca bệnh và tải tệp sao lưu dữ liệu
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    className={styles.guideModalCloseBtn}
-                    onClick={() => setShowAutosaveModal(false)}
-                    title="Đóng cửa sổ"
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="18" y1="6" x2="6" y2="18" />
-                      <line x1="6" y1="6" x2="18" y2="18" />
-                    </svg>
-                  </button>
-                </div>
+          {/* Example Comparison Modal - Before and After Evaluation Tabs */}
+          <ExampleComparisonModal
+            isOpen={showExampleModal}
+            onClose={() => setShowExampleModal(false)}
+          />
 
-                <div className={styles.autosaveModalBody}>
-                  {/* Storage Location Information Box */}
-                  <div className={styles.storageInfoBox}>
-                    <div className={styles.storageInfoHeader}>
-                      <span className={styles.storageInfoTitle}>Vị trí lưu trữ dữ liệu tự động (Autosave)</span>
-                      <span className={styles.storageInfoBadge}>Bảo toàn 100% trong bộ nhớ máy tính</span>
-                    </div>
-                    <p className={styles.storageInfoDesc}>
-                      Toàn bộ dữ liệu soạn thảo, chỉnh sửa câu thoại, nhận xét lâm sàng và trạng thái các nút bấm được hệ thống tự động lưu nháp (Autosave) liên tục sau mỗi thao tác vào bộ nhớ cục bộ <strong>Web LocalStorage</strong> của trình duyệt trên máy tính này. Dữ liệu này không bị mất khi mất kết nối mạng, khi tải lại trang (F5) hoặc khi tắt trình duyệt.
-                    </p>
-                    <div className={styles.storageKeyList}>
-                      <div className={styles.storageKeyItem}>
-                        <code>nktt_draft_v5_{activeDoctor?.id || "BS"}_[Mã_Ca]</code>
-                        <span>Bản lưu nháp chi tiết từng ca (câu thoại sửa, nhận xét, tiêu chuẩn lâm sàng)</span>
-                      </div>
-                      <div className={styles.storageKeyItem}>
-                        <code>nktt_confirmed_cases_{activeDoctor?.id || "BS"}</code>
-                        <span>Danh sách các ca đã được Bác sĩ bấm Xác nhận chính thức</span>
-                      </div>
-                      <div className={styles.storageKeyItem}>
-                        <code>nktt_doctor_annotations_{activeDoctor?.id || "BS"}</code>
-                        <span>Hồ sơ thẩm định hoàn chỉnh đã xác nhận của Bác sĩ</span>
-                      </div>
-                    </div>
-                  </div>
 
-                  {/* Summary Stats */}
-                  <div className={styles.autosaveStatsRow}>
-                    <div className={styles.autosaveStatCard}>
-                      <span className={styles.autosaveStatNum}>{batchCases.length}</span>
-                      <span className={styles.autosaveStatLabel}>Ca trong Gói {currentBatchIndex}</span>
-                    </div>
-                    <div className={styles.autosaveStatCard}>
-                      <span className={styles.autosaveStatNum}>{currentBatchConfirmedCount} / {batchCases.length}</span>
-                      <span className={styles.autosaveStatLabel}>Đã xác nhận chính thức</span>
-                    </div>
-                    <div className={styles.autosaveStatCard}>
-                      <span className={styles.autosaveStatNum}>
-                        {batchCases.filter((c) => {
-                          if (!activeDoctor) return false;
-                          const raw = localStorage.getItem(`${DRAFT_PREFIX}${activeDoctor.id}_${c.case_id}`);
-                          return Boolean(raw);
-                        }).length}
-                      </span>
-                      <span className={styles.autosaveStatLabel}>Có bản lưu nháp</span>
-                    </div>
-                    <div className={styles.autosaveStatCard}>
-                      <span className={styles.autosaveStatNum}>{totalDoctorConfirmedCount} / 100</span>
-                      <span className={styles.autosaveStatLabel}>Tổng tiến độ phân công</span>
-                    </div>
-                  </div>
-
-                  {/* Batch Cases Inspection Table */}
-                  <div className={styles.autosaveTableContainer}>
-                    <h3 className={styles.autosaveTableTitle}>Danh sách chi tiết 10 ca trong Gói {currentBatchIndex}</h3>
-                    <table className={styles.autosaveTable}>
-                      <thead>
-                        <tr>
-                          <th>Ca bệnh</th>
-                          <th>Trạng thái</th>
-                          <th>Thời điểm Autosave</th>
-                          <th>Tiến độ xem lần khám</th>
-                          <th>Tiêu chuẩn</th>
-                          <th>Thao tác</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {batchCases.map((c, idx) => {
-                          const isConfirmed = confirmedCaseIds.has(c.case_id);
-                          let draft: any = null;
-                          if (activeDoctor) {
-                            try {
-                              const raw = localStorage.getItem(`${DRAFT_PREFIX}${activeDoctor.id}_${c.case_id}`);
-                              if (raw) draft = JSON.parse(raw);
-                            } catch {}
-                          }
-                          const saved = annotationsMap[c.case_id];
-                          const lastTime = draft?.updatedAt
-                            ? new Date(draft.updatedAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", second: "2-digit" })
-                            : saved?.updated_at
-                            ? new Date(saved.updated_at).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", second: "2-digit" })
-                            : "--";
-                          const inspCount = isConfirmed
-                            ? "Đã xem đủ"
-                            : draft?.inspectedSessions?.length
-                            ? `${draft.inspectedSessions.length} lần`
-                            : "Mốc đầu";
-                          const checklistOk = isConfirmed || (draft?.checklistHistory && draft?.checklistSafety && draft?.checklistCore);
-
-                          return (
-                            <tr key={c.case_id} className={c.case_id === selectedCaseId ? styles.autosaveRowActive : ""}>
-                              <td>
-                                <div className={styles.autosaveCaseCell}>
-                                  <strong>Ca {(currentBatchIndex - 1) * 10 + idx + 1}</strong>
-                                  <span className={styles.autosaveCaseSub}>{c.case_id}</span>
-                                </div>
-                              </td>
-                              <td>
-                                {isConfirmed ? (
-                                  <span className={styles.badgeConfirmed}>Đã xác nhận</span>
-                                ) : draft ? (
-                                  <span className={styles.badgeDraft}>Đã lưu nháp</span>
-                                ) : (
-                                  <span className={styles.badgePending}>Chưa làm</span>
-                                )}
-                              </td>
-                              <td>
-                                <span className={styles.autosaveTimeText}>{lastTime}</span>
-                              </td>
-                              <td>
-                                <span className={styles.autosaveInspText}>{inspCount}</span>
-                              </td>
-                              <td>
-                                {checklistOk ? (
-                                  <span className={styles.badgeChecklistOk}>Đủ 3 tiêu chuẩn</span>
-                                ) : (
-                                  <span className={styles.badgeChecklistPending}>Chưa đủ</span>
-                                )}
-                              </td>
-                              <td>
-                                <button
-                                  type="button"
-                                  className={styles.autosaveSelectBtn}
-                                  onClick={() => {
-                                    handleSelectCase(c.case_id);
-                                    setShowAutosaveModal(false);
-                                  }}
-                                >
-                                  Mở ca
-                                </button>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* Manual Developer Tools Inspection Guide */}
-                  <div className={styles.devToolsGuideBox}>
-                    <h4 className={styles.devToolsGuideTitle}>Cách kiểm tra kỹ thuật trực tiếp trên trình duyệt (F12):</h4>
-                    <ol className={styles.devToolsGuideList}>
-                      <li>Bấm phím <strong>F12</strong> (hoặc tổ hợp phím <strong>Ctrl + Shift + I</strong>) trên bàn phím.</li>
-                      <li>Chọn thẻ <strong>Application</strong> trên thanh công cụ phía trên của cửa sổ hiện ra.</li>
-                      <li>Ở khung bên trái, mở mục <strong>Storage</strong> - <strong>Local Storage</strong> - nhấp vào địa chỉ của trang web.</li>
-                      <li>Toàn bộ các khóa lưu nháp <code>nktt_draft_v5_...</code> hiển thị tại đây kèm toàn bộ nội dung văn bản.</li>
-                    </ol>
-                  </div>
-                </div>
-
-                {/* Modal Footer with Export & Action Buttons */}
-                <div className={styles.autosaveModalFooter}>
-                  <div className={styles.exportBtnGroup}>
-                    <button
-                      type="button"
-                      className={styles.exportJsonBtn}
-                      onClick={handleExportBackupJson}
-                      title="Tải toàn bộ hồ sơ lưu nháp và xác nhận dưới dạng tệp JSON về máy tính"
-                    >
-                      Tải bản sao lưu JSON (.json)
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.exportJsonlBtn}
-                      onClick={handleExportBackupJsonl}
-                      title="Xuất danh sách các ca đã xác nhận dưới định dạng JSONL"
-                    >
-                      Tải tệp huấn luyện (.jsonl)
-                    </button>
-                  </div>
-                  <button
-                    type="button"
-                    className={styles.guideDismissBtn}
-                    onClick={() => setShowAutosaveModal(false)}
-                  >
-                    Đóng cửa sổ
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
     </div>
   );
 }

@@ -1720,7 +1720,9 @@ export default function LabelDataPage() {
                           <span className={styles.caseId}>
                             Ca {doctorCaseIndex}/100
                           </span>
-                          <span className={styles.caseCheckpoint}>Ca {globalIndex}/500</span>
+                          <span className={styles.caseCheckpoint}>
+                            {c.user_id.replace("VL500_", "")} | Ca {globalIndex}/500
+                          </span>
                         </div>
                         <div className={styles.caseQueryPreview}>{c.current_query}</div>
                         <div className={styles.caseCardFooter}>
@@ -1805,6 +1807,22 @@ export default function LabelDataPage() {
                             title={`Mốc khám: ${activeCase.metadata.checkpoint} - Độ dài tiền sử: ${activeCase.metadata.history_bucket || "N/A"}`}
                           >
                             {activeCase.metadata.checkpoint} ({activeCase.metadata.history_bucket || "N/A"})
+                          </span>
+                        )}
+                        {activeCase.user_id && (
+                          <span
+                            style={{
+                              fontSize: "0.75rem",
+                              color: "#0f766e",
+                              backgroundColor: "#f0fdfa",
+                              padding: "0.15rem 0.5rem",
+                              borderRadius: "4px",
+                              border: "1px solid #ccfbf1",
+                              fontWeight: 600,
+                            }}
+                            title={`Mã hồ sơ bệnh nhân: ${activeCase.user_id}`}
+                          >
+                            Hồ sơ: {activeCase.user_id}
                           </span>
                         )}
                         {activeCase.metadata?.evidence_curation_required && (
@@ -1950,6 +1968,11 @@ export default function LabelDataPage() {
                         <h2 className={styles.sectionTitle}>
                           Hồ sơ bệnh án & Diễn tiến:
                         </h2>
+                        {activeCase && (
+                          <span style={{ fontSize: "0.78rem", color: "#64748b", fontWeight: 500 }}>
+                            (Hồ sơ {activeCase.user_id})
+                          </span>
+                        )}
                       </div>
                       <div className={styles.sessionPills}>
                         {timeline && timeline.sessions && timeline.sessions.length > 0 ? (

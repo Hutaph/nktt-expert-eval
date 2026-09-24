@@ -353,7 +353,7 @@ function checkClinicalNotesQuality(
   };
 }
 
-const STORAGE_KEY = "nktt_expert_annotations_v3";
+const STORAGE_KEY = "nktt_expert_annotations_v5";
 
 function getAssetBase(): string {
   if (typeof window === "undefined") return "";

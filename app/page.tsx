@@ -3,18 +3,12 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import styles from "./LabelData.module.css";
 import ClinicalLikertEvalView from "./components/ClinicalLikertEvalView";
-import DriveSyncModal from "./components/DriveSyncModal";
 import DoctorLoginModal, {
   DOCTORS_LIST,
   DoctorProfile,
 } from "./components/DoctorLoginModal";
 import QualityWarningModal from "./components/QualityWarningModal";
 import ClinicalRulesModal from "./components/ClinicalRulesModal";
-import {
-  getDriveConfig,
-  syncExpertAnnotationsToDrive,
-  DriveConfig,
-} from "./lib/driveSync";
 
 interface AutoExpandingTextareaProps {
   value: string;
@@ -337,25 +331,45 @@ function getAssetBase(): string {
   return "";
 }
 
-function getStoredAnnotations(): Record<string, ExpertAnnotationRecord> {
-  if (typeof window === "undefined") return {};
+const isFakeDefaultNote = (note?: string): boolean => {
+  if (!note) return false;
+  const trimmed = note.trim();
+  return (
+    trimmed.startsWith("Đã thẩm định:") ||
+    trimmed === "Đã đối chiếu các lần khám, câu hỏi và tư vấn đạt chuẩn chuyên môn và an toàn lâm sàng." ||
+    trimmed === "Đã trau chuốt và chuẩn hóa câu từ phù hợp thuật ngữ chuyên ngành Răng Hàm Mặt." ||
+    trimmed === "Cần lưu ý thêm về diễn tiến triệu chứng và tiền sử điều trị của Người hỏi."
+  );
+};
+
+function getDoctorAnnotations(doctorId: string): Record<string, ExpertAnnotationRecord> {
+  if (typeof window === "undefined" || !doctorId) return {};
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(`nktt_doctor_annotations_${doctorId}`);
     return raw ? JSON.parse(raw) : {};
   } catch {
     return {};
   }
 }
 
-function saveStoredAnnotation(record: ExpertAnnotationRecord): void {
-  if (typeof window === "undefined") return;
+function saveDoctorAnnotation(doctorId: string, record: ExpertAnnotationRecord): void {
+  if (typeof window === "undefined" || !doctorId) return;
   try {
-    const existing = getStoredAnnotations();
+    const existing = getDoctorAnnotations(doctorId);
     existing[record.case_id] = record;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
+    localStorage.setItem(`nktt_doctor_annotations_${doctorId}`, JSON.stringify(existing));
   } catch (err) {
     console.error("Lỗi khi lưu vào bộ nhớ trình duyệt:", err);
   }
+}
+
+function getStoredAnnotations(doctorId?: string): Record<string, ExpertAnnotationRecord> {
+  if (doctorId) return getDoctorAnnotations(doctorId);
+  return {};
+}
+
+function saveStoredAnnotation(record: ExpertAnnotationRecord, doctorId?: string): void {
+  if (doctorId) saveDoctorAnnotation(doctorId, record);
 }
 
 const FAMILY_FRIENDLY_NAMES: Record<string, { label: string; desc: string }> = {
@@ -481,31 +495,7 @@ export default function LabelDataPage() {
 
   const handleSelectVerdict = (v: "APPROVED" | "EDITED" | "FLAGGED") => {
     setCurrentVerdict(v);
-    const defaultNotesList = [
-      "Đã đối chiếu các lần khám, câu hỏi và tư vấn đạt chuẩn chuyên môn và an toàn lâm sàng.",
-      "Đã trau chuốt và chuẩn hóa câu từ phù hợp thuật ngữ chuyên ngành Răng Hàm Mặt.",
-      "Cần lưu ý thêm về diễn tiến triệu chứng và tiền sử điều trị của Người hỏi.",
-    ];
-    if (!clinicalNotes.trim() || defaultNotesList.includes(clinicalNotes.trim())) {
-      if (v === "APPROVED") {
-        setClinicalNotes("Đã đối chiếu các lần khám, câu hỏi và tư vấn đạt chuẩn chuyên môn và an toàn lâm sàng.");
-      } else if (v === "EDITED") {
-        setClinicalNotes("Đã trau chuốt và chuẩn hóa câu từ phù hợp thuật ngữ chuyên ngành Răng Hàm Mặt.");
-      } else if (v === "FLAGGED") {
-        setClinicalNotes("Cần lưu ý thêm về diễn tiến triệu chứng và tiền sử điều trị của Người hỏi.");
-      }
-    }
   };
-
-  // Google Drive state
-  const [showDriveModal, setShowDriveModal] = useState<boolean>(false);
-  const [driveConfig, setDriveConfig] = useState<DriveConfig>(getDriveConfig);
-  const [syncingDrive, setSyncingDrive] = useState<boolean>(false);
-  const [driveNotice, setDriveNotice] = useState<{
-    type: "success" | "error" | "info";
-    text: string;
-    url?: string;
-  } | null>(null);
 
   // Initialize doctor session from sessionStorage on mount (requires password when browser/tab is restarted)
   useEffect(() => {
@@ -531,6 +521,15 @@ export default function LabelDataPage() {
   useEffect(() => {
     if (!activeDoctor) return;
 
+    // Purge legacy polluted keys from localStorage
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.removeItem("nktt_expert_annotations_v5");
+        localStorage.removeItem("nktt_expert_annotations_v4");
+        localStorage.removeItem("nktt_expert_annotations_v3");
+      } catch {}
+    }
+
     // Load confirmed cases for this specific doctor
     try {
       const savedConfirmed = localStorage.getItem(`nktt_confirmed_cases_${activeDoctor.id}`);
@@ -545,6 +544,10 @@ export default function LabelDataPage() {
     } catch {
       setConfirmedCaseIds(new Set());
     }
+
+    // Load annotations strictly saved by this active doctor
+    const docAnnotations = getDoctorAnnotations(activeDoctor.id);
+    setAnnotationsMap(docAnnotations);
 
     // Load completed batches for this doctor
     try {
@@ -586,59 +589,24 @@ export default function LabelDataPage() {
     setAnnotator(activeDoctor.name);
   }, [activeDoctor]);
 
-  // Load stored annotations on mount
+  // Clean up legacy v3/v4/v5 drafts and old caches from localStorage on mount
   useEffect(() => {
-    let isMounted = true;
-    async function initAnnotations() {
-      // Clean up legacy v3/v4 drafts and old caches from localStorage
-      if (typeof window !== "undefined") {
-        try {
-          const keysToRemove: string[] = [];
-          for (let i = 0; i < localStorage.length; i++) {
-            const k = localStorage.key(i);
-            if (
-              k &&
-              (k.startsWith("nktt_draft_BS") ||
-                k === "nktt_expert_annotations_v3" ||
-                k === "nktt_expert_annotations_v4")
-            ) {
-              keysToRemove.push(k);
-            }
-          }
-          keysToRemove.forEach((k) => localStorage.removeItem(k));
-        } catch {}
-      }
-
-      const stored = getStoredAnnotations();
+    if (typeof window !== "undefined") {
       try {
-        const assetBase = getAssetBase();
-        const res = await fetch(
-          `${assetBase}/dataset/default_expert_annotations_500.json?v=${DATASET_VERSION_TAG}`,
-          { cache: "no-store" }
-        );
-        if (res.ok) {
-          const defaultData = await res.json();
-          const merged = { ...defaultData, ...stored };
-          if (isMounted) {
-            setAnnotationsMap(merged);
-            if (typeof window !== "undefined" && Object.keys(merged).length > Object.keys(stored).length) {
-              localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
-            }
+        const keysToRemove: string[] = [
+          "nktt_expert_annotations_v5",
+          "nktt_expert_annotations_v4",
+          "nktt_expert_annotations_v3",
+        ];
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && k.startsWith("nktt_draft_BS")) {
+            keysToRemove.push(k);
           }
-        } else if (Object.keys(stored).length > 0) {
-          if (isMounted) setAnnotationsMap(stored);
         }
-      } catch (err) {
-        console.error("Lỗi khi nạp dữ liệu thẩm định mặc định:", err);
-        if (Object.keys(stored).length > 0 && isMounted) {
-          setAnnotationsMap(stored);
-        }
-      }
+        keysToRemove.forEach((k) => localStorage.removeItem(k));
+      } catch {}
     }
-    initAnnotations();
-    return () => {
-      isMounted = false;
-    };
   }, []);
 
   // Load all 500 cases from public/dataset
@@ -911,37 +879,27 @@ export default function LabelDataPage() {
         if (activeDoctor) {
           try {
             const rawDraft = localStorage.getItem(`${DRAFT_PREFIX}${activeDoctor.id}_${matchedCase.case_id}`);
-            if (rawDraft) draftData = JSON.parse(rawDraft);
+            if (rawDraft) {
+              const parsed = JSON.parse(rawDraft);
+              if (parsed && !isFakeDefaultNote(parsed.clinicalNotes)) {
+                draftData = parsed;
+              } else if (parsed) {
+                parsed.clinicalNotes = "";
+                parsed.checklistHistory = false;
+                parsed.checklistSafety = false;
+                parsed.checklistCore = false;
+                parsed.inspectedSessions = [];
+                draftData = parsed;
+              }
+            }
           } catch {}
         }
 
+        const isConfirmed = confirmedCaseIds.has(matchedCase.case_id);
         const saved = annotationsMap[matchedCase.case_id];
 
-        if (draftData) {
-          // Restore from draft
-          setEditedQuery(draftData.editedQuery || matchedCase.current_query || "");
-          setClinicalNotes(draftData.clinicalNotes || "");
-          if (draftData.verdict) {
-            setCurrentVerdict(draftData.verdict);
-          } else {
-            setCurrentVerdict("APPROVED");
-          }
-          setEditedTurns({ ...(draftData.editedTurns || {}), ...sharedTurns });
-          setEditedFactors(
-            draftData.editedFactors ||
-              (matchedCase.targets?.factors ? JSON.parse(JSON.stringify(matchedCase.targets.factors)) : [])
-          );
-          setEditedRelevantEvents(draftData.editedRelevantEvents || "");
-          setEditedStaleEvents(draftData.editedStaleEvents || "");
-          setEditedForbiddenEvents(draftData.editedForbiddenEvents || "");
-          setChecklistHistory(Boolean(draftData.checklistHistory));
-          setChecklistSafety(Boolean(draftData.checklistSafety));
-          setChecklistCore(Boolean(draftData.checklistCore));
-          if (typeof draftData.activeSessionIndex === "number") {
-            initialSessionIdx = draftData.activeSessionIndex;
-          }
-        } else if (saved) {
-          // Restore from saved annotation
+        if (isConfirmed && saved && !isFakeDefaultNote(saved.clinical_notes)) {
+          // Restore from confirmed annotation by active doctor
           setEditedQuery(saved.edited_query || matchedCase.current_query || "");
           setClinicalNotes(saved.clinical_notes || "");
           if (saved.verdict) {
@@ -982,8 +940,31 @@ export default function LabelDataPage() {
           setChecklistHistory(true);
           setChecklistSafety(true);
           setChecklistCore(true);
+        } else if (draftData) {
+          // Restore from draft
+          setEditedQuery(draftData.editedQuery || matchedCase.current_query || "");
+          setClinicalNotes(draftData.clinicalNotes || "");
+          if (draftData.verdict) {
+            setCurrentVerdict(draftData.verdict);
+          } else {
+            setCurrentVerdict("APPROVED");
+          }
+          setEditedTurns({ ...(draftData.editedTurns || {}), ...sharedTurns });
+          setEditedFactors(
+            draftData.editedFactors ||
+              (matchedCase.targets?.factors ? JSON.parse(JSON.stringify(matchedCase.targets.factors)) : [])
+          );
+          setEditedRelevantEvents(draftData.editedRelevantEvents || "");
+          setEditedStaleEvents(draftData.editedStaleEvents || "");
+          setEditedForbiddenEvents(draftData.editedForbiddenEvents || "");
+          setChecklistHistory(Boolean(draftData.checklistHistory));
+          setChecklistSafety(Boolean(draftData.checklistSafety));
+          setChecklistCore(Boolean(draftData.checklistCore));
+          if (typeof draftData.activeSessionIndex === "number") {
+            initialSessionIdx = draftData.activeSessionIndex;
+          }
         } else {
-          // Fresh default state
+          // Fresh default state: absolutely blank notes, unchecked checklists
           setEditedQuery(matchedCase.current_query || "");
           setClinicalNotes("");
           setCurrentVerdict("APPROVED");
@@ -1009,9 +990,11 @@ export default function LabelDataPage() {
 
         setActiveSessionIndex(initialSessionIdx);
 
-        // Khôi phục checkpoint lần khám đã xem: nếu ca đã xác nhận thì mở toàn bộ; nếu có draft thì lấy từ draft; nếu ca mới thì lấy mốc đầu tiên
+        // Khôi phục mốc khám đã xem:
+        // - Nếu ca ĐÃ xác nhận chính thức bởi Bác sĩ: mở toàn bộ
+        // - Nếu có bản lưu nháp từ Bác sĩ: lấy từ draft
+        // - Nếu ca MỚI (chưa làm): CHỈ lấy mốc khám đầu tiên!
         const allSessionNums = uTimeline?.sessions?.map((s) => s.session_number) || [];
-        const isConfirmed = confirmedCaseIds.has(matchedCase.case_id) || Boolean(saved);
         if (isConfirmed && allSessionNums.length > 0) {
           setInspectedSessions(new Set(allSessionNums));
         } else if (draftData && Array.isArray(draftData.inspectedSessions) && draftData.inspectedSessions.length > 0) {
@@ -1161,11 +1144,26 @@ export default function LabelDataPage() {
       const matched = allCases.find((c) => c.case_id === caseId);
       if (matched) {
         setActiveCase(matched);
+        const isConfirmed = confirmedCaseIds.has(matched.case_id);
+        const saved = annotationsMap[matched.case_id];
+
         let draftData: any = null;
         if (activeDoctor) {
           try {
             const rawDraft = localStorage.getItem(`${DRAFT_PREFIX}${activeDoctor.id}_${matched.case_id}`);
-            if (rawDraft) draftData = JSON.parse(rawDraft);
+            if (rawDraft) {
+              const parsed = JSON.parse(rawDraft);
+              if (parsed && !isFakeDefaultNote(parsed.clinicalNotes)) {
+                draftData = parsed;
+              } else if (parsed) {
+                parsed.clinicalNotes = "";
+                parsed.checklistHistory = false;
+                parsed.checklistSafety = false;
+                parsed.checklistCore = false;
+                parsed.inspectedSessions = [];
+                draftData = parsed;
+              }
+            }
           } catch {}
         }
         let sharedTurns: Record<string, string> = {};
@@ -1175,28 +1173,8 @@ export default function LabelDataPage() {
             if (rawShared) sharedTurns = JSON.parse(rawShared);
           } catch {}
         }
-        const saved = annotationsMap[matched.case_id];
-        if (draftData) {
-          setEditedQuery(draftData.editedQuery || matched.current_query || "");
-          setClinicalNotes(draftData.clinicalNotes || "");
-          if (draftData.verdict) {
-            setCurrentVerdict(draftData.verdict);
-          } else {
-            setCurrentVerdict("APPROVED");
-          }
-          setEditedTurns({ ...(draftData.editedTurns || {}), ...sharedTurns });
-          if (draftData.editedFactors) {
-            setEditedFactors(draftData.editedFactors);
-          } else {
-            setEditedFactors(matched.targets?.factors ? JSON.parse(JSON.stringify(matched.targets.factors)) : []);
-          }
-          setEditedRelevantEvents(draftData.editedRelevantEvents || "");
-          setEditedStaleEvents(draftData.editedStaleEvents || "");
-          setEditedForbiddenEvents(draftData.editedForbiddenEvents || "");
-          setChecklistHistory(Boolean(draftData.checklistHistory));
-          setChecklistSafety(Boolean(draftData.checklistSafety));
-          setChecklistCore(Boolean(draftData.checklistCore));
-        } else if (saved) {
+
+        if (isConfirmed && saved && !isFakeDefaultNote(saved.clinical_notes)) {
           setEditedQuery(saved.edited_query || matched.current_query || "");
           setClinicalNotes(saved.clinical_notes || "");
           if (saved.verdict) {
@@ -1230,6 +1208,26 @@ export default function LabelDataPage() {
           setChecklistHistory(true);
           setChecklistSafety(true);
           setChecklistCore(true);
+        } else if (draftData) {
+          setEditedQuery(draftData.editedQuery || matched.current_query || "");
+          setClinicalNotes(draftData.clinicalNotes || "");
+          if (draftData.verdict) {
+            setCurrentVerdict(draftData.verdict);
+          } else {
+            setCurrentVerdict("APPROVED");
+          }
+          setEditedTurns({ ...(draftData.editedTurns || {}), ...sharedTurns });
+          if (draftData.editedFactors) {
+            setEditedFactors(draftData.editedFactors);
+          } else {
+            setEditedFactors(matched.targets?.factors ? JSON.parse(JSON.stringify(matched.targets.factors)) : []);
+          }
+          setEditedRelevantEvents(draftData.editedRelevantEvents || "");
+          setEditedStaleEvents(draftData.editedStaleEvents || "");
+          setEditedForbiddenEvents(draftData.editedForbiddenEvents || "");
+          setChecklistHistory(Boolean(draftData.checklistHistory));
+          setChecklistSafety(Boolean(draftData.checklistSafety));
+          setChecklistCore(Boolean(draftData.checklistCore));
         } else {
           setEditedQuery(matched.current_query || "");
           setClinicalNotes("");
@@ -1282,20 +1280,11 @@ export default function LabelDataPage() {
         }
         setActiveSessionIndex(targetSessionIdx);
 
-        // Khoi phuc moc kham da xem: neu da xac nhan thi mo toan bo; neu co draft thi lay tu draft; neu chua thi lay moc dau tien
+        // Khoi phuc moc kham da xem:
+        // Neu da xac nhan chinh thuc boi bac si: mo toan bo
+        // Neu co draft tu bac si: lay tu draft
+        // Neu ca moi: CHI lay moc dau tien!
         const allSessionNums = uTimeline?.sessions?.map((s) => s.session_number) || [];
-        let isConfirmed = confirmedCaseIds.has(matched.case_id) || Boolean(saved);
-        if (!isConfirmed && activeDoctor) {
-          try {
-            const rawConfirmed = localStorage.getItem(`nktt_confirmed_cases_${activeDoctor.id}`);
-            if (rawConfirmed) {
-              const list = JSON.parse(rawConfirmed);
-              if (Array.isArray(list) && list.includes(matched.case_id)) {
-                isConfirmed = true;
-              }
-            }
-          } catch {}
-        }
         if (isConfirmed && allSessionNums.length > 0) {
           setInspectedSessions(new Set(allSessionNums));
         } else if (draftData && Array.isArray(draftData.inspectedSessions) && draftData.inspectedSessions.length > 0) {
@@ -1326,22 +1315,60 @@ export default function LabelDataPage() {
 
 
   const handleConfirmAndNextCase = () => {
-    const currentCaseId = activeCase?.case_id || selectedCaseId;
-    const currentIdxInBatch = batchCases.findIndex((c) => c.case_id === currentCaseId);
-    const doctorCaseIndex = activeCase ? doctorCases.findIndex((c) => c.case_id === activeCase.case_id) : -1;
+    if (!activeCase || !activeDoctor) return;
+
+    // Kiem tra toan bo yeu cau bat buoc
+    const missingSteps: string[] = [];
+
+    if (!hasInspectedAllSessions) {
+      missingSteps.push(
+        `Bác sĩ cần bấm xem qua toàn bộ ${visibleSessions.length} lần khám của ca này (hiện mới xem ${inspectedCount}/${visibleSessions.length} lần).`
+      );
+    }
+
+    if (!isChecklistComplete) {
+      missingSteps.push(
+        "Bác sĩ cần đánh dấu xác nhận đầy đủ 3 tiêu chuẩn thẩm định lâm sàng ở cột bên phải."
+      );
+    }
+
+    if (!clinicalNotes.trim()) {
+      missingSteps.push(
+        "Biện giải lâm sàng là bắt buộc! Bác sĩ vui lòng tự nhập nhận xét chuyên môn (tối thiểu 20 ký tự)."
+      );
+    } else if (!notesQuality.isValid) {
+      missingSteps.push(
+        notesQuality.errors[0] || "Nhận xét chuyên môn chưa đạt chuẩn chất lượng tối thiểu."
+      );
+    }
+
+    if (missingSteps.length > 0) {
+      setSaveMessage({
+        text: `Chưa thể chuyển ca! Bác sĩ cần hoàn thành các mục sau:\n${missingSteps.map((s, i) => `${i + 1}. ${s}`).join("\n")}`,
+        isError: true,
+      });
+      alert(
+        `Chưa thể chuyển sang ca khác!\n\nBác sĩ vui lòng hoàn thành các mục sau trước khi xác nhận:\n\n${missingSteps.map((s, i) => `• ${s}`).join("\n\n")}`
+      );
+      return;
+    }
 
     const success = handleSaveAnnotation();
     if (success) {
+      const currentCaseId = activeCase.case_id;
+      const currentIdxInBatch = batchCases.findIndex((c) => c.case_id === currentCaseId);
+      const doctorCaseIndex = doctorCases.findIndex((c) => c.case_id === currentCaseId);
+
       if (currentIdxInBatch >= 0 && currentIdxInBatch < batchCases.length - 1) {
         const nextCase = batchCases[currentIdxInBatch + 1];
         handleSelectCase(nextCase.case_id, true);
         setSaveMessage({
-          text: `Đã xác nhận Ca ${doctorCaseIndex >= 0 ? doctorCaseIndex + 1 : ""} thành công. Đã chuyển ngay sang Ca ${doctorCaseIndex >= 0 ? doctorCaseIndex + 2 : ""}.`,
+          text: `Đã xác nhận Ca ${doctorCaseIndex + 1} thành công. Đã chuyển ngay sang Ca ${doctorCaseIndex + 2}.`,
           isError: false,
         });
       } else {
         setSaveMessage({
-          text: `Chúc mừng Bác sĩ đã hoàn tất toàn bộ 10/10 ca của Gói ${currentBatchIndex}! Nút "Lưu" (Google Drive) đã được mở khóa. Bác sĩ hãy bấm nút Lưu để đồng bộ dữ liệu.`,
+          text: `Chúc mừng Bác sĩ đã hoàn tất toàn bộ 10/10 ca của Gói ${currentBatchIndex}! Nút "Lưu Gói ${currentBatchIndex}" đã được mở khóa. Bác sĩ hãy bấm nút Lưu để hoàn tất.`,
           isError: false,
         });
       }
@@ -1449,7 +1476,7 @@ export default function LabelDataPage() {
                 const updatedTurns = [...rec.edited_turns];
                 updatedTurns[turnIdx] = { ...updatedTurns[turnIdx], text };
                 nextMap[cId] = { ...rec, edited_turns: updatedTurns };
-                saveStoredAnnotation(nextMap[cId]);
+                saveDoctorAnnotation(activeDoctor.id, nextMap[cId]);
                 hasChange = true;
               }
             }
@@ -1575,7 +1602,7 @@ export default function LabelDataPage() {
       updated_at: new Date().toISOString(),
     };
 
-    saveStoredAnnotation(record);
+    saveDoctorAnnotation(activeDoctor.id, record);
     setAnnotationsMap((prev) => ({
       ...prev,
       [record.case_id]: record,
@@ -1592,7 +1619,7 @@ export default function LabelDataPage() {
     const isBatchComplete = batchCases.length > 0 && batchCases.every((c) => nextConfirmed.has(c.case_id));
     if (isBatchComplete) {
       setSaveMessage({
-        text: `Đã hoàn thành xuất sắc toàn bộ 10/10 ca của Gói ${currentBatchIndex}! Nút "Lưu" (Google Drive) trên thanh công cụ đã được mở khóa. Bác sĩ vui lòng bấm nút Lưu để đồng bộ dữ liệu và mở khóa Gói tiếp theo.`,
+        text: `Đã hoàn thành xuất sắc toàn bộ 10/10 ca của Gói ${currentBatchIndex}! Nút "Lưu Gói ${currentBatchIndex}" trên thanh công cụ đã được mở khóa. Bác sĩ vui lòng bấm nút Lưu để hoàn tất và mở khóa Gói tiếp theo.`,
         isError: false,
       });
     } else {
@@ -1694,7 +1721,7 @@ export default function LabelDataPage() {
   };
 
   // Execute batch save and unlock next batch
-  const executeBatchSaveAndUnlock = async () => {
+  const executeBatchSaveAndUnlock = () => {
     setShowQualityWarning(false);
     if (!activeDoctor) return;
 
@@ -1705,31 +1732,14 @@ export default function LabelDataPage() {
       localStorage.setItem(`nktt_completed_batches_${activeDoctor.id}`, JSON.stringify(nextCompleted));
     } catch {}
 
-    // Synchronize to Google Drive webhook
-    setSyncingDrive(true);
-    setDriveNotice({
-      type: "info",
-      text: `Đang lưu Gói ${currentBatchIndex} và đồng bộ dữ liệu lên Google Drive...`,
+    setSaveMessage({
+      text: `Đã lưu thành công toàn bộ Gói ${currentBatchIndex}! Gói tiếp theo đã được mở khóa.`,
+      isError: false,
     });
 
-    const stored = getStoredAnnotations();
-    const result = await syncExpertAnnotationsToDrive(activeDoctor.name, stored);
-    setSyncingDrive(false);
-
-    if (result.ok) {
-      setDriveNotice({
-        type: "success",
-        text: `Đã lưu thành công Gói ${currentBatchIndex} và đồng bộ lên Google Drive (Thư mục: ${result.folderName || "NKTT_Expert_Evaluations"}). Gói tiếp theo đã được mở khóa!`,
-        url: result.folderUrl,
-      });
-      setTimeout(() => setDriveNotice(null), 8000);
-    } else {
-      setDriveNotice({
-        type: "success",
-        text: `Đã lưu thành công Gói ${currentBatchIndex} vào bộ nhớ máy. Gói tiếp theo đã được mở khóa!`,
-      });
-      setTimeout(() => setDriveNotice(null), 8000);
-    }
+    alert(
+      `Đã lưu thành công toàn bộ Gói ${currentBatchIndex}!\n\nGói ${currentBatchIndex < 10 ? currentBatchIndex + 1 : ""} đã được mở khóa để Bác sĩ tiếp tục làm việc.`
+    );
 
     // Advance to next batch if available
     if (currentBatchIndex < 10) {
@@ -2029,11 +2039,11 @@ export default function LabelDataPage() {
                   isCurrentBatchFullyConfirmed ? styles.saveMainBtnReady : styles.saveMainBtnLocked,
                 ].join(" ")}
                 onClick={handleSaveBatch}
-                disabled={syncingDrive || !isCurrentBatchFullyConfirmed}
+                disabled={!isCurrentBatchFullyConfirmed}
                 title={
                   !isCurrentBatchFullyConfirmed
                     ? `Cần xác nhận đủ 10/10 ca trong Gói ${currentBatchIndex} để mở khóa nút Lưu (Hiện tại: ${currentBatchConfirmedCount}/10 ca). Hệ thống đang tự động lưu nháp liên tục.`
-                    : `Lưu Gói ${currentBatchIndex}, kiểm tra chất lượng và đồng bộ lên Google Drive`
+                    : `Lưu hoàn tất Gói ${currentBatchIndex} và mở khóa gói tiếp theo`
                 }
               >
                 <svg
@@ -2060,10 +2070,8 @@ export default function LabelDataPage() {
                   )}
                 </svg>
                 <span>
-                  {syncingDrive
-                    ? "Đang lưu..."
-                    : isCurrentBatchFullyConfirmed
-                    ? `Lưu Gói ${currentBatchIndex} (Google Drive)`
+                  {isCurrentBatchFullyConfirmed
+                    ? `Lưu Gói ${currentBatchIndex}`
                     : `Lưu gói (${currentBatchConfirmedCount}/10 ca)`}
                 </span>
               </button>
@@ -2149,67 +2157,15 @@ export default function LabelDataPage() {
                   Gói {currentBatchIndex} đã hoàn tất 10/10 ca
                 </span>
                 <span className={styles.batchReadyAlertText}>
-                  Tất cả 10 ca bệnh trong Gói {currentBatchIndex} đã được Bác sĩ thẩm định và xác nhận. Nút <strong>Lưu Gói {currentBatchIndex} (Google Drive)</strong> trên góc phải đã được mở khóa. Bác sĩ hãy bấm nút Lưu để đồng bộ dữ liệu và mở khóa Gói tiếp theo.
+                  Tất cả 10 ca bệnh trong Gói {currentBatchIndex} đã được Bác sĩ thẩm định và xác nhận. Nút <strong>Lưu Gói {currentBatchIndex}</strong> trên góc phải đã được mở khóa. Bác sĩ hãy bấm nút Lưu để hoàn tất và mở khóa Gói tiếp theo.
                 </span>
               </div>
               <button
                 type="button"
                 className={styles.batchReadyAlertBtn}
                 onClick={handleSaveBatch}
-                disabled={syncingDrive}
               >
-                {syncingDrive ? "Đang đồng bộ..." : `Bấm Lưu Gói ${currentBatchIndex} ngay`}
-              </button>
-            </div>
-          )}
-
-          {/* Drive & Batch Notice Banner */}
-          {driveNotice && (
-            <div
-              className={
-                driveNotice.type === "success"
-                  ? styles.driveNoticeSuccess
-                  : driveNotice.type === "error"
-                  ? styles.driveNoticeError
-                  : styles.driveNoticeInfo
-              }
-            >
-              <div>
-                <span>{driveNotice.text}</span>
-                {driveNotice.url && (
-                  <a
-                    href={driveNotice.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={styles.driveNoticeLink}
-                  >
-                    Mở thư mục Google Drive
-                  </a>
-                )}
-                {driveNotice.type === "error" && (
-                  <button
-                    type="button"
-                    onClick={() => setShowDriveModal(true)}
-                    style={{
-                      marginLeft: "1rem",
-                      background: "transparent",
-                      border: "none",
-                      textDecoration: "underline",
-                      cursor: "pointer",
-                      fontWeight: 600,
-                      color: "inherit",
-                    }}
-                  >
-                    Cài đặt Drive
-                  </button>
-                )}
-              </div>
-              <button
-                type="button"
-                className={styles.driveNoticeClose}
-                onClick={() => setDriveNotice(null)}
-              >
-                Đóng
+                Bấm Lưu Gói {currentBatchIndex} ngay
               </button>
             </div>
           )}
@@ -2816,7 +2772,7 @@ export default function LabelDataPage() {
                     ]
                       .filter(Boolean)
                       .join(" ")}
-                    disabled={saving || !canConfirmCase}
+                    disabled={saving}
                     onClick={handleConfirmAndNextCase}
                     title={
                       !hasInspectedAllSessions
@@ -2941,12 +2897,6 @@ export default function LabelDataPage() {
             </div>
           )}
 
-          {/* Google Drive Configuration Modal */}
-          <DriveSyncModal
-            isOpen={showDriveModal}
-            onClose={() => setShowDriveModal(false)}
-            onConfigSaved={(cfg) => setDriveConfig(cfg)}
-          />
 
           {/* Doctor Selection & Authentication Portal */}
           <DoctorLoginModal
@@ -3025,8 +2975,8 @@ export default function LabelDataPage() {
                         <span>Danh sách các ca đã được Bác sĩ bấm Xác nhận chính thức</span>
                       </div>
                       <div className={styles.storageKeyItem}>
-                        <code>nktt_expert_eval_annotations_v5</code>
-                        <span>Hồ sơ thẩm định hoàn chỉnh sẵn sàng đồng bộ Google Drive</span>
+                        <code>nktt_doctor_annotations_{activeDoctor?.id || "BS"}</code>
+                        <span>Hồ sơ thẩm định hoàn chỉnh đã xác nhận của Bác sĩ</span>
                       </div>
                     </div>
                   </div>

@@ -751,8 +751,16 @@ export default function LabelDataPage() {
         const uEvents = cachedEventsMap?.get(matchedCase.user_id) || [];
         setEvents(uEvents);
 
-        // Always initialize to session 0 (Lần 1) for natural chronological medical review
+        // Tự động mở đúng mốc khám xảy ra câu hỏi (up_to_session) để nêu bật giai đoạn lâm sàng riêng biệt của ca này
         let initialSessionIdx = 0;
+        if (matchedCase.visible_history?.up_to_session && uTimeline?.sessions) {
+          const sIdx = uTimeline.sessions.findIndex(
+            (s: any) =>
+              s.session_id === matchedCase.visible_history.up_to_session ||
+              s.session_id.endsWith(`_${matchedCase.visible_history.up_to_session}`)
+          );
+          if (sIdx >= 0) initialSessionIdx = sIdx;
+        }
 
         // Check for local working draft first
         let draftData: any = null;
@@ -951,7 +959,23 @@ export default function LabelDataPage() {
             setEditedFactors(JSON.parse(JSON.stringify(matched.targets.factors)));
           }
         }
-        setActiveSessionIndex(0);
+        // Cập nhật timeline và events ngay lập tức
+        const uTimeline = cachedTimelinesMap?.get(matched.user_id) || null;
+        if (uTimeline) setTimeline(uTimeline);
+        const uEvents = cachedEventsMap?.get(matched.user_id) || [];
+        if (uEvents.length > 0) setEvents(uEvents);
+
+        // Tự động nhảy tới đúng mốc khám xảy ra câu hỏi
+        let targetSessionIdx = 0;
+        if (matched.visible_history?.up_to_session && uTimeline?.sessions) {
+          const sIdx = uTimeline.sessions.findIndex(
+            (s) =>
+              s.session_id === matched.visible_history.up_to_session ||
+              s.session_id.endsWith(`_${matched.visible_history.up_to_session}`)
+          );
+          if (sIdx >= 0) targetSessionIdx = sIdx;
+        }
+        setActiveSessionIndex(targetSessionIdx);
         setIsEditingQuery(false);
       }
     },
@@ -1978,10 +2002,14 @@ export default function LabelDataPage() {
                         {timeline && timeline.sessions && timeline.sessions.length > 0 ? (
                           timeline.sessions.map((s, idx) => {
                             const isSelected = idx === activeSessionIndex;
-                            const isCutoffSession =
-                              activeCase?.visible_history?.up_to_session &&
-                              (s.session_id === activeCase.visible_history.up_to_session ||
-                                s.session_id.endsWith(`_${activeCase.visible_history.up_to_session}`));
+                            const cutoffIdx = timeline.sessions.findIndex(
+                              (sess) =>
+                                activeCase?.visible_history?.up_to_session &&
+                                (sess.session_id === activeCase.visible_history.up_to_session ||
+                                  sess.session_id.endsWith(`_${activeCase.visible_history.up_to_session}`))
+                            );
+                            const isCutoffSession = idx === cutoffIdx;
+                            const isFutureSession = cutoffIdx >= 0 && idx > cutoffIdx;
 
                             return (
                               <button
@@ -1994,13 +2022,29 @@ export default function LabelDataPage() {
                                 ]
                                   .filter(Boolean)
                                   .join(" ")}
+                                style={
+                                  isFutureSession
+                                    ? { opacity: 0.5, borderStyle: "dashed" }
+                                    : undefined
+                                }
                                 onClick={() => handleSelectSession(idx)}
-                                title={`Lần ${s.session_number}${isCutoffSession ? " (Mốc câu hỏi hiện tại)" : ""}`}
+                                title={`Lần ${s.session_number}${
+                                  isCutoffSession
+                                    ? " (Mốc câu hỏi hiện tại)"
+                                    : isFutureSession
+                                    ? " (Diễn ra sau mốc câu hỏi)"
+                                    : " (Tiền sử trước đó)"
+                                }`}
                               >
                                 <span>Lần {s.session_number}</span>
                                 {isCutoffSession && (
-                                  <span style={{ fontSize: "0.65rem", opacity: 0.85, fontWeight: 700, marginLeft: "2px" }}>
-                                    (Mốc)
+                                  <span style={{ fontSize: "0.65rem", opacity: 0.95, fontWeight: 700, marginLeft: "2px" }}>
+                                    (Mốc hỏi)
+                                  </span>
+                                )}
+                                {isFutureSession && (
+                                  <span style={{ fontSize: "0.6rem", opacity: 0.7, marginLeft: "2px" }}>
+                                    (Sau)
                                   </span>
                                 )}
                               </button>
@@ -2026,6 +2070,13 @@ export default function LabelDataPage() {
                               Chi tiết Lần {currentSession.session_number}
                               {currentSession.session_timestamp &&
                                 ` - Ngày: ${new Date(currentSession.session_timestamp).toLocaleDateString("vi-VN")}`}
+                              {activeCase?.visible_history?.up_to_session &&
+                                (currentSession.session_id === activeCase.visible_history.up_to_session ||
+                                  currentSession.session_id.endsWith(`_${activeCase.visible_history.up_to_session}`)) && (
+                                  <strong style={{ color: "#0f766e", marginLeft: "8px" }}>
+                                    [Mốc câu hỏi của ca này]
+                                  </strong>
+                                )}
                             </span>
                             <span style={{ fontWeight: "normal", color: "var(--color-text-muted)" }}>
                               (Gồm {currentSession.turns.length} lượt trao đổi)

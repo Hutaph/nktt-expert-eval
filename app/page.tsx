@@ -749,7 +749,9 @@ export default function LabelDataPage() {
         // Find relevant session index
         const upToSession = matchedCase.visible_history?.up_to_session;
         if (uTimeline && uTimeline.sessions && upToSession) {
-          const idx = uTimeline.sessions.findIndex((s) => s.session_id === upToSession);
+          const idx = uTimeline.sessions.findIndex(
+            (s) => s.session_id === upToSession || s.session_id.endsWith(`_${upToSession}`)
+          );
           setActiveSessionIndex(idx >= 0 ? idx : 0);
         } else {
           setActiveSessionIndex(0);

@@ -269,6 +269,22 @@
   border-left: 3px solid var(--color-primary);
 }
 
+.caseCardLocked {
+  opacity: 0.55;
+  background-color: var(--color-surface-muted) !important;
+  cursor: not-allowed !important;
+}
+
+.caseLockedTag {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #94a3b8;
+  background-color: #f1f5f9;
+  padding: 0.15rem 0.35rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid #cbd5e1;
+}
+
 .caseCardHeader {
   display: flex;
   align-items: center;

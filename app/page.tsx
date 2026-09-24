@@ -1068,6 +1068,16 @@ export default function LabelDataPage() {
   // Synchronous and immediate case switching - eliminating all question desync!
   const handleSelectCase = useCallback(
     (caseId: string) => {
+      // Kiểm tra ca có bị khóa do ca trước chưa hoàn thành không
+      const caseIdxInDoctor = doctorCases.findIndex((c) => c.case_id === caseId);
+      if (caseIdxInDoctor > 0) {
+        const prevCase = doctorCases[caseIdxInDoctor - 1];
+        if (!confirmedCaseIds.has(prevCase.case_id)) {
+          alert(`Ca ${caseIdxInDoctor + 1} hiện đang khóa. Bác sĩ vui lòng hoàn thành và xác nhận Ca ${caseIdxInDoctor} trước.`);
+          return;
+        }
+      }
+
       setSelectedCaseId(caseId);
       const matched = allCases.find((c) => c.case_id === caseId);
       if (matched) {
@@ -1155,7 +1165,7 @@ export default function LabelDataPage() {
         setIsEditingQuery(false);
       }
     },
-    [allCases, annotationsMap, activeDoctor]
+    [allCases, annotationsMap, activeDoctor, doctorCases, confirmedCaseIds]
   );
 
   const handlePrevCase = () => {
@@ -1166,7 +1176,13 @@ export default function LabelDataPage() {
 
   const handleNextCase = () => {
     if (currentCaseIndexInBatch < batchCases.length - 1) {
-      handleSelectCase(batchCases[currentCaseIndexInBatch + 1].case_id);
+      const nextCase = batchCases[currentCaseIndexInBatch + 1];
+      const nextIdx = doctorCases.findIndex((c) => c.case_id === nextCase.case_id);
+      if (nextIdx > 0 && !confirmedCaseIds.has(doctorCases[nextIdx - 1].case_id)) {
+        alert(`Ca tiếp theo hiện đang khóa. Bạn cần hoàn thành và xác nhận Ca hiện tại trước.`);
+        return;
+      }
+      handleSelectCase(nextCase.case_id);
     }
   };
 
@@ -1928,14 +1944,29 @@ export default function LabelDataPage() {
                       c.category?.primary_family;
                     const isConfirmed = confirmedCaseIds.has(c.case_id);
 
+                    // Kiểm tra trạng thái khóa tuần tự: Ca 1 luôn mở, Ca n mở khi Ca n-1 đã xác nhận
+                    const caseIdxInDoctor = doctorCaseIndex - 1;
+                    const isUnlocked =
+                      caseIdxInDoctor === 0 ||
+                      (caseIdxInDoctor > 0 && confirmedCaseIds.has(doctorCases[caseIdxInDoctor - 1]?.case_id));
+
                     return (
                       <button
                         key={c.case_id}
                         type="button"
-                        className={[styles.caseCard, isActive ? styles.caseCardActive : ""]
+                        className={[
+                          styles.caseCard,
+                          isActive ? styles.caseCardActive : "",
+                          !isUnlocked ? styles.caseCardLocked : "",
+                        ]
                           .filter(Boolean)
                           .join(" ")}
                         onClick={() => handleSelectCase(c.case_id)}
+                        title={
+                          !isUnlocked
+                            ? `Ca ${doctorCaseIndex} đang khóa. Cần hoàn thành và xác nhận Ca ${doctorCaseIndex - 1} trước.`
+                            : `Ca ${doctorCaseIndex}: ${c.current_query}`
+                        }
                       >
                         <div className={styles.caseCardHeader}>
                           <span className={styles.caseId}>
@@ -1950,11 +1981,15 @@ export default function LabelDataPage() {
                           <span className={styles.familyTag} title={c.category?.primary_family}>
                             {friendlyFamily}
                           </span>
-                          {isConfirmed && (
+                          {isConfirmed ? (
                             <span className={[styles.verdictBadge, styles.verdictApproved].join(" ")}>
                               Đã xác nhận
                             </span>
-                          )}
+                          ) : !isUnlocked ? (
+                            <span className={styles.caseLockedTag}>
+                              Chưa mở
+                            </span>
+                          ) : null}
                         </div>
                       </button>
                     );
@@ -2031,55 +2066,9 @@ export default function LabelDataPage() {
                           </span>
                         )}
                       </div>
-                      <div className={styles.queryActionGroup}>
-                        <button
-                          type="button"
-                          className={styles.toggleEditBtn}
-                          onClick={() => setIsEditingQuery(!isEditingQuery)}
-                          title="Bật/tắt chế độ trau chuốt câu từ"
-                        >
-                          <svg
-                            width="13"
-                            height="13"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2.2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
-                            <path d="M12 20h9" />
-                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-                          </svg>
-                          <span>{isEditingQuery ? "Thu gọn chỉnh sửa" : "Hiệu chỉnh câu từ"}</span>
-                        </button>
-                        {editedQuery !== activeCase.current_query && (
-                          <button
-                            type="button"
-                            className={styles.resetQueryBtn}
-                            onClick={() => setEditedQuery(activeCase.current_query || "")}
-                            title="Khôi phục nguyên văn câu hỏi ban đầu"
-                          >
-                            <svg
-                              width="13"
-                              height="13"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-                              <path d="M3 3v5h5" />
-                            </svg>
-                            <span>Khôi phục bản gốc</span>
-                          </button>
-                        )}
-                      </div>
                     </div>
 
-                    {/* Original Query Box (Immutable Ground Truth Reference) */}
+                    {/* Topic Box (Fixed Clinical Context) */}
                     <div className={styles.originalQueryBox}>
                       <span className={styles.originalQueryLabel}>
                         <svg
@@ -2096,52 +2085,10 @@ export default function LabelDataPage() {
                           <line x1="12" y1="16" x2="12" y2="12" />
                           <line x1="12" y1="8" x2="12.01" y2="8" />
                         </svg>
-                        Bản gốc:
+                        Chủ đề:
                       </span>
                       <p className={styles.originalQueryText}>{activeCase.current_query}</p>
                     </div>
-
-                    {/* Editable Query Section (Controlled with Diff Tracking) */}
-                    {isEditingQuery && (
-                      <div className={styles.editQuerySection}>
-                        <div className={styles.editQueryHeader}>
-                          <span className={styles.editQueryLabel}>Bản hiệu chỉnh chuyên khoa:</span>
-                          <span
-                            className={[
-                              styles.diffBadge,
-                              queryChangePercent <= 20
-                                ? styles.diffBadgeMinor
-                                : queryChangePercent <= 50
-                                ? styles.diffBadgeModerate
-                                : styles.diffBadgeMajor,
-                            ].join(" ")}
-                          >
-                            {queryChangePercent === 0
-                              ? "Chưa thay đổi (0%)"
-                              : queryChangePercent <= 20
-                              ? `Trau chuốt nhẹ (thay đổi ${queryChangePercent}%)`
-                              : queryChangePercent <= 50
-                              ? `Điều chỉnh thuật ngữ (thay đổi ${queryChangePercent}%)`
-                              : `Thay đổi lớn (thay đổi ${queryChangePercent}%)`}
-                          </span>
-                        </div>
-
-                        {queryChangePercent > 50 && (
-                          <div className={styles.diffAlertBanner}>
-                            <strong>Cảnh báo thay đổi lớn:</strong> Bạn đang thay đổi đáng kể bản chất câu hỏi ban đầu (thay đổi {queryChangePercent}%). Bác sĩ vui lòng bảo đảm giữ nguyên cốt lõi tình huống lâm sàng và nêu rõ lý do chuyên môn trong ô biện giải (tối thiểu 35 ký tự).
-                          </div>
-                        )}
-
-                        <textarea
-                          value={editedQuery}
-                          onChange={(e) => setEditedQuery(e.target.value)}
-                          placeholder="Nhập nội dung hiệu chỉnh câu chữ chuẩn y khoa..."
-                          className={styles.queryTextarea}
-                          rows={2}
-                          spellCheck={false}
-                        />
-                      </div>
-                    )}
                   </div>
 
                   {/* Dialogue Timeline */}
@@ -2151,11 +2098,6 @@ export default function LabelDataPage() {
                         <h2 className={styles.sectionTitle}>
                           Hồ sơ bệnh án & Diễn tiến:
                         </h2>
-                        {activeCase && (
-                          <span style={{ fontSize: "0.78rem", color: "#64748b", fontWeight: 500 }}>
-                            (Hồ sơ {activeCase.user_id})
-                          </span>
-                        )}
                       </div>
                       <div className={styles.sessionPills}>
                         {visibleSessions && visibleSessions.length > 0 ? (
@@ -2414,154 +2356,194 @@ export default function LabelDataPage() {
                   </p>
                 </div>
 
-                {/* Bước 1: Clinical Verification Checklist */}
-                <div className={styles.clinicalChecklistBox}>
-                  <div className={styles.checklistTitle}>1. Tiêu chuẩn lâm sàng bắt buộc:</div>
-                  <div className={styles.checklistList}>
-                    <label className={styles.checklistItem}>
-                      <input
-                        type="checkbox"
-                        checked={checklistHistory}
-                        onChange={(e) => setChecklistHistory(e.target.checked)}
-                        className={styles.checklistCheckbox}
-                      />
-                      <span>Đúng tiền sử & diễn tiến: Khớp dữ liệu các lần khám trước</span>
-                    </label>
-                    <label className={styles.checklistItem}>
-                      <input
-                        type="checkbox"
-                        checked={checklistSafety}
-                        onChange={(e) => setChecklistSafety(e.target.checked)}
-                        className={styles.checklistCheckbox}
-                      />
-                      <span>An toàn y khoa: Phù hợp nguyên tắc điều trị, không chống chỉ định</span>
-                    </label>
-                    <label className={styles.checklistItem}>
-                      <input
-                        type="checkbox"
-                        checked={checklistCore}
-                        onChange={(e) => setChecklistCore(e.target.checked)}
-                        className={styles.checklistCheckbox}
-                      />
-                      <span>Tính thực tế lâm sàng: Bảo toàn bản chất tình huống bệnh lý</span>
-                    </label>
-                  </div>
-                </div>
-
-                {/* Bước 2: Clinical Verdict Selector */}
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-                  <div className={styles.checklistTitle}>2. Kết luận thẩm định chuyên môn:</div>
-                  <div className={styles.verdictButtonGroup}>
-                    <button
-                      type="button"
-                      className={[
-                        styles.verdictBtn,
-                        currentVerdict === "APPROVED" ? styles.verdictBtnActiveApproved : "",
-                      ].filter(Boolean).join(" ")}
-                      onClick={() => handleSelectVerdict("APPROVED")}
-                      title="Câu hỏi và tư vấn đạt chuẩn y khoa"
-                    >
-                      Đạt chuẩn lâm sàng
-                    </button>
-                    <button
-                      type="button"
-                      className={[
-                        styles.verdictBtn,
-                        currentVerdict === "EDITED" ? styles.verdictBtnActiveNeedsRevision : "",
-                      ].filter(Boolean).join(" ")}
-                      onClick={() => handleSelectVerdict("EDITED")}
-                      title="Đã trau chuốt và chuẩn hóa lại câu từ"
-                    >
-                      Hiệu chỉnh câu từ
-                    </button>
-                    <button
-                      type="button"
-                      className={[
-                        styles.verdictBtn,
-                        currentVerdict === "FLAGGED" ? styles.verdictBtnActiveRejected : "",
-                      ].filter(Boolean).join(" ")}
-                      onClick={() => handleSelectVerdict("FLAGGED")}
-                      title="Có điểm cần lưu ý hoặc mâu thuẫn bệnh lý"
-                    >
-                      Cần lưu ý thêm
-                    </button>
-                  </div>
-                </div>
-
-                {/* Bước 3: Clinical Notes Textarea */}
-                <div className={styles.textareaWrapper}>
-                  <div className={styles.checklistTitle}>3. Nhận xét chuyên môn:</div>
-                  <textarea
-                    value={clinicalNotes}
-                    onChange={(e) => setClinicalNotes(e.target.value)}
-                    placeholder="Nhập nhận xét chuyên môn: Nêu rõ đánh giá an toàn, tính chính xác và căn cứ đối chiếu tiền sử..."
-                    className={styles.notesTextarea}
-                    rows={3}
-                    spellCheck={false}
-                  />
-                  <div className={styles.charCountRow}>
-                    <span
-                      className={
-                        clinicalNotes.trim().length >= 20
-                          ? styles.charCountValid
-                          : styles.charCountWarning
-                      }
-                    >
-                      {clinicalNotes.trim().length >= 20
-                        ? `Ghi chú hợp lệ (${clinicalNotes.trim().length} ký tự)`
-                        : `Tối thiểu 20 ký tự (${clinicalNotes.trim().length}/20)`}
-                    </span>
-                  </div>
-                  {notesQuality.errors.length > 0 && clinicalNotes.trim().length > 0 && (
-                    <div className={styles.notesNoticeBox}>
-                      {notesQuality.errors[0]}
-                    </div>
-                  )}
-                </div>
-
-                {/* Primary Action Button */}
-                <button
-                  type="button"
-                  className={[
-                    styles.saveBtn,
-                    activeCase && confirmedCaseIds.has(activeCase.case_id)
-                      ? styles.saveBtnConfirmed
-                      : "",
-                  ]
-                    .filter(Boolean)
-                    .join(" ")}
-                  disabled={saving || !canConfirmCase}
-                  onClick={handleConfirmAndNextCase}
-                  title={
-                    !hasInspectedAllSessions
-                      ? `Cần nhấp xem qua toàn bộ các lần khám của ca này (Đã xem ${inspectedCount}/${visibleSessions.length} lần)`
-                      : !isChecklistComplete
-                      ? "Cần đánh dấu đủ 3 tiêu chuẩn thẩm định"
-                      : !notesQuality.isValid
-                      ? "Biện giải lâm sàng chưa đạt chuẩn chất lượng (tối thiểu 20 ký tự)"
-                      : "Xác nhận thẩm định ca này và chuyển sang ca tiếp theo"
-                  }
-                >
-                  <svg
-                    width="15"
-                    height="15"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
+                {/* Banner cảnh báo khóa khi chưa xem đủ các lần khám */}
+                {!hasInspectedAllSessions && (
+                  <div
+                    style={{
+                      padding: "0.75rem 0.85rem",
+                      backgroundColor: "#fffbeb",
+                      border: "1px solid #fde68a",
+                      borderRadius: "8px",
+                      fontSize: "0.8rem",
+                      color: "#92400e",
+                      lineHeight: 1.45,
+                      marginBottom: "0.75rem",
+                    }}
                   >
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                  <span>
-                    {saving
-                      ? "Đang lưu..."
-                      : currentCaseIndexInBatch < batchCases.length - 1
-                      ? `Xác nhận & Sang Ca ${currentCaseIndexInDoctor + 2} >`
-                      : `Xác nhận Ca ${currentCaseIndexInDoctor + 1} (Hoàn tất đợt)`}
-                  </span>
-                </button>
+                    <div style={{ fontWeight: 700, marginBottom: "0.25rem", color: "#b45309" }}>
+                      Chưa mở khóa thẩm định
+                    </div>
+                    Bác sĩ cần nhấp xem qua toàn bộ {visibleSessions.length} lần khám ở diễn tiến bên trái trước khi thực hiện thẩm định và xác nhận (Hiện tại đã xem: {inspectedCount}/{visibleSessions.length} lần).
+                  </div>
+                )}
+
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "1rem",
+                    opacity: hasInspectedAllSessions ? 1 : 0.45,
+                    pointerEvents: hasInspectedAllSessions ? "auto" : "none",
+                    userSelect: hasInspectedAllSessions ? "auto" : "none",
+                    transition: "opacity 0.2s ease",
+                  }}
+                >
+                  {/* Bước 1: Clinical Verification Checklist */}
+                  <div className={styles.clinicalChecklistBox}>
+                    <div className={styles.checklistTitle}>1. Tiêu chuẩn lâm sàng bắt buộc:</div>
+                    <div className={styles.checklistList}>
+                      <label className={styles.checklistItem}>
+                        <input
+                          type="checkbox"
+                          checked={checklistHistory}
+                          onChange={(e) => setChecklistHistory(e.target.checked)}
+                          disabled={!hasInspectedAllSessions}
+                          className={styles.checklistCheckbox}
+                        />
+                        <span>Đúng tiền sử & diễn tiến: Khớp dữ liệu các lần khám trước</span>
+                      </label>
+                      <label className={styles.checklistItem}>
+                        <input
+                          type="checkbox"
+                          checked={checklistSafety}
+                          onChange={(e) => setChecklistSafety(e.target.checked)}
+                          disabled={!hasInspectedAllSessions}
+                          className={styles.checklistCheckbox}
+                        />
+                        <span>An toàn y khoa: Phù hợp nguyên tắc điều trị, không chống chỉ định</span>
+                      </label>
+                      <label className={styles.checklistItem}>
+                        <input
+                          type="checkbox"
+                          checked={checklistCore}
+                          onChange={(e) => setChecklistCore(e.target.checked)}
+                          disabled={!hasInspectedAllSessions}
+                          className={styles.checklistCheckbox}
+                        />
+                        <span>Tính thực tế lâm sàng: Bảo toàn bản chất tình huống bệnh lý</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Bước 2: Clinical Verdict Selector */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+                    <div className={styles.checklistTitle}>2. Kết luận thẩm định chuyên môn:</div>
+                    <div className={styles.verdictButtonGroup}>
+                      <button
+                        type="button"
+                        className={[
+                          styles.verdictBtn,
+                          currentVerdict === "APPROVED" ? styles.verdictBtnActiveApproved : "",
+                        ].filter(Boolean).join(" ")}
+                        disabled={!hasInspectedAllSessions}
+                        onClick={() => handleSelectVerdict("APPROVED")}
+                        title="Câu hỏi và tư vấn đạt chuẩn y khoa"
+                      >
+                        Đạt chuẩn lâm sàng
+                      </button>
+                      <button
+                        type="button"
+                        className={[
+                          styles.verdictBtn,
+                          currentVerdict === "EDITED" ? styles.verdictBtnActiveNeedsRevision : "",
+                        ].filter(Boolean).join(" ")}
+                        disabled={!hasInspectedAllSessions}
+                        onClick={() => handleSelectVerdict("EDITED")}
+                        title="Đã trau chuốt và chuẩn hóa lại câu từ"
+                      >
+                        Hiệu chỉnh câu từ
+                      </button>
+                      <button
+                        type="button"
+                        className={[
+                          styles.verdictBtn,
+                          currentVerdict === "FLAGGED" ? styles.verdictBtnActiveRejected : "",
+                        ].filter(Boolean).join(" ")}
+                        disabled={!hasInspectedAllSessions}
+                        onClick={() => handleSelectVerdict("FLAGGED")}
+                        title="Có điểm cần lưu ý hoặc mâu thuẫn bệnh lý"
+                      >
+                        Cần lưu ý thêm
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Bước 3: Clinical Notes Textarea */}
+                  <div className={styles.textareaWrapper}>
+                    <div className={styles.checklistTitle}>3. Nhận xét chuyên môn:</div>
+                    <textarea
+                      value={clinicalNotes}
+                      onChange={(e) => setClinicalNotes(e.target.value)}
+                      disabled={!hasInspectedAllSessions}
+                      placeholder="Nhập nhận xét chuyên môn: Nêu rõ đánh giá an toàn, tính chính xác và căn cứ đối chiếu tiền sử..."
+                      className={styles.notesTextarea}
+                      rows={3}
+                      spellCheck={false}
+                    />
+                    <div className={styles.charCountRow}>
+                      <span
+                        className={
+                          clinicalNotes.trim().length >= 20
+                            ? styles.charCountValid
+                            : styles.charCountWarning
+                        }
+                      >
+                        {clinicalNotes.trim().length >= 20
+                          ? `Ghi chú hợp lệ (${clinicalNotes.trim().length} ký tự)`
+                          : `Tối thiểu 20 ký tự (${clinicalNotes.trim().length}/20)`}
+                      </span>
+                    </div>
+                    {notesQuality.errors.length > 0 && clinicalNotes.trim().length > 0 && (
+                      <div className={styles.notesNoticeBox}>
+                        {notesQuality.errors[0]}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Primary Action Button */}
+                  <button
+                    type="button"
+                    className={[
+                      styles.saveBtn,
+                      activeCase && confirmedCaseIds.has(activeCase.case_id)
+                        ? styles.saveBtnConfirmed
+                        : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                    disabled={saving || !canConfirmCase}
+                    onClick={handleConfirmAndNextCase}
+                    title={
+                      !hasInspectedAllSessions
+                        ? `Cần nhấp xem qua toàn bộ các lần khám của ca này (Đã xem ${inspectedCount}/${visibleSessions.length} lần)`
+                        : !isChecklistComplete
+                        ? "Cần đánh dấu đủ 3 tiêu chuẩn thẩm định"
+                        : !notesQuality.isValid
+                        ? "Biện giải lâm sàng chưa đạt chuẩn chất lượng (tối thiểu 20 ký tự)"
+                        : "Xác nhận thẩm định ca này và chuyển sang ca tiếp theo"
+                    }
+                  >
+                    <svg
+                      width="15"
+                      height="15"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    <span>
+                      {saving
+                        ? "Đang lưu..."
+                        : currentCaseIndexInBatch < batchCases.length - 1
+                        ? `Xác nhận & Sang Ca ${currentCaseIndexInDoctor + 2} >`
+                        : `Xác nhận Ca ${currentCaseIndexInDoctor + 1} (Hoàn tất đợt)`}
+                    </span>
+                  </button>
+                </div>
 
                 {saveMessage && (
                   <div
@@ -2603,20 +2585,20 @@ export default function LabelDataPage() {
                   <div className={styles.guideStepCard}>
                     <div className={styles.guideStepHeader}>
                       <span className={styles.guideStepNumber}>Bước 1</span>
-                      <span className={styles.guideStepTitle}>Thẩm định câu hỏi của người bệnh</span>
+                      <span className={styles.guideStepTitle}>Đọc kỹ chủ đề câu hỏi của người bệnh</span>
                     </div>
                     <p className={styles.guideStepDesc}>
-                      Đọc kỹ câu hỏi ở khung giữa. Hiệu chỉnh câu chữ nếu diễn đạt lủng củng, thiếu tự nhiên hoặc dùng sai thuật ngữ giải phẫu, bệnh học Răng Hàm Mặt.
+                      Xem chủ đề ở khung giữa để nắm bắt tình huống bệnh lý và câu hỏi tư vấn của người bệnh.
                     </p>
                   </div>
 
                   <div className={styles.guideStepCard}>
                     <div className={styles.guideStepHeader}>
                       <span className={styles.guideStepNumber}>Bước 2</span>
-                      <span className={styles.guideStepTitle}>Đối chiếu dòng thời gian các lần khám</span>
+                      <span className={styles.guideStepTitle}>Đối chiếu toàn bộ các lần khám trong chặng</span>
                     </div>
                     <p className={styles.guideStepDesc}>
-                      Bấm vào các thẻ <strong>"Lần khám 1, 2..."</strong> để kiểm tra tiền sử bệnh nhân. Chú ý các nhãn chỉ báo dữ kiện quan trọng để nắm bắt các can thiệp đã và đang diễn ra.
+                      Bác sĩ cần nhấp xem qua toàn bộ các lần khám của ca này ở diễn tiến bên trái để mở khóa cột thẩm định bên phải.
                     </p>
                   </div>
 

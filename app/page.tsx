@@ -505,6 +505,18 @@ export default function LabelDataPage() {
     setCurrentVerdict(v);
   };
 
+  // Active bubble helper for doctors (rules & clinical examples)
+  const [activeBubble, setActiveBubble] = useState<"NONE" | "RULES" | "APPROVED" | "EDITED" | "FLAGGED">("NONE");
+
+  const handleToggleBubble = (type: "RULES" | "APPROVED" | "EDITED" | "FLAGGED") => {
+    setActiveBubble((prev) => (prev === type ? "NONE" : type));
+  };
+
+  const handleInsertSkeleton = (skeletonText: string) => {
+    setClinicalNotes(skeletonText);
+    setActiveBubble("NONE");
+  };
+
   // Initialize doctor session from sessionStorage on mount (requires password when browser/tab is restarted)
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -2911,7 +2923,133 @@ export default function LabelDataPage() {
 
                   {/* Bước 3: Clinical Notes Textarea */}
                   <div className={styles.textareaWrapper}>
-                    <div className={styles.checklistTitle}>3. Nhận xét chuyên môn:</div>
+                    <div className={styles.bubbleHeaderRow}>
+                      <div className={styles.checklistTitle}>3. Nhận xét chuyên môn:</div>
+                      <div className={styles.bubbleGroup}>
+                        <button
+                          type="button"
+                          className={[
+                            styles.bubbleTag,
+                            styles.bubbleTagRules,
+                            activeBubble === "RULES" ? styles.bubbleTagActive : "",
+                          ].filter(Boolean).join(" ")}
+                          onClick={() => handleToggleBubble("RULES")}
+                          title="Xem 3 quy tắc ghi nhận xét chuẩn y khoa"
+                        >
+                          Quy tắc
+                        </button>
+                        <button
+                          type="button"
+                          className={[
+                            styles.bubbleTag,
+                            styles.bubbleTagApproved,
+                            activeBubble === "APPROVED" ? styles.bubbleTagActive : "",
+                          ].filter(Boolean).join(" ")}
+                          onClick={() => handleToggleBubble("APPROVED")}
+                          title="Xem ví dụ nhận xét Đạt chuẩn lâm sàng"
+                        >
+                          Ví dụ Đạt chuẩn
+                        </button>
+                        <button
+                          type="button"
+                          className={[
+                            styles.bubbleTag,
+                            styles.bubbleTagEdited,
+                            activeBubble === "EDITED" ? styles.bubbleTagActive : "",
+                          ].filter(Boolean).join(" ")}
+                          onClick={() => handleToggleBubble("EDITED")}
+                          title="Xem ví dụ nhận xét Hiệu chỉnh câu từ"
+                        >
+                          Ví dụ Hiệu chỉnh
+                        </button>
+                        <button
+                          type="button"
+                          className={[
+                            styles.bubbleTag,
+                            styles.bubbleTagFlagged,
+                            activeBubble === "FLAGGED" ? styles.bubbleTagActive : "",
+                          ].filter(Boolean).join(" ")}
+                          onClick={() => handleToggleBubble("FLAGGED")}
+                          title="Xem ví dụ nhận xét Cần lưu ý thêm"
+                        >
+                          Ví dụ Cần lưu ý
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Popover Bubble Content */}
+                    {activeBubble !== "NONE" && (
+                      <div className={styles.bubblePopover}>
+                        <div className={styles.bubblePopoverHeader}>
+                          <span className={styles.bubblePopoverTitle}>
+                            {activeBubble === "RULES" && "3 Quy tắc ghi nhận xét chuyên môn:"}
+                            {activeBubble === "APPROVED" && "Ví dụ mẫu: Đạt chuẩn lâm sàng"}
+                            {activeBubble === "EDITED" && "Ví dụ mẫu: Hiệu chỉnh câu từ"}
+                            {activeBubble === "FLAGGED" && "Ví dụ mẫu: Cần lưu ý thêm"}
+                          </span>
+                          <button
+                            type="button"
+                            className={styles.bubbleCloseBtn}
+                            onClick={() => setActiveBubble("NONE")}
+                          >
+                            [Đóng]
+                          </button>
+                        </div>
+
+                        {activeBubble === "RULES" && (
+                          <ul className={styles.bubbleRuleList}>
+                            <li><strong>Độ dài & Ngữ pháp:</strong> Tối thiểu 20 ký tự, Tiếng Việt có dấu đầy đủ, chuẩn ngữ pháp y văn.</li>
+                            <li><strong>Đối chiếu tiền sử:</strong> Nêu rõ phiên khám (S01, S02...) hoặc diễn tiến điều trị của Người hỏi.</li>
+                            <li><strong>Thuật ngữ Răng Hàm Mặt:</strong> Chứa từ ngữ chuyên ngành (răng, nướu, ngà, tủy, phác đồ, an toàn...). Không sao chép câu mẫu.</li>
+                          </ul>
+                        )}
+
+                        {activeBubble === "APPROVED" && (
+                          <>
+                            <div className={styles.bubbleExampleBox}>
+                              "Đối chiếu lần khám S01 không có tiền sử bệnh lý nha chu hay răng khôn biến chứng, lời khuyên chăm sóc răng miệng đại cương an toàn và chuẩn xác theo phác đồ."
+                            </div>
+                            <button
+                              type="button"
+                              className={styles.bubbleInsertBtn}
+                              onClick={() => handleInsertSkeleton("Đối chiếu lần khám S... cho thấy Người hỏi không có tiền sử bệnh lý cản trở, nội dung tư vấn an toàn và chuẩn xác phác đồ Răng Hàm Mặt.")}
+                            >
+                              Dùng khung sườn này
+                            </button>
+                          </>
+                        )}
+
+                        {activeBubble === "EDITED" && (
+                          <>
+                            <div className={styles.bubbleExampleBox}>
+                              "Người hỏi đang mang hàm duy trì cố định dán composite từ phiên S06. Đã hiệu chỉnh thuật ngữ 'khí cụ lỏng' thành 'bong khí cụ' để chuẩn hóa thuật ngữ chuyên ngành Răng Hàm Mặt."
+                            </div>
+                            <button
+                              type="button"
+                              className={styles.bubbleInsertBtn}
+                              onClick={() => handleInsertSkeleton("Người hỏi có tiền sử ở phiên S... Đã hiệu chỉnh câu từ thành [...] để chuẩn xác thuật ngữ chuyên ngành Răng Hàm Mặt.")}
+                            >
+                              Dùng khung sườn này
+                            </button>
+                          </>
+                        )}
+
+                        {activeBubble === "FLAGGED" && (
+                          <>
+                            <div className={styles.bubbleExampleBox}>
+                              "Cần lưu ý: Người hỏi tự kể có triệu chứng đau buốt tăng dần sau nhổ răng ở phiên S03 nhưng chưa tái khám kiểm tra huyệt ổ răng. Cần hướng dẫn Người hỏi khám trực tiếp để loại trừ viêm huyệt ổ răng."
+                            </div>
+                            <button
+                              type="button"
+                              className={styles.bubbleInsertBtn}
+                              onClick={() => handleInsertSkeleton("Cần lưu ý: Diễn tiến triệu chứng ở phiên S... có dấu hiệu [...], cần hướng dẫn Người hỏi tái khám trực tiếp để bảo đảm an toàn.")}
+                            >
+                              Dùng khung sườn này
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    )}
                     <textarea
                       value={clinicalNotes}
                       onChange={(e) => setClinicalNotes(e.target.value)}

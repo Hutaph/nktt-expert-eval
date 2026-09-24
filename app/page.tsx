@@ -2108,22 +2108,7 @@ export default function LabelDataPage() {
                 </span>
               </div>
 
-              {/* Auto-save Status Indicator */}
-              <div className={styles.autoSaveBadge} title="Tự động lưu nháp liên tục vào trình duyệt">
-                <span
-                  className={[
-                    styles.autoSaveDot,
-                    isAutoSaving ? styles.autoSaveDotSaving : "",
-                  ].join(" ")}
-                />
-                <span>
-                  {isAutoSaving
-                    ? "Đang lưu nháp..."
-                    : lastAutoSavedAt
-                    ? `Đã lưu nháp: ${lastAutoSavedAt}`
-                    : "Tự động lưu nháp"}
-                </span>
-              </div>
+
 
               <span className={styles.statsBadge}>
                 Tiến độ: {totalDoctorConfirmedCount}/100 ca ({completedBatches.length}/10 gói hoàn tất)

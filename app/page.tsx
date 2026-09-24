@@ -2365,20 +2365,21 @@ export default function LabelDataPage() {
                 {!hasInspectedAllSessions && (
                   <div
                     style={{
-                      padding: "0.75rem 0.85rem",
+                      padding: "0.35rem 0.6rem",
                       backgroundColor: "#fffbeb",
                       border: "1px solid #fde68a",
-                      borderRadius: "8px",
-                      fontSize: "0.8rem",
+                      borderRadius: "6px",
+                      fontSize: "0.72rem",
                       color: "#92400e",
-                      lineHeight: 1.45,
-                      marginBottom: "0.75rem",
+                      lineHeight: 1.35,
+                      marginBottom: "0.3rem",
+                      flexShrink: 0,
                     }}
                   >
-                    <div style={{ fontWeight: 700, marginBottom: "0.25rem", color: "#b45309" }}>
+                    <div style={{ fontWeight: 700, marginBottom: "0.1rem", color: "#b45309" }}>
                       Chưa mở khóa thẩm định
                     </div>
-                    Bác sĩ cần nhấp xem qua toàn bộ {visibleSessions.length} lần khám ở diễn tiến bên trái trước khi thực hiện thẩm định và xác nhận (Hiện tại đã xem: {inspectedCount}/{visibleSessions.length} lần).
+                    Bác sĩ cần xem qua toàn bộ {visibleSessions.length} lần khám ở diễn tiến bên trái trước khi thẩm định (Đã xem: {inspectedCount}/{visibleSessions.length} lần).
                   </div>
                 )}
 
@@ -2386,7 +2387,10 @@ export default function LabelDataPage() {
                   style={{
                     display: "flex",
                     flexDirection: "column",
-                    gap: "1rem",
+                    gap: "0.4rem",
+                    flex: 1,
+                    minHeight: 0,
+                    justifyContent: "space-between",
                     opacity: hasInspectedAllSessions ? 1 : 0.45,
                     pointerEvents: hasInspectedAllSessions ? "auto" : "none",
                     userSelect: hasInspectedAllSessions ? "auto" : "none",
@@ -2431,7 +2435,7 @@ export default function LabelDataPage() {
                   </div>
 
                   {/* Bước 2: Clinical Verdict Selector */}
-                  <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem", flexShrink: 0 }}>
                     <div className={styles.checklistTitle}>2. Kết luận thẩm định chuyên môn:</div>
                     <div className={styles.verdictButtonGroup}>
                       <button
@@ -2482,7 +2486,7 @@ export default function LabelDataPage() {
                       disabled={!hasInspectedAllSessions}
                       placeholder="Nhập nhận xét chuyên môn: Nêu rõ đánh giá an toàn, tính chính xác và căn cứ đối chiếu tiền sử..."
                       className={styles.notesTextarea}
-                      rows={3}
+                      rows={2}
                       spellCheck={false}
                     />
                     <div className={styles.charCountRow}>

@@ -365,7 +365,7 @@ const FAMILY_FRIENDLY_NAMES: Record<string, { label: string; desc: string }> = {
   },
   UPDATE_SUPERSESSION: {
     label: "Cập nhật thay đổi theo thời gian",
-    desc: "Bệnh nhân có biến chuyển mới (đổi khí cụ, tháo niềng, hoàn tất thủ thuật)",
+    desc: "Người hỏi có biến chuyển mới (đổi khí cụ, tháo niềng, hoàn tất thủ thuật)",
   },
   EXPLICIT_STABLE_PERSONALIZATION: {
     label: "Tiền sử bệnh học cố định",
@@ -373,19 +373,19 @@ const FAMILY_FRIENDLY_NAMES: Record<string, { label: string; desc: string }> = {
   },
   LATENT_EVIDENCE_CONDITIONED_FACTOR: {
     label: "Suy luận từ diễn tiến lâm sàng",
-    desc: "Dữ kiện ẩn trong các đợt khám trước, cần liên kết phác đồ",
+    desc: "Dữ kiện ẩn trong các lần khám trước, cần liên kết phác đồ",
   },
   MISSING_FACTOR_UNKNOWN: {
     label: "Thiếu dữ kiện lâm sàng (Cần hỏi lại)",
-    desc: "Hồ sơ chưa có thông tin, bác sĩ cần yêu cầu người bệnh cung cấp thêm",
+    desc: "Hồ sơ chưa có thông tin, bác sĩ cần yêu cầu Người hỏi cung cấp thêm",
   },
   MULTI_FACTOR_CROSS_SESSION: {
-    label: "Xâu chuỗi đa đợt khám",
-    desc: "Tổng hợp thông tin từ nhiều buổi hẹn điều trị trước đây",
+    label: "Xâu chuỗi nhiều lần khám",
+    desc: "Tổng hợp thông tin từ nhiều lần khám trước đây",
   },
   CROSS_SESSION_PERSONALIZATION: {
-    label: "Xâu chuỗi đa đợt khám",
-    desc: "Tổng hợp thông tin từ nhiều buổi hẹn điều trị trước đây",
+    label: "Xâu chuỗi nhiều lần khám",
+    desc: "Tổng hợp thông tin từ nhiều lần khám trước đây",
   },
   CONFLICT_UNCERTAINTY: {
     label: "Mâu thuẫn hoặc chưa rõ ràng",
@@ -393,7 +393,7 @@ const FAMILY_FRIENDLY_NAMES: Record<string, { label: string; desc: string }> = {
   },
   PROVENANCE_BOUNDARY: {
     label: "Phân định nguồn dữ liệu",
-    desc: "Phân biệt rõ lời người bệnh tự kể và kết quả khám trực tiếp của bác sĩ",
+    desc: "Phân biệt rõ lời Người hỏi tự kể và kết quả khám trực tiếp của bác sĩ",
   },
 };
 
@@ -484,7 +484,7 @@ export default function LabelDataPage() {
     const defaultNotesList = [
       "Đã đối chiếu các lần khám, câu hỏi và tư vấn đạt chuẩn chuyên môn và an toàn lâm sàng.",
       "Đã trau chuốt và chuẩn hóa câu từ phù hợp thuật ngữ chuyên ngành Răng Hàm Mặt.",
-      "Cần lưu ý thêm về diễn tiến triệu chứng và tiền sử điều trị của người bệnh.",
+      "Cần lưu ý thêm về diễn tiến triệu chứng và tiền sử điều trị của Người hỏi.",
     ];
     if (!clinicalNotes.trim() || defaultNotesList.includes(clinicalNotes.trim())) {
       if (v === "APPROVED") {
@@ -492,7 +492,7 @@ export default function LabelDataPage() {
       } else if (v === "EDITED") {
         setClinicalNotes("Đã trau chuốt và chuẩn hóa câu từ phù hợp thuật ngữ chuyên ngành Răng Hàm Mặt.");
       } else if (v === "FLAGGED") {
-        setClinicalNotes("Cần lưu ý thêm về diễn tiến triệu chứng và tiền sử điều trị của người bệnh.");
+        setClinicalNotes("Cần lưu ý thêm về diễn tiến triệu chứng và tiền sử điều trị của Người hỏi.");
       }
     }
   };
@@ -1510,13 +1510,13 @@ export default function LabelDataPage() {
     const isBatchComplete = batchCases.length > 0 && batchCases.every((c) => nextConfirmed.has(c.case_id));
     if (isBatchComplete) {
       setSaveMessage({
-        text: `Đã hoàn thành xuất sắc toàn bộ 10/10 ca của Đợt ${currentBatchIndex}! Nút "Lưu" (Google Drive) trên thanh công cụ đã được mở khóa. Bác sĩ vui lòng bấm nút Lưu để đồng bộ dữ liệu và mở khóa Đợt tiếp theo.`,
+        text: `Đã hoàn thành xuất sắc toàn bộ 10/10 ca của Gói ${currentBatchIndex}! Nút "Lưu" (Google Drive) trên thanh công cụ đã được mở khóa. Bác sĩ vui lòng bấm nút Lưu để đồng bộ dữ liệu và mở khóa Gói tiếp theo.`,
         isError: false,
       });
     } else {
       const confirmedInBatch = batchCases.filter((c) => nextConfirmed.has(c.case_id)).length;
       setSaveMessage({
-        text: `Đã xác nhận và lưu trữ ca bệnh này thành công! (Tiến độ Đợt ${currentBatchIndex}: ${confirmedInBatch}/10 ca)`,
+        text: `Đã xác nhận và lưu trữ ca bệnh này thành công! (Tiến độ Gói ${currentBatchIndex}: ${confirmedInBatch}/10 ca)`,
         isError: false,
       });
     }
@@ -1527,7 +1527,7 @@ export default function LabelDataPage() {
   // Batch switching handler (checks if unlocked)
   const handleSelectBatch = (batchNum: number, isUnlocked: boolean) => {
     if (!isUnlocked) {
-      alert(`Đợt ${batchNum} hiện đang khóa. Bạn cần hoàn thành các ca và bấm "Lưu" ở Đợt ${batchNum - 1} trước.`);
+      alert(`Gói ${batchNum} hiện đang khóa. Bạn cần hoàn thành các ca và bấm "Lưu" ở Gói ${batchNum - 1} trước.`);
       return;
     }
     // Auto-save current case before switching batch
@@ -1576,7 +1576,7 @@ export default function LabelDataPage() {
     const unconfirmed = batchCases.filter((c) => !confirmedCaseIds.has(c.case_id));
     if (unconfirmed.length > 0) {
       alert(
-        `Đợt ${currentBatchIndex} còn ${unconfirmed.length}/10 ca chưa được Bác sĩ bấm nút "Xác nhận thẩm định ca này" (ví dụ ca: ${unconfirmed[0].case_id}).\n\nBác sĩ vui lòng đọc hồ sơ, nhập biện giải lâm sàng và bấm "Xác nhận thẩm định ca này" cho đủ cả 10 ca trước khi Lưu đợt.`
+        `Gói ${currentBatchIndex} còn ${unconfirmed.length}/10 ca chưa được Bác sĩ bấm nút "Xác nhận thẩm định ca này" (ví dụ ca: ${unconfirmed[0].case_id}).\n\nBác sĩ vui lòng đọc hồ sơ, nhập nhận xét chuyên môn và bấm "Xác nhận thẩm định ca này" cho đủ cả 10 ca trước khi Lưu gói.`
       );
       return;
     }
@@ -1587,7 +1587,7 @@ export default function LabelDataPage() {
       const rec = annotationsMap[c.case_id];
       const note = rec?.clinical_notes?.trim() || "";
       if (!note) {
-        findings.push(`Ca ${c.case_id}: Hoàn toàn chưa có biện giải lâm sàng cụ thể.`);
+        findings.push(`Ca ${c.case_id}: Hoàn toàn chưa có nhận xét chuyên môn cụ thể.`);
         return;
       }
       const isBigEdit = Boolean(
@@ -1627,7 +1627,7 @@ export default function LabelDataPage() {
     setSyncingDrive(true);
     setDriveNotice({
       type: "info",
-      text: `Đang lưu Đợt ${currentBatchIndex} và đồng bộ dữ liệu lên Google Drive...`,
+      text: `Đang lưu Gói ${currentBatchIndex} và đồng bộ dữ liệu lên Google Drive...`,
     });
 
     const stored = getStoredAnnotations();
@@ -1637,14 +1637,14 @@ export default function LabelDataPage() {
     if (result.ok) {
       setDriveNotice({
         type: "success",
-        text: `Đã lưu thành công Đợt ${currentBatchIndex} và đồng bộ lên Google Drive (Thư mục: ${result.folderName || "NKTT_Expert_Evaluations"}). Đợt tiếp theo đã được mở khóa!`,
+        text: `Đã lưu thành công Gói ${currentBatchIndex} và đồng bộ lên Google Drive (Thư mục: ${result.folderName || "NKTT_Expert_Evaluations"}). Gói tiếp theo đã được mở khóa!`,
         url: result.folderUrl,
       });
       setTimeout(() => setDriveNotice(null), 8000);
     } else {
       setDriveNotice({
         type: "success",
-        text: `Đã lưu thành công Đợt ${currentBatchIndex} vào bộ nhớ máy. Đợt tiếp theo đã được mở khóa!`,
+        text: `Đã lưu thành công Gói ${currentBatchIndex} vào bộ nhớ máy. Gói tiếp theo đã được mở khóa!`,
       });
       setTimeout(() => setDriveNotice(null), 8000);
     }
@@ -1658,7 +1658,7 @@ export default function LabelDataPage() {
         setSelectedCaseId(nextBatchCases[0].case_id);
       }
     } else {
-      alert(`Chúc mừng Bác sĩ ${activeDoctor.name}! Bạn đã hoàn thành toàn bộ 10 đợt (100 ca) được phân công.`);
+      alert(`Chúc mừng Bác sĩ ${activeDoctor.name}! Bạn đã hoàn thành toàn bộ 10 gói (100 ca) được phân công.`);
     }
   };
 
@@ -1907,7 +1907,7 @@ export default function LabelDataPage() {
               </div>
 
               <span className={styles.statsBadge}>
-                Tiến độ: {totalDoctorConfirmedCount}/100 ca ({completedBatches.length}/10 đợt hoàn tất)
+                Tiến độ: {totalDoctorConfirmedCount}/100 ca ({completedBatches.length}/10 gói hoàn tất)
               </span>
 
               {/* Clinical Rules Button */}
@@ -1950,8 +1950,8 @@ export default function LabelDataPage() {
                 disabled={syncingDrive || !isCurrentBatchFullyConfirmed}
                 title={
                   !isCurrentBatchFullyConfirmed
-                    ? `Cần xác nhận đủ 10/10 ca trong Đợt ${currentBatchIndex} để mở khóa nút Lưu (Hiện tại: ${currentBatchConfirmedCount}/10 ca). Hệ thống đang tự động lưu nháp liên tục.`
-                    : `Lưu Đợt ${currentBatchIndex}, kiểm tra chất lượng và đồng bộ lên Google Drive`
+                    ? `Cần xác nhận đủ 10/10 ca trong Gói ${currentBatchIndex} để mở khóa nút Lưu (Hiện tại: ${currentBatchConfirmedCount}/10 ca). Hệ thống đang tự động lưu nháp liên tục.`
+                    : `Lưu Gói ${currentBatchIndex}, kiểm tra chất lượng và đồng bộ lên Google Drive`
                 }
               >
                 <svg
@@ -1981,8 +1981,8 @@ export default function LabelDataPage() {
                   {syncingDrive
                     ? "Đang lưu..."
                     : isCurrentBatchFullyConfirmed
-                    ? `Lưu Đợt ${currentBatchIndex} (Google Drive)`
-                    : `Lưu đợt (${currentBatchConfirmedCount}/10 ca)`}
+                    ? `Lưu Gói ${currentBatchIndex} (Google Drive)`
+                    : `Lưu gói (${currentBatchConfirmedCount}/10 ca)`}
                 </span>
               </button>
             </div>
@@ -1992,7 +1992,7 @@ export default function LabelDataPage() {
           <div className={styles.batchNavContainer}>
             <div className={styles.batchLabelArea}>
               <span className={styles.batchTitle}>
-                Phân đợt làm việc ({activeDoctor?.name || "Bác sĩ"} - {activeDoctor?.caseRangeLabel || "100 ca"}):
+                Phân gói làm việc ({activeDoctor?.name || "Bác sĩ"} - {activeDoctor?.caseRangeLabel || "100 ca"}):
               </span>
             </div>
             <div className={styles.batchPillList}>
@@ -2017,8 +2017,8 @@ export default function LabelDataPage() {
                     onClick={() => handleSelectBatch(batchNum, isUnlocked)}
                     title={
                       !isUnlocked
-                        ? `Cần hoàn thành và bấm "Lưu" ở Đợt ${batchNum - 1} để mở khóa Đợt ${batchNum}`
-                        : `Đợt ${batchNum}: Ca ${(batchNum - 1) * 10 + 1} - ${batchNum * 10}`
+                        ? `Cần hoàn thành và bấm "Lưu" ở Gói ${batchNum - 1} để mở khóa Gói ${batchNum}`
+                        : `Gói ${batchNum}: Ca ${(batchNum - 1) * 10 + 1} - ${batchNum * 10}`
                     }
                   >
                     {isCompleted && (
@@ -2051,7 +2051,7 @@ export default function LabelDataPage() {
                       </svg>
                     )}
                     <span>
-                      Đợt {batchNum} ({isCompleted ? "Đã lưu" : "10 ca"})
+                      Gói {batchNum} ({isCompleted ? "Đã lưu" : "10 ca"})
                     </span>
                   </button>
                 );
@@ -2064,10 +2064,10 @@ export default function LabelDataPage() {
             <div className={styles.batchReadyAlert}>
               <div className={styles.batchReadyAlertContent}>
                 <span className={styles.batchReadyAlertBadge}>
-                  Đợt {currentBatchIndex} đã hoàn tất 10/10 ca
+                  Gói {currentBatchIndex} đã hoàn tất 10/10 ca
                 </span>
                 <span className={styles.batchReadyAlertText}>
-                  Tất cả 10 ca bệnh trong Đợt {currentBatchIndex} đã được Bác sĩ thẩm định và xác nhận. Nút <strong>Lưu Đợt {currentBatchIndex} (Google Drive)</strong> trên góc phải đã được mở khóa. Bác sĩ hãy bấm nút Lưu để đồng bộ dữ liệu và mở khóa Đợt tiếp theo.
+                  Tất cả 10 ca bệnh trong Gói {currentBatchIndex} đã được Bác sĩ thẩm định và xác nhận. Nút <strong>Lưu Gói {currentBatchIndex} (Google Drive)</strong> trên góc phải đã được mở khóa. Bác sĩ hãy bấm nút Lưu để đồng bộ dữ liệu và mở khóa Gói tiếp theo.
                 </span>
               </div>
               <button
@@ -2076,7 +2076,7 @@ export default function LabelDataPage() {
                 onClick={handleSaveBatch}
                 disabled={syncingDrive}
               >
-                {syncingDrive ? "Đang đồng bộ..." : `Bấm Lưu Đợt ${currentBatchIndex} ngay`}
+                {syncingDrive ? "Đang đồng bộ..." : `Bấm Lưu Gói ${currentBatchIndex} ngay`}
               </button>
             </div>
           )}
@@ -2135,11 +2135,11 @@ export default function LabelDataPage() {
           {/* Main Workspace: 3 Columns Focused on Clinical Review */}
           <div className={styles.workspace}>
             {/* Left Column: Cases of the current batch */}
-            <section className={styles.sidebar} aria-label="Danh sách ca bệnh trong đợt">
+            <section className={styles.sidebar} aria-label="Danh sách ca bệnh trong gói">
               <div className={styles.filterSection}>
                 <input
                   type="text"
-                  placeholder="Tìm trong 10 ca của đợt này..."
+                  placeholder="Tìm trong 10 ca của gói này..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className={styles.searchInput}
@@ -2150,7 +2150,7 @@ export default function LabelDataPage() {
                 {loadingList ? (
                   <p className={styles.emptyPlaceholder}>Đang tải danh sách ca bệnh...</p>
                 ) : filteredCases.length === 0 ? (
-                  <p className={styles.emptyPlaceholder}>Không tìm thấy ca nào trong đợt này</p>
+                  <p className={styles.emptyPlaceholder}>Không tìm thấy ca nào trong gói này</p>
                 ) : (
                   filteredCases.map((c) => {
                     const globalIndex = allCases.findIndex((item) => item.case_id === c.case_id) + 1;
@@ -2190,7 +2190,7 @@ export default function LabelDataPage() {
                             Ca {doctorCaseIndex}/100
                           </span>
                           <span className={styles.caseCheckpoint}>
-                            Mã BN: #{c.user_id.replace("VL500_U", "BN-")}
+                            Mã: #{c.user_id.replace("VL500_U", "NH-")}
                           </span>
                         </div>
                         <div className={styles.caseQueryPreview}>{c.current_query}</div>
@@ -2216,7 +2216,7 @@ export default function LabelDataPage() {
 
               <div className={styles.pagination}>
                 <span>
-                  Đợt {currentBatchIndex}/10 ({batchCases.length} ca bệnh) - {activeDoctor?.name || "Bác sĩ"}
+                  Gói {currentBatchIndex}/10 ({batchCases.length} ca) - {activeDoctor?.name || "Bác sĩ"}
                 </span>
               </div>
             </section>
@@ -2234,7 +2234,7 @@ export default function LabelDataPage() {
                     <div className={styles.queryCardHeader}>
                       <div className={styles.queryTitleRow}>
                         <h2 className={styles.sectionTitle} style={{ margin: 0 }}>
-                          Ca {doctorCases.findIndex((c) => c.case_id === activeCase.case_id) + 1} / 100: Câu hỏi của người bệnh
+                          Ca {doctorCases.findIndex((c) => c.case_id === activeCase.case_id) + 1} / 100: Câu hỏi của Người hỏi
                         </h2>
                         {activeCase.user_id && (
                           <span
@@ -2247,9 +2247,9 @@ export default function LabelDataPage() {
                               border: "1px solid #ccfbf1",
                               fontWeight: 600,
                             }}
-                            title={`Mã hồ sơ bệnh nhân: ${activeCase.user_id}`}
+                            title={`Mã hồ sơ Người hỏi: ${activeCase.user_id}`}
                           >
-                            Mã BN: #{activeCase.user_id.replace("VL500_U", "BN-")}
+                            Mã: #{activeCase.user_id.replace("VL500_U", "NH-")}
                           </span>
                         )}
                         {activeCase.category?.primary_family && (
@@ -2404,7 +2404,7 @@ export default function LabelDataPage() {
                                     <div className={styles.bubbleHeader}>
                                       <div className={styles.bubbleSpeakerRow}>
                                         <span className={styles.bubbleSpeaker}>
-                                          {isDoctor ? "Bác sĩ" : "Người bệnh"}
+                                          {isDoctor ? "Bác sĩ" : "Người hỏi"}
                                         </span>
                                         <span
                                           className={styles.pencilHint}
@@ -2613,7 +2613,7 @@ export default function LabelDataPage() {
                 >
                   {/* Bước 1: Clinical Verification Checklist */}
                   <div className={styles.clinicalChecklistBox}>
-                    <div className={styles.checklistTitle}>1. Tiêu chuẩn lâm sàng bắt buộc:</div>
+                    <div className={styles.checklistTitle}>1. Tiêu chuẩn thẩm định bắt buộc:</div>
                     <div className={styles.checklistList}>
                       <label className={styles.checklistItem}>
                         <input
@@ -2623,7 +2623,7 @@ export default function LabelDataPage() {
                           disabled={!hasInspectedAllSessions}
                           className={styles.checklistCheckbox}
                         />
-                        <span>Đúng tiền sử & diễn tiến: Khớp dữ liệu các lần khám trước</span>
+                        <span>Đúng tiền sử: Khớp với dữ liệu các lần khám trước</span>
                       </label>
                       <label className={styles.checklistItem}>
                         <input
@@ -2633,7 +2633,7 @@ export default function LabelDataPage() {
                           disabled={!hasInspectedAllSessions}
                           className={styles.checklistCheckbox}
                         />
-                        <span>An toàn y khoa: Phù hợp nguyên tắc điều trị, không chống chỉ định</span>
+                        <span>An toàn chuyên môn: Đúng phác đồ, không chống chỉ định</span>
                       </label>
                       <label className={styles.checklistItem}>
                         <input
@@ -2643,7 +2643,7 @@ export default function LabelDataPage() {
                           disabled={!hasInspectedAllSessions}
                           className={styles.checklistCheckbox}
                         />
-                        <span>Tính thực tế lâm sàng: Bảo toàn bản chất tình huống bệnh lý</span>
+                        <span>Sát thực tế: Đúng thắc mắc và tình trạng của Người hỏi</span>
                       </label>
                     </div>
                   </div>
@@ -2742,7 +2742,7 @@ export default function LabelDataPage() {
                         : !isChecklistComplete
                         ? "Cần đánh dấu đủ 3 tiêu chuẩn thẩm định"
                         : !notesQuality.isValid
-                        ? "Biện giải lâm sàng chưa đạt chuẩn chất lượng (tối thiểu 20 ký tự)"
+                        ? "Nhận xét chuyên môn chưa đạt chuẩn chất lượng (tối thiểu 20 ký tự)"
                         : "Xác nhận thẩm định ca này và chuyển sang ca tiếp theo"
                     }
                   >
@@ -2763,7 +2763,7 @@ export default function LabelDataPage() {
                         ? "Đang lưu..."
                         : currentCaseIndexInBatch < batchCases.length - 1
                         ? `Xác nhận & Sang Ca ${currentCaseIndexInDoctor + 2} >`
-                        : `Xác nhận Ca ${currentCaseIndexInDoctor + 1} (Hoàn tất đợt)`}
+                        : `Xác nhận Ca ${currentCaseIndexInDoctor + 1} (Hoàn tất gói)`}
                     </span>
                   </button>
                 </div>
@@ -2808,10 +2808,10 @@ export default function LabelDataPage() {
                   <div className={styles.guideStepCard}>
                     <div className={styles.guideStepHeader}>
                       <span className={styles.guideStepNumber}>Bước 1</span>
-                      <span className={styles.guideStepTitle}>Đọc kỹ chủ đề câu hỏi của người bệnh</span>
+                      <span className={styles.guideStepTitle}>Đọc kỹ chủ đề câu hỏi của Người hỏi</span>
                     </div>
                     <p className={styles.guideStepDesc}>
-                      Xem chủ đề ở khung giữa để nắm bắt tình huống bệnh lý và câu hỏi tư vấn của người bệnh.
+                      Xem chủ đề ở khung giữa để nắm bắt tình huống và câu hỏi tư vấn của Người hỏi.
                     </p>
                   </div>
 
@@ -2838,10 +2838,10 @@ export default function LabelDataPage() {
                   <div className={styles.guideStepCard}>
                     <div className={styles.guideStepHeader}>
                       <span className={styles.guideStepNumber}>Bước 4</span>
-                      <span className={styles.guideStepTitle}>Bấm Lưu đợt để chuyển tiếp</span>
+                      <span className={styles.guideStepTitle}>Bấm Lưu gói để chuyển tiếp</span>
                     </div>
                     <p className={styles.guideStepDesc}>
-                      Sau khi hoàn tất đủ 10 ca trong đợt, bấm nút <strong>"Lưu"</strong> trên thanh công cụ để hệ thống kiểm tra chất lượng chuyên môn và mở khóa đợt kế tiếp.
+                      Sau khi hoàn tất đủ 10 ca trong gói, bấm nút <strong>"Lưu"</strong> trên thanh công cụ để hệ thống kiểm tra chất lượng chuyên môn và mở khóa gói kế tiếp.
                     </p>
                   </div>
                 </div>
@@ -2953,7 +2953,7 @@ export default function LabelDataPage() {
                   <div className={styles.autosaveStatsRow}>
                     <div className={styles.autosaveStatCard}>
                       <span className={styles.autosaveStatNum}>{batchCases.length}</span>
-                      <span className={styles.autosaveStatLabel}>Ca trong Đợt {currentBatchIndex}</span>
+                      <span className={styles.autosaveStatLabel}>Ca trong Gói {currentBatchIndex}</span>
                     </div>
                     <div className={styles.autosaveStatCard}>
                       <span className={styles.autosaveStatNum}>{currentBatchConfirmedCount} / {batchCases.length}</span>
@@ -2977,7 +2977,7 @@ export default function LabelDataPage() {
 
                   {/* Batch Cases Inspection Table */}
                   <div className={styles.autosaveTableContainer}>
-                    <h3 className={styles.autosaveTableTitle}>Danh sách chi tiết 10 ca trong Đợt {currentBatchIndex}</h3>
+                    <h3 className={styles.autosaveTableTitle}>Danh sách chi tiết 10 ca trong Gói {currentBatchIndex}</h3>
                     <table className={styles.autosaveTable}>
                       <thead>
                         <tr>

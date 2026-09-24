@@ -92,7 +92,7 @@ export default function ClinicalRulesModal({
                   Đối chiếu Diễn tiến Hồ sơ & Tránh Nhầm lẫn Tiền sử
                 </h4>
                 <p className={styles.ruleDesc}>
-                  Bác sĩ bắt buộc phải bấm xem lại các đợt khám trước trong dòng thời gian. Phải phân biệt chính xác dữ liệu tiền sử đang còn hiệu lực (như cơ địa dị ứng, đang mang mắc cài niềng răng) với các thủ thuật đã hoàn tất từ lâu (đã tháo niềng, răng khôn đã nhổ lành thương) để tránh tình trạng tư vấn sai lệch.
+                  Bác sĩ bắt buộc phải bấm xem lại các lần khám trước trong dòng thời gian. Phải phân biệt chính xác dữ liệu tiền sử đang còn hiệu lực (như cơ địa dị ứng, đang mang mắc cài niềng răng) với các thủ thuật đã hoàn tất từ lâu (đã tháo niềng, răng khôn đã nhổ lành thương) để tránh tình trạng tư vấn sai lệch.
                 </p>
               </div>
             </div>
@@ -118,7 +118,7 @@ export default function ClinicalRulesModal({
                   Biện giải Lâm sàng Bắt buộc cho Từng Ca bệnh
                 </h4>
                 <p className={styles.ruleDesc}>
-                  Mỗi ca thẩm định phải có ghi chú chuyên môn tối thiểu từ 20 đến 30 ký tự, nêu rõ lý do chuẩn y hoặc điểm chỉnh sửa lâm sàng. Hệ thống sẽ từ chối lưu các đợt thẩm định hời hợt, để trống ghi chú hoặc sao chép nội dung lặp lại mang tính đối phó.
+                  Mỗi ca thẩm định phải có ghi chú chuyên môn tối thiểu từ 20 đến 30 ký tự, nêu rõ lý do chuẩn y hoặc điểm chỉnh sửa lâm sàng. Hệ thống sẽ từ chối lưu các gói thẩm định hời hợt, để trống ghi chú hoặc sao chép nội dung lặp lại mang tính đối phó.
                 </p>
               </div>
             </div>
@@ -128,10 +128,10 @@ export default function ClinicalRulesModal({
               <div className={styles.ruleBadge}>Nguyên tắc 5</div>
               <div className={styles.ruleContent}>
                 <h4 className={styles.ruleHeading}>
-                  Kỷ luật Quy trình: 10 Ca/Đợt, Bắt buộc Lưu Trước Khi Chuyển
+                  Kỷ luật Quy trình: 10 Ca/Gói, Bắt buộc Lưu Trước Khi Chuyển
                 </h4>
                 <p className={styles.ruleDesc}>
-                  Bác sĩ hoàn thành đủ 10 ca trong đợt hiện tại, kiểm tra lại cẩn trọng và nhấn nút Lưu. Chỉ khi đợt hiện tại được lưu và xác thực thành công thì đợt tiếp theo mới được mở khóa.
+                  Bác sĩ hoàn thành đủ 10 ca trong gói hiện tại, kiểm tra lại cẩn trọng và nhấn nút Lưu. Chỉ khi gói hiện tại được lưu và xác thực thành công thì gói tiếp theo mới được mở khóa.
                 </p>
               </div>
             </div>

@@ -39,14 +39,14 @@ export default function QualityWarningModal({
             <line x1="12" y1="17" x2="12.01" y2="17" />
           </svg>
           <h3 className={styles.warningTitle}>
-            Cảnh báo chất lượng thẩm định lâm sàng (Đợt {batchNumber})
+            Cảnh báo chất lượng thẩm định lâm sàng (Gói {batchNumber})
           </h3>
         </div>
 
         {/* Body */}
         <div className={styles.warningBody}>
           <p style={{ margin: 0, fontWeight: 600 }}>
-            Hệ thống phát hiện một số dấu hiệu thẩm định sơ sài trong đợt này:
+            Hệ thống phát hiện một số dấu hiệu thẩm định sơ sài trong gói này:
           </p>
 
           <ul className={styles.warningList}>

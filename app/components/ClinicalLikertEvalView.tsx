@@ -83,9 +83,9 @@ const CLINICAL_CRITERIA = [
     key: "personalization_appropriateness",
     name: "Cá nhân hóa phù hợp tiền sử",
     nameEn: "Personalization Appropriateness",
-    desc: "Nhận biết và vận dụng chính xác các can thiệp hoặc điều kiện đang kích hoạt trong hồ sơ bệnh án của bệnh nhân.",
-    spec1: "Bỏ qua hoàn toàn tiền sử quan trọng của người bệnh (niềng răng, chấn thương hậu phẫu, dị ứng thuốc), gây hại.",
-    spec3: "Ghi nhận tiền sử một cách hời hợt hoặc chung chung, chưa cá nhân hóa đúng tình trạng thực tế của bệnh nhân.",
+    desc: "Nhận biết và vận dụng chính xác các can thiệp hoặc điều kiện đang kích hoạt trong hồ sơ bệnh án của Người hỏi.",
+    spec1: "Bỏ qua hoàn toàn tiền sử quan trọng của Người hỏi (niềng răng, chấn thương hậu phẫu, dị ứng thuốc), gây hại.",
+    spec3: "Ghi nhận tiền sử một cách hời hợt hoặc chung chung, chưa cá nhân hóa đúng tình trạng thực tế của Người hỏi.",
     spec5: "Tích hợp hoàn hảo các yếu tố tiền sử đang kích hoạt để hiệu chỉnh hướng dẫn điều trị và chăm sóc.",
   },
   {
@@ -631,7 +631,7 @@ export default function ClinicalLikertEvalView() {
         {/* Compact Active Question Banner */}
         {currentCase && (
           <div className={styles.activeQueryCard}>
-            <span className={styles.activeQueryLabel}>Câu hỏi của bệnh nhân:</span>
+            <span className={styles.activeQueryLabel}>Câu hỏi của Người hỏi:</span>
             <span className={styles.activeQueryTitle} title={currentCase.current_query}>
               {currentCase.current_query}
             </span>
@@ -653,7 +653,7 @@ export default function ClinicalLikertEvalView() {
             <div className={styles.clinicalTargetBox}>
               <span className={styles.clinicalTargetTitle}>Lưu ý:</span>
               <span>
-                {currentCase?.category_vietnamese || currentCase?.primary_family}. Kiểm tra kỹ các đợt khám để phát hiện các yếu tố đã thay đổi hoặc mâu thuẫn.
+                {currentCase?.category_vietnamese || currentCase?.primary_family}. Kiểm tra kỹ các lần khám để phát hiện các yếu tố đã thay đổi hoặc mâu thuẫn.
               </span>
             </div>
 
@@ -661,7 +661,7 @@ export default function ClinicalLikertEvalView() {
             <div className={styles.historyList}>
               {!currentCase?.history_turns || currentCase.history_turns.length === 0 ? (
                 <p style={{ color: "var(--color-text-muted)", fontSize: "0.84375rem", fontStyle: "italic", margin: 0 }}>
-                  Đây là ca câu hỏi nha khoa đại cương (đối chứng âm), không có tiền sử bệnh án trước đó. Hệ thống không được tự suy diễn hoặc bịa đặt tiền sử của bệnh nhân.
+                  Đây là ca câu hỏi nha khoa đại cương (đối chứng âm), không có tiền sử bệnh án trước đó. Hệ thống không được tự suy diễn hoặc bịa đặt tiền sử của Người hỏi.
                 </p>
               ) : (
                 currentCase.history_turns.map((turn, tIdx) => {
@@ -680,7 +680,7 @@ export default function ClinicalLikertEvalView() {
                           isUser ? styles.turnSpeakerUser : styles.turnSpeakerAssistant,
                         ].join(" ")}
                       >
-                        {isUser ? "Bệnh nhân" : "Bác sĩ / Trợ lý"} (Lần khám {turn.session_number})
+                        {isUser ? "Người hỏi" : "Bác sĩ / Trợ lý"} (Lần khám {turn.session_number})
                       </span>
                       <div>{turn.text}</div>
                     </div>

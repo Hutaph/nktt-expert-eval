@@ -190,7 +190,7 @@ export default function DoctorLoginModal({
             <div>
               <h2 className={styles.portalTitle}>Cổng Thẩm định Chuyên gia ViDent</h2>
               <p className={styles.portalSubtitle}>
-                Hệ thống phân công 5 Bác sĩ chuyên khoa phụ trách tập dữ liệu 500 ca bệnh (100 ca/bác sĩ, gồm 10 đợt làm việc).
+                Hệ thống phân công 5 Bác sĩ chuyên khoa phụ trách tập dữ liệu 500 ca bệnh (100 ca/bác sĩ, gồm 10 gói làm việc).
               </p>
             </div>
           </div>
@@ -236,7 +236,7 @@ export default function DoctorLoginModal({
                     <p className={styles.doctorQuota}>{doc.role}</p>
                     <div className={styles.doctorProgressRow}>
                       <span>Tiến độ:</span>
-                      <span>{completedCount}/10 đợt hoàn tất</span>
+                      <span>{completedCount}/10 gói hoàn tất</span>
                     </div>
                   </div>
                 );

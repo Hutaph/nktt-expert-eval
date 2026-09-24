@@ -29,10 +29,10 @@ export default function ExampleComparisonModal({
         <div className={styles.modalHeader}>
           <div className={styles.headerTitleArea}>
             <h2 className={styles.modalTitle}>
-              Bảng Mẫu Đối Chiếu: Trước & Sau Khi Thẩm Định Lâm Sàng
+              Bảng Mẫu Đối Chiếu: Trước & Sau Khi Hiệu Chỉnh
             </h2>
             <p className={styles.modalSubtitle}>
-              Minh họa tình huống thực tế và cách Bác sĩ chuyên khoa chuẩn hóa hồ sơ tư vấn Răng Hàm Mặt
+              Minh họa nguyên tắc: Trau chuốt câu hỏi tự nhiên (không đổi ngữ nghĩa) và hoàn thiện câu trả lời của Bác sĩ (sửa sai, bổ sung đầy đủ, dễ hiểu)
             </p>
           </div>
           <button
@@ -55,8 +55,8 @@ export default function ExampleComparisonModal({
             ].filter(Boolean).join(" ")}
             onClick={() => setActiveTab("BEFORE")}
           >
-            <span>Tab 1: Trước khi thẩm định</span>
-            <span className={styles.tabBadgeBefore}>Bản thô chưa duyệt</span>
+            <span>Tab 1: Trước khi chỉnh sửa</span>
+            <span className={styles.tabBadgeBefore}>Bản thô từ mô hình</span>
           </button>
 
           <button
@@ -67,39 +67,35 @@ export default function ExampleComparisonModal({
             ].filter(Boolean).join(" ")}
             onClick={() => setActiveTab("AFTER")}
           >
-            <span>Tab 2: Sau khi thẩm định</span>
-            <span className={styles.tabBadgeAfter}>Bác sĩ đã hiệu chỉnh</span>
+            <span>Tab 2: Sau khi Bác sĩ hiệu chỉnh</span>
+            <span className={styles.tabBadgeAfter}>Bản chuẩn mực y khoa</span>
           </button>
         </div>
 
         {/* Modal Body */}
         <div className={styles.modalBody}>
           {activeTab === "BEFORE" ? (
-            /* TAB 1: TRƯỚC KHI THẨM ĐỊNH */
+            /* TAB 1: TRƯỚC KHI CHỈNH SỬA */
             <>
               <div className={styles.infoBannerBefore}>
-                <strong>Đặc điểm bản thô (Mô hình AI tự động sinh):</strong> Câu hỏi của Người hỏi còn cụt lủn, tư vấn lâm sàng mang tính chung chung, bỏ quên tiền sử Người hỏi đang đeo mắc cài chỉnh nha ở lần khám trước và chỉ định dung dịch sát khuẩn kéo dài thiếu an toàn sinh học.
+                <strong>Các khiếm khuyết thường gặp ở bản thô:</strong>
+                <br />• <strong>Câu hỏi Người hỏi:</strong> Diễn đạt cộc lốc, luộm thuộm hoặc thiếu tự nhiên.
+                <br />• <strong>Câu trả lời Bác sĩ:</strong> Câu cụt ngủn thiếu chỉ dẫn, câu từ dịch máy khó hiểu, hoặc tư vấn sai kiến thức y khoa chuyên sâu.
               </div>
 
               {/* Meta Case Card */}
               <div className={styles.caseMetaCard}>
                 <div className={styles.metaRow}>
-                  <span className={styles.metaLabel}>Mã ca minh họa:</span>
-                  <span className={styles.metaValue}>VIDENT-ORTHO-042 (Thuộc Gói 1)</span>
+                  <span className={styles.metaLabel}>Tình huống lâm sàng:</span>
+                  <span className={styles.metaValue}>Chăm sóc vệ sinh răng miệng khi đang có khí cụ niềng răng trong miệng</span>
                 </div>
                 <div className={styles.metaRow}>
-                  <span className={styles.metaLabel}>Tiền sử chặng khám:</span>
-                  <span className={styles.metaValue}>
-                    Lần khám 1 (S01): Gắn mắc cài kim loại hai hàm | Lần khám 2 (S02): Siết dây cung, hướng dẫn dùng sáp chỉnh nha | Lần khám 3 (S03): Thắc mắc chăm sóc răng miệng hiện tại
-                  </span>
-                </div>
-                <div className={styles.metaRow}>
-                  <span className={styles.metaLabel}>Chủ đề Người hỏi:</span>
+                  <span className={styles.metaLabel}>Chủ đề Người hỏi (Bản thô):</span>
                   <span className={styles.metaValue}>
                     <span className={styles.metaHighlightRed}>
-                      "cho em hỏi cách dùng bàn chải điện với nước súc miệng"
+                      "cho em hỏi cách xài bàn chải điện với nước súc miệng khi niềng"
                     </span>
-                    {" "}(Câu hỏi sơ sài, thiếu liên kết với tình trạng đang niềng răng)
+                    {" "}(Câu văn cộc lốc, diễn đạt thiếu tự nhiên)
                   </span>
                 </div>
               </div>
@@ -107,18 +103,19 @@ export default function ExampleComparisonModal({
               {/* Dialogue Box */}
               <div className={styles.dialogueSection}>
                 <div className={styles.sectionHeading}>
-                  <span>Diễn tiến câu thoại tại lần khám hiện tại (Bản thô):</span>
-                  <span className={styles.metaHighlightRed}>Chưa qua kiểm duyệt lâm sàng</span>
+                  <span>Diễn tiến câu thoại bản thô (Cần Bác sĩ biên tập lại):</span>
+                  <span className={styles.metaHighlightRed}>Chưa đạt chuẩn văn phong & chuyên môn</span>
                 </div>
 
                 <div className={styles.dialogueBox}>
-                  {/* Pair 1 */}
+                  {/* Pair 1: Cụt ngủn, thiếu đầy đủ */}
                   <div className={[styles.utteranceItem, styles.utterancePatient].join(" ")}>
                     <span className={[styles.speakerTag, styles.speakerPatient].join(" ")}>
                       NGƯỜI HỎI [00:53]
                     </span>
                     <div className={styles.utteranceText}>
-                      Khi đổi sang bàn chải điện thì nên chọn đầu bàn chải và lực chải thế nào?
+                      Khi đổi sang bàn chải điện thì xài đầu nào với lực sao cho đỡ buốt?
+                      <span className={styles.textDiffRemoved}> [Văn phong nói cộc lốc, thiếu tự nhiên]</span>
                     </div>
                   </div>
                   <div className={[styles.utteranceItem, styles.utteranceDoctor].join(" ")}>
@@ -126,20 +123,20 @@ export default function ExampleComparisonModal({
                       BÁC SĨ (Bản thô) [01:00]
                     </span>
                     <div className={styles.utteranceText}>
-                      Bạn nên chọn đầu bàn chải nhỏ lông mềm. Cứ chải qua lại các mặt răng là sạch. Nếu máy rung mạnh thì giảm bớt là được.
+                      Đầu nhỏ lông mềm là được. Máy rung mạnh thì tự giảm bớt, cứ chải như bình thường.
                       <span className={styles.textDiffRemoved}>
-                        {" "}[Thiếu cảnh báo an toàn: không nhắc đến cảm biến áp lực, nguy cơ tụt nướu và ê buốt do tì đè mạnh]
+                        {" "}[Khiếm khuyết: Trả lời cụt ngủn, chưa đầy đủ, thiếu cảnh báo cảm biến áp lực và nguy cơ tụt nướu do tì đè mạnh]
                       </span>
                     </div>
                   </div>
 
-                  {/* Pair 2 */}
+                  {/* Pair 2: Khó hiểu, sai kiến thức */}
                   <div className={[styles.utteranceItem, styles.utterancePatient].join(" ")}>
                     <span className={[styles.speakerTag, styles.speakerPatient].join(" ")}>
                       NGƯỜI HỎI [01:07]
                     </span>
                     <div className={styles.utteranceText}>
-                      Nếu đang có dụng cụ trong miệng thì làm sạch kẽ răng ra sao?
+                      Nếu đang có khí cụ trong miệng thì vùng kẽ làm sạch ra sao?
                     </div>
                   </div>
                   <div className={[styles.utteranceItem, styles.utteranceDoctor].join(" ")}>
@@ -147,14 +144,14 @@ export default function ExampleComparisonModal({
                       BÁC SĨ (Bản thô) [01:14]
                     </span>
                     <div className={styles.utteranceText}>
-                      Bạn dùng chỉ nha khoa thông thường chải sạch kẽ răng mỗi ngày là sạch sẽ.
+                      Bạn dùng chỉ nha khoa thông thường chèn vào kẽ răng đẩy qua lại là sạch.
                       <span className={styles.textDiffRemoved}>
-                        {" "}[Lỗi lâm sàng nghiêm trọng: Người hỏi đang đeo mắc cài từ lần khám S01, dùng chỉ thường không có đầu luồn sẽ vướng mắc cài hoặc đứt chỉ; không nhắc bàn chải kẽ chuyên dụng]
+                        {" "}[Khiếm khuyết: Khó hiểu và sai kiến thức; người niềng răng dùng chỉ thường không có đầu luồn sẽ bị vướng mắc cài gây đứt chỉ hoặc bật khí cụ; không nhắc bàn chải kẽ]
                       </span>
                     </div>
                   </div>
 
-                  {/* Pair 3 */}
+                  {/* Pair 3: Sai kiến thức nghiêm trọng */}
                   <div className={[styles.utteranceItem, styles.utterancePatient].join(" ")}>
                     <span className={[styles.speakerTag, styles.speakerPatient].join(" ")}>
                       NGƯỜI HỎI [01:21]
@@ -168,9 +165,9 @@ export default function ExampleComparisonModal({
                       BÁC SĨ (Bản thô) [01:28]
                     </span>
                     <div className={styles.utteranceText}>
-                      Nước súc miệng diệt khuẩn rất tốt, bạn có thể mua loại chlorhexidine súc miệng hàng ngày cả tháng để răng luôn sạch và thơm tho.
+                      Nước súc miệng chlorhexidine diệt khuẩn rất tốt, bạn mua súc hàng ngày liên tục cả tháng thay đánh răng cho tiện.
                       <span className={styles.textDiffRemoved}>
-                        {" "}[Vi phạm an toàn sinh học: Chlorhexidine súc dài ngày gây ố vàng răng, nhuộm màu khí cụ và mất vị giác]
+                        {" "}[Khiếm khuyết: Sai kiến thức y khoa nghiêm trọng; nước súc miệng không thay thế bàn chải; chlorhexidine dùng kéo dài gây ố vàng răng và rối loạn vị giác]
                       </span>
                     </div>
                   </div>
@@ -180,49 +177,45 @@ export default function ExampleComparisonModal({
               {/* Evaluation Status Grid */}
               <div className={styles.evalSummaryGrid}>
                 <div className={styles.evalCard}>
-                  <h4 className={styles.evalCardTitle}>Trạng thái Thẩm định Chưa Thực Hiện</h4>
-                  <div className={styles.verdictBadgeBefore}>KẾT LUẬN: CHƯA THẨM ĐỊNH</div>
+                  <h4 className={styles.evalCardTitle}>Nhận diện lỗi cần chỉnh sửa</h4>
                   <div className={styles.checklistSummary}>
-                    <div className={styles.checklistItemMissing}>Chưa đối chiếu tiền sử lần khám S01 và S02</div>
-                    <div className={styles.checklistItemMissing}>Chưa bảo đảm an toàn sinh học y khoa</div>
-                    <div className={styles.checklistItemMissing}>Chưa chuẩn hóa thuật ngữ chuyên ngành Răng Hàm Mặt</div>
+                    <div className={styles.checklistItemMissing}>Câu hỏi: Thiếu tự nhiên, câu từ cộc lốc</div>
+                    <div className={styles.checklistItemMissing}>Câu trả lời 1: Cụt ngủn, thiếu hướng dẫn an toàn</div>
+                    <div className={styles.checklistItemMissing}>Câu trả lời 2: Khó hiểu, sai kiến thức vệ sinh khí cụ</div>
+                    <div className={styles.checklistItemMissing}>Câu trả lời 3: Sai kiến thức an toàn sinh học</div>
                   </div>
                 </div>
 
                 <div className={styles.evalCard}>
-                  <h4 className={styles.evalCardTitle}>Ghi chú Nhận xét Lâm sàng</h4>
+                  <h4 className={styles.evalCardTitle}>Hướng xử lý của Bác sĩ</h4>
                   <div className={styles.notesContentBefore}>
-                    [Chưa có nhận xét - Hệ thống sẽ chặn lưu gói nếu để trống hoặc viết dưới 20 ký tự]
+                    Bác sĩ nhấp trực tiếp vào biểu tượng cây bút để sửa lại câu hỏi của người hỏi và từng câu trả lời của bác sĩ cho chuẩn xác.
                   </div>
                 </div>
               </div>
             </>
           ) : (
-            /* TAB 2: SAU KHI THẨM ĐỊNH */
+            /* TAB 2: SAU KHI BÁC SĨ HIỆU CHỈNH */
             <>
               <div className={styles.infoBannerAfter}>
-                <strong>Kết quả sau khi Bác sĩ chuyên khoa hiệu chỉnh:</strong> Đã rà soát tiền sử 3 lần khám, trau chuốt câu hỏi của Người hỏi cho chuẩn xác, bổ sung hướng dẫn chuyên sâu cho người mang mắc cài chỉnh nha và chấn chỉnh an toàn sinh học đối với dung dịch sát khuẩn.
+                <strong>Quy chuẩn sau khi Bác sĩ hiệu chỉnh:</strong>
+                <br />• <strong>Câu hỏi:</strong> Trau chuốt lại tự nhiên, trôi chảy nhưng <strong>bảo toàn 100% ngữ nghĩa gốc</strong>.
+                <br />• <strong>Câu trả lời:</strong> Viết lại mạch lạc, dễ hiểu; sửa triệt để kiến thức sai; bổ sung đầy đủ chỉ dẫn chuyên môn.
               </div>
 
               {/* Meta Case Card */}
               <div className={styles.caseMetaCard}>
                 <div className={styles.metaRow}>
-                  <span className={styles.metaLabel}>Mã ca minh họa:</span>
-                  <span className={styles.metaValue}>VIDENT-ORTHO-042 (Đã xác nhận chính thức)</span>
+                  <span className={styles.metaLabel}>Tình huống lâm sàng:</span>
+                  <span className={styles.metaValue}>Chăm sóc vệ sinh răng miệng khi đang có khí cụ niềng răng trong miệng</span>
                 </div>
                 <div className={styles.metaRow}>
-                  <span className={styles.metaLabel}>Tiền sử chặng khám:</span>
-                  <span className={styles.metaValue}>
-                    Đã xem đủ 3/3 lần khám (S01, S02, S03) | Xác nhận Người hỏi đang mang mắc cài chỉnh nha kim loại hai hàm
-                  </span>
-                </div>
-                <div className={styles.metaRow}>
-                  <span className={styles.metaLabel}>Chủ đề Người hỏi:</span>
+                  <span className={styles.metaLabel}>Chủ đề Người hỏi (Đã chỉnh):</span>
                   <span className={styles.metaValue}>
                     <span className={styles.metaHighlightGreen}>
-                      "Khi đổi sang bàn chải điện và có khí cụ chỉnh nha trong miệng thì nên vệ sinh răng và dùng nước súc miệng như thế nào?"
+                      "Khi đổi sang bàn chải điện và đang có khí cụ trong miệng thì nên vệ sinh và dùng nước súc miệng như thế nào?"
                     </span>
-                    {" "}(Đã hiệu chỉnh đầy đủ ngữ cảnh y khoa)
+                    {" "}(Đã chỉnh câu từ tự nhiên, mạch lạc, giữ nguyên vẹn ý hỏi)
                   </span>
                 </div>
               </div>
@@ -230,30 +223,31 @@ export default function ExampleComparisonModal({
               {/* Dialogue Box */}
               <div className={styles.dialogueSection}>
                 <div className={styles.sectionHeading}>
-                  <span>Diễn tiến câu thoại sau hiệu chỉnh lâm sàng:</span>
-                  <span className={styles.metaHighlightGreen}>Chuẩn y khoa Răng Hàm Mặt</span>
+                  <span>Diễn tiến câu thoại sau khi Bác sĩ đã hiệu chỉnh:</span>
+                  <span className={styles.metaHighlightGreen}>Chuẩn văn phong & chuyên môn Răng Hàm Mặt</span>
                 </div>
 
                 <div className={styles.dialogueBox}>
-                  {/* Pair 1 */}
+                  {/* Pair 1: Đã sửa câu cộc lốc & câu cụt ngủn */}
                   <div className={[styles.utteranceItem, styles.utterancePatient].join(" ")}>
                     <span className={[styles.speakerTag, styles.speakerPatient].join(" ")}>
-                      NGƯỜI HỎI [00:53]
+                      NGƯỜI HỎI (Đã chỉnh tự nhiên) [00:53]
                     </span>
                     <div className={styles.utteranceText}>
                       Khi đổi sang bàn chải điện thì nên chọn đầu bàn chải và mức lực như thế nào?
+                      <span className={styles.textDiffAdded}> [Văn phong tự nhiên, giữ trọn vẹn ngữ nghĩa ban đầu]</span>
                     </div>
                   </div>
                   <div className={[styles.utteranceItem, styles.utteranceDoctor].join(" ")}>
                     <span className={[styles.speakerTag, styles.speakerDoctor].join(" ")}>
-                      BÁC SĨ (Đã hiệu chỉnh) [01:00]
+                      BÁC SĨ (Đã bổ sung đầy đủ) [01:00]
                     </span>
                     <div className={styles.utteranceText}>
                       Đầu bàn chải nhỏ, lông mềm giúp tiếp cận từng vùng mà không cần tạo lực lớn. <span className={styles.textDiffAdded}>Nếu máy có cảm biến áp lực, nên giữ lực dưới ngưỡng cảnh báo và để chuyển động của đầu bàn chải thực hiện phần lớn công việc thay vì chà qua lại mạnh.</span> Nếu xuất hiện đau, tụt nướu hoặc ê buốt tăng sau khi đổi dụng cụ, nên dừng mức lực cao và nhờ nha sĩ kiểm tra kỹ thuật.
                     </div>
                   </div>
 
-                  {/* Pair 2 */}
+                  {/* Pair 2: Đã sửa câu khó hiểu và sai kiến thức */}
                   <div className={[styles.utteranceItem, styles.utterancePatient].join(" ")}>
                     <span className={[styles.speakerTag, styles.speakerPatient].join(" ")}>
                       NGƯỜI HỎI [01:07]
@@ -264,14 +258,14 @@ export default function ExampleComparisonModal({
                   </div>
                   <div className={[styles.utteranceItem, styles.utteranceDoctor].join(" ")}>
                     <span className={[styles.speakerTag, styles.speakerDoctor].join(" ")}>
-                      BÁC SĨ (Đã hiệu chỉnh) [01:14]
+                      BÁC SĨ (Đã sửa kiến thức chuẩn) [01:14]
                     </span>
                     <div className={styles.utteranceText}>
                       <span className={styles.textDiffAdded}>Khí cụ chỉnh nha tạo thêm nhiều bề mặt giữ mảng bám, vì vậy bàn chải thông thường thường cần phối hợp với bàn chải kẽ hoặc chỉ có đầu luồn. Với mắc cài, nên làm sạch cả phía trên và dưới cánh mắc cài; với khay trong suốt, cần vệ sinh răng trước khi đeo lại khay để hạn chế giữ đường và axit sát răng.</span> Nếu dây cung tuột, mắc cài bong, đau niêm mạc kéo dài hoặc khớp cắn thay đổi bất thường thì nên liên hệ bác sĩ chỉnh nha.
                     </div>
                   </div>
 
-                  {/* Pair 3 */}
+                  {/* Pair 3: Đã chấn chỉnh sai sót an toàn sinh học */}
                   <div className={[styles.utteranceItem, styles.utterancePatient].join(" ")}>
                     <span className={[styles.speakerTag, styles.speakerPatient].join(" ")}>
                       NGƯỜI HỎI [01:21]
@@ -282,7 +276,7 @@ export default function ExampleComparisonModal({
                   </div>
                   <div className={[styles.utteranceItem, styles.utteranceDoctor].join(" ")}>
                     <span className={[styles.speakerTag, styles.speakerDoctor].join(" ")}>
-                      BÁC SĨ (Đã hiệu chỉnh) [01:28]
+                      BÁC SĨ (Đã chuẩn hóa an toàn) [01:28]
                     </span>
                     <div className={styles.utteranceText}>
                       Nước súc miệng không thay thế việc phá mảng bám bằng bàn chải và làm sạch kẽ. Một số sản phẩm có fluoride hoặc hoạt chất khác có thể hữu ích trong tình huống cụ thể, <span className={styles.textDiffAdded}>còn dung dịch sát khuẩn như chlorhexidine thường chỉ nên dùng ngắn hạn khi có chỉ định vì có thể gây nhuộm màu răng và thay đổi vị giác.</span> Nếu cần dùng kéo dài, nên hỏi nha sĩ về mục tiêu và thời gian sử dụng.
@@ -294,19 +288,20 @@ export default function ExampleComparisonModal({
               {/* Evaluation Status Grid */}
               <div className={styles.evalSummaryGrid}>
                 <div className={styles.evalCard}>
-                  <h4 className={styles.evalCardTitle}>Kết Quả Thẩm Định Hoàn Tất</h4>
-                  <div className={styles.verdictBadgeAfter}>KẾT LUẬN: HIỆU CHỈNH ĐẠT CHUẨN (EDITED)</div>
+                  <h4 className={styles.evalCardTitle}>Kết quả sau biên tập</h4>
+                  <div className={styles.verdictBadgeAfter}>KẾT LUẬN: HIỆU CHỈNH CÂU TỪ (EDITED)</div>
                   <div className={styles.checklistSummary}>
-                    <div className={styles.checklistItemOk}>Đã đối chiếu tiền sử lần khám S01 (mắc cài kim loại) và S02 (siết cung)</div>
-                    <div className={styles.checklistItemOk}>Bảo đảm an toàn sinh học: khuyến cáo dừng chlorhexidine dài hạn</div>
-                    <div className={styles.checklistItemOk}>Chuẩn hóa thuật ngữ Răng Hàm Mặt: bàn chải kẽ, cánh mắc cài, đầu luồn</div>
+                    <div className={styles.checklistItemOk}>Câu hỏi: Đã chỉnh trôi chảy, không đổi ngữ nghĩa gốc</div>
+                    <div className={styles.checklistItemOk}>Khắc phục câu cụt ngủn: Đã bổ sung đầy đủ chỉ dẫn an toàn</div>
+                    <div className={styles.checklistItemOk}>Khắc phục khó hiểu / sai: Đã sửa chuẩn kiến thức bàn chải kẽ</div>
+                    <div className={styles.checklistItemOk}>An toàn y khoa: Đã giới hạn thời gian dùng chlorhexidine</div>
                   </div>
                 </div>
 
                 <div className={styles.evalCard}>
-                  <h4 className={styles.evalCardTitle}>Nhận Xét Lâm Sàng Của Bác Sĩ (286 ký tự)</h4>
+                  <h4 className={styles.evalCardTitle}>Ghi chú nhận xét của Bác sĩ</h4>
                   <div className={styles.notesContentAfter}>
-                    "Đối chiếu lần khám S01 và S02 xác định Người hỏi đang trong giai đoạn chỉnh nha với mắc cài kim loại và dây cung. Đã hiệu chỉnh bổ sung hướng dẫn làm sạch kẽ quanh mắc cài và cảnh báo an toàn sinh học: không lạm dụng chlorhexidine kéo dài để phòng biến chứng ố men răng và rối loạn vị giác. Câu thoại đạt chuẩn mực chuyên môn Răng Hàm Mặt."
+                    "Đã chỉnh lại câu hỏi của người hỏi cho tự nhiên hơn (giữ nguyên ngữ nghĩa gốc). Hiệu chỉnh các câu trả lời của bác sĩ: sửa câu cụt ngủn, làm rõ kỹ thuật dùng bàn chải kẽ cho người mang khí cụ và chấn chỉnh chỉ định an toàn của chlorhexidine."
                   </div>
                 </div>
               </div>
@@ -322,8 +317,8 @@ export default function ExampleComparisonModal({
             onClick={() => setActiveTab(activeTab === "BEFORE" ? "AFTER" : "BEFORE")}
           >
             {activeTab === "BEFORE"
-              ? "Chuyển sang xem Sau thẩm định"
-              : "Quay lại xem Trước thẩm định"}
+              ? "Chuyển sang xem Sau khi Bác sĩ hiệu chỉnh"
+              : "Quay lại xem Trước khi chỉnh sửa"}
           </button>
           <button
             type="button"

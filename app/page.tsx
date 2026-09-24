@@ -1132,14 +1132,28 @@ export default function LabelDataPage() {
 
   // Synchronous and immediate case switching - eliminating all question desync!
   const handleSelectCase = useCallback(
-    (caseId: string) => {
-      // Kiểm tra ca có bị khóa do ca trước chưa hoàn thành không
-      const caseIdxInDoctor = doctorCases.findIndex((c) => c.case_id === caseId);
-      if (caseIdxInDoctor > 0) {
-        const prevCase = doctorCases[caseIdxInDoctor - 1];
-        if (!confirmedCaseIds.has(prevCase.case_id)) {
-          alert(`Ca ${caseIdxInDoctor + 1} hiện đang khóa. Bác sĩ vui lòng hoàn thành và xác nhận Ca ${caseIdxInDoctor} trước.`);
-          return;
+    (caseId: string, bypassLockCheck: boolean = false) => {
+      // Kiem tra ca co bi khoa do ca truoc chua hoan thanh khong
+      if (!bypassLockCheck) {
+        const caseIdxInDoctor = doctorCases.findIndex((c) => c.case_id === caseId);
+        if (caseIdxInDoctor > 0) {
+          const prevCase = doctorCases[caseIdxInDoctor - 1];
+          let isPrevConfirmed = confirmedCaseIds.has(prevCase.case_id);
+          if (!isPrevConfirmed && activeDoctor) {
+            try {
+              const rawConfirmed = localStorage.getItem(`nktt_confirmed_cases_${activeDoctor.id}`);
+              if (rawConfirmed) {
+                const list = JSON.parse(rawConfirmed);
+                if (Array.isArray(list) && list.includes(prevCase.case_id)) {
+                  isPrevConfirmed = true;
+                }
+              }
+            } catch {}
+          }
+          if (!isPrevConfirmed) {
+            alert(`Ca ${caseIdxInDoctor + 1} hiện đang khóa. Bác sĩ vui lòng hoàn thành và xác nhận Ca ${caseIdxInDoctor} trước.`);
+            return;
+          }
         }
       }
 
@@ -1171,7 +1185,14 @@ export default function LabelDataPage() {
             setCurrentVerdict("APPROVED");
           }
           setEditedTurns({ ...(draftData.editedTurns || {}), ...sharedTurns });
-          if (draftData.editedFactors) setEditedFactors(draftData.editedFactors);
+          if (draftData.editedFactors) {
+            setEditedFactors(draftData.editedFactors);
+          } else {
+            setEditedFactors(matched.targets?.factors ? JSON.parse(JSON.stringify(matched.targets.factors)) : []);
+          }
+          setEditedRelevantEvents(draftData.editedRelevantEvents || "");
+          setEditedStaleEvents(draftData.editedStaleEvents || "");
+          setEditedForbiddenEvents(draftData.editedForbiddenEvents || "");
           setChecklistHistory(Boolean(draftData.checklistHistory));
           setChecklistSafety(Boolean(draftData.checklistSafety));
           setChecklistCore(Boolean(draftData.checklistCore));
@@ -1190,7 +1211,22 @@ export default function LabelDataPage() {
             });
           }
           setEditedTurns({ ...tMap, ...sharedTurns });
-          if (saved.factors) setEditedFactors(saved.factors);
+          if (saved.factors && saved.factors.length > 0) {
+            setEditedFactors(JSON.parse(JSON.stringify(saved.factors)));
+          } else if (matched.targets?.factors) {
+            setEditedFactors(JSON.parse(JSON.stringify(matched.targets.factors)));
+          } else {
+            setEditedFactors([]);
+          }
+          if (saved.memory_events) {
+            setEditedRelevantEvents((saved.memory_events.relevant_event_ids || []).join(", "));
+            setEditedStaleEvents((saved.memory_events.stale_event_ids || []).join(", "));
+            setEditedForbiddenEvents((saved.memory_events.forbidden_event_ids || []).join(", "));
+          } else {
+            setEditedRelevantEvents("");
+            setEditedStaleEvents("");
+            setEditedForbiddenEvents("");
+          }
           setChecklistHistory(true);
           setChecklistSafety(true);
           setChecklistCore(true);
@@ -1201,18 +1237,29 @@ export default function LabelDataPage() {
           setEditedTurns({ ...sharedTurns });
           if (matched.targets?.factors) {
             setEditedFactors(JSON.parse(JSON.stringify(matched.targets.factors)));
+          } else {
+            setEditedFactors([]);
+          }
+          if (matched.targets?.memory_events) {
+            setEditedRelevantEvents((matched.targets.memory_events.relevant_event_ids || []).join(", "));
+            setEditedStaleEvents((matched.targets.memory_events.stale_event_ids || []).join(", "));
+            setEditedForbiddenEvents((matched.targets.memory_events.forbidden_event_ids || []).join(", "));
+          } else {
+            setEditedRelevantEvents("");
+            setEditedStaleEvents("");
+            setEditedForbiddenEvents("");
           }
           setChecklistHistory(false);
           setChecklistSafety(false);
           setChecklistCore(false);
         }
-        // Cập nhật timeline và events ngay lập tức
+        // Cap nhat timeline va events ngay lap tuc
         const uTimeline = cachedTimelinesMap?.get(matched.user_id) || null;
         if (uTimeline) setTimeline(uTimeline);
         const uEvents = cachedEventsMap?.get(matched.user_id) || [];
         if (uEvents.length > 0) setEvents(uEvents);
 
-        // Mặc định mở mốc khám đầu tiên của chặng ca này
+        // Mac dinh mo moc kham dau tien cua chang ca nay
         const matchedCasesList = allCases.filter((c) => c.user_id === matched.user_id);
         matchedCasesList.sort((a, b) => {
           const aMatch = a.visible_history?.up_to_session?.match(/\d+/);
@@ -1235,9 +1282,20 @@ export default function LabelDataPage() {
         }
         setActiveSessionIndex(targetSessionIdx);
 
-        // Khôi phục mốc khám đã xem: nếu đã xác nhận thì mở toàn bộ; nếu có draft thì lấy từ draft; nếu chưa thì lấy mốc đầu tiên
+        // Khoi phuc moc kham da xem: neu da xac nhan thi mo toan bo; neu co draft thi lay tu draft; neu chua thi lay moc dau tien
         const allSessionNums = uTimeline?.sessions?.map((s) => s.session_number) || [];
-        const isConfirmed = confirmedCaseIds.has(matched.case_id) || Boolean(saved);
+        let isConfirmed = confirmedCaseIds.has(matched.case_id) || Boolean(saved);
+        if (!isConfirmed && activeDoctor) {
+          try {
+            const rawConfirmed = localStorage.getItem(`nktt_confirmed_cases_${activeDoctor.id}`);
+            if (rawConfirmed) {
+              const list = JSON.parse(rawConfirmed);
+              if (Array.isArray(list) && list.includes(matched.case_id)) {
+                isConfirmed = true;
+              }
+            }
+          } catch {}
+        }
         if (isConfirmed && allSessionNums.length > 0) {
           setInspectedSessions(new Set(allSessionNums));
         } else if (draftData && Array.isArray(draftData.inspectedSessions) && draftData.inspectedSessions.length > 0) {
@@ -1253,6 +1311,14 @@ export default function LabelDataPage() {
             localStorage.setItem(`nktt_active_case_${activeDoctor.id}`, matched.case_id);
           } catch {}
         }
+
+        setTimeout(() => {
+          const chatEl = document.getElementById("clinical-chat-area");
+          if (chatEl) {
+            chatEl.scrollTo({ top: 0, behavior: "smooth" });
+          }
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }, 50);
       }
     },
     [allCases, annotationsMap, activeDoctor, doctorCases, confirmedCaseIds]
@@ -1260,9 +1326,25 @@ export default function LabelDataPage() {
 
 
   const handleConfirmAndNextCase = () => {
+    const currentCaseId = activeCase?.case_id || selectedCaseId;
+    const currentIdxInBatch = batchCases.findIndex((c) => c.case_id === currentCaseId);
+    const doctorCaseIndex = activeCase ? doctorCases.findIndex((c) => c.case_id === activeCase.case_id) : -1;
+
     const success = handleSaveAnnotation();
-    if (success && currentCaseIndexInBatch < batchCases.length - 1) {
-      handleSelectCase(batchCases[currentCaseIndexInBatch + 1].case_id);
+    if (success) {
+      if (currentIdxInBatch >= 0 && currentIdxInBatch < batchCases.length - 1) {
+        const nextCase = batchCases[currentIdxInBatch + 1];
+        handleSelectCase(nextCase.case_id, true);
+        setSaveMessage({
+          text: `Đã xác nhận Ca ${doctorCaseIndex >= 0 ? doctorCaseIndex + 1 : ""} thành công. Đã chuyển ngay sang Ca ${doctorCaseIndex >= 0 ? doctorCaseIndex + 2 : ""}.`,
+          isError: false,
+        });
+      } else {
+        setSaveMessage({
+          text: `Chúc mừng Bác sĩ đã hoàn tất toàn bộ 10/10 ca của Gói ${currentBatchIndex}! Nút "Lưu" (Google Drive) đã được mở khóa. Bác sĩ hãy bấm nút Lưu để đồng bộ dữ liệu.`,
+          isError: false,
+        });
+      }
     }
   };
 

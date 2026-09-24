@@ -746,16 +746,8 @@ export default function LabelDataPage() {
         const uEvents = cachedEventsMap?.get(matchedCase.user_id) || [];
         setEvents(uEvents);
 
-        // Find relevant session index
-        const upToSession = matchedCase.visible_history?.up_to_session;
-        if (uTimeline && uTimeline.sessions && upToSession) {
-          const idx = uTimeline.sessions.findIndex(
-            (s) => s.session_id === upToSession || s.session_id.endsWith(`_${upToSession}`)
-          );
-          setActiveSessionIndex(idx >= 0 ? idx : 0);
-        } else {
-          setActiveSessionIndex(0);
-        }
+        // Always initialize to session 0 (Lần 1) for natural chronological medical review
+        let initialSessionIdx = 0;
 
         // Check for local working draft first
         let draftData: any = null;
@@ -782,6 +774,9 @@ export default function LabelDataPage() {
           setEditedForbiddenEvents(draftData.editedForbiddenEvents || "");
           if (Array.isArray(draftData.inspectedSessions)) {
             setInspectedSessions(new Set(draftData.inspectedSessions));
+          }
+          if (typeof draftData.activeSessionIndex === "number") {
+            initialSessionIdx = draftData.activeSessionIndex;
           }
         } else if (saved) {
           // Restore from saved annotation
@@ -837,6 +832,7 @@ export default function LabelDataPage() {
             setEditedForbiddenEvents("");
           }
         }
+        setActiveSessionIndex(initialSessionIdx);
       } catch (err) {
         console.error("Lỗi nạp ca bệnh:", err);
       } finally {
@@ -934,6 +930,7 @@ export default function LabelDataPage() {
         const draftKey = `nktt_draft_${activeDoctor.id}_${activeCase.case_id}`;
         const draftObj = {
           case_id: activeCase.case_id,
+          activeSessionIndex,
           editedQuery,
           clinicalNotes,
           editedTurns,
@@ -957,6 +954,7 @@ export default function LabelDataPage() {
 
     return () => clearTimeout(timer);
   }, [
+    activeSessionIndex,
     editedQuery,
     clinicalNotes,
     editedTurns,
@@ -1865,9 +1863,14 @@ export default function LabelDataPage() {
                           timeline.sessions.map((s, idx) => {
                             const isSelected = idx === activeSessionIndex;
                             const isInspected = inspectedSessions.has(idx);
+                            const isCutoffSession =
+                              activeCase?.visible_history?.up_to_session &&
+                              (s.session_id === activeCase.visible_history.up_to_session ||
+                                s.session_id.endsWith(`_${activeCase.visible_history.up_to_session}`));
                             const isCaseConfirmed = activeCase ? confirmedCaseIds.has(activeCase.case_id) : false;
                             const isUnlocked =
                               idx === 0 ||
+                              idx === activeSessionIndex ||
                               isCaseConfirmed ||
                               inspectedSessions.has(idx - 1) ||
                               inspectedSessions.has(idx);
@@ -1893,7 +1896,7 @@ export default function LabelDataPage() {
                                 title={
                                   !isUnlocked
                                     ? `Lần ${s.session_number} đang khóa (cần xem và xác nhận Lần ${timeline.sessions[idx - 1]?.session_number || idx} trước)`
-                                    : `Lần ${s.session_number} (${isInspected ? "Đã xác nhận" : isSelected ? "Đang thẩm định" : "Đã mở khóa"})`
+                                    : `Lần ${s.session_number}${isCutoffSession ? " (Mốc câu hỏi)" : ""} (${isInspected ? "Đã xác nhận" : isSelected ? "Đang thẩm định" : "Đã mở khóa"})`
                                 }
                               >
                                 {!isUnlocked && (

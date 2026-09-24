@@ -354,6 +354,8 @@ function checkClinicalNotesQuality(
 }
 
 const STORAGE_KEY = "nktt_expert_annotations_v5";
+const DRAFT_PREFIX = "nktt_draft_v5_";
+const DATASET_VERSION_TAG = "v5_20260924_rel";
 
 function getAssetBase(): string {
   if (typeof window === "undefined") return "";
@@ -583,10 +585,32 @@ export default function LabelDataPage() {
   useEffect(() => {
     let isMounted = true;
     async function initAnnotations() {
+      // Clean up legacy v3/v4 drafts and old caches from localStorage
+      if (typeof window !== "undefined") {
+        try {
+          const keysToRemove: string[] = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (
+              k &&
+              (k.startsWith("nktt_draft_BS") ||
+                k === "nktt_expert_annotations_v3" ||
+                k === "nktt_expert_annotations_v4")
+            ) {
+              keysToRemove.push(k);
+            }
+          }
+          keysToRemove.forEach((k) => localStorage.removeItem(k));
+        } catch {}
+      }
+
       const stored = getStoredAnnotations();
       try {
         const assetBase = getAssetBase();
-        const res = await fetch(`${assetBase}/dataset/default_expert_annotations_500.json`);
+        const res = await fetch(
+          `${assetBase}/dataset/default_expert_annotations_500.json?v=${DATASET_VERSION_TAG}`,
+          { cache: "no-store" }
+        );
         if (res.ok) {
           const defaultData = await res.json();
           const merged = { ...defaultData, ...stored };
@@ -620,7 +644,10 @@ export default function LabelDataPage() {
       try {
         const assetBase = getAssetBase();
         if (!cachedAllCases) {
-          const res = await fetch(`${assetBase}/dataset/vident_longmem_500/benchmark_cases.jsonl`);
+          const res = await fetch(
+            `${assetBase}/dataset/vident_longmem_500/benchmark_cases.jsonl?v=${DATASET_VERSION_TAG}`,
+            { cache: "no-store" }
+          );
           const text = await res.text();
           const list: CaseDetail[] = [];
           for (const line of text.split("\n")) {
@@ -705,7 +732,10 @@ export default function LabelDataPage() {
 
         // 1. Load timelines
         if (!cachedTimelinesMap) {
-          const tRes = await fetch(`${assetBase}/dataset/vident_longmem_500/timelines.jsonl`);
+          const tRes = await fetch(
+            `${assetBase}/dataset/vident_longmem_500/timelines.jsonl?v=${DATASET_VERSION_TAG}`,
+            { cache: "no-store" }
+          );
           const tText = await tRes.text();
           const tMap = new Map<string, TimelineRecord>();
           for (const line of tText.split("\n")) {
@@ -721,7 +751,10 @@ export default function LabelDataPage() {
 
         // 2. Load events
         if (!cachedEventsMap) {
-          const eRes = await fetch(`${assetBase}/dataset/vident_longmem_500/source_events.jsonl`);
+          const eRes = await fetch(
+            `${assetBase}/dataset/vident_longmem_500/source_events.jsonl?v=${DATASET_VERSION_TAG}`,
+            { cache: "no-store" }
+          );
           const eText = await eRes.text();
           const eMap = new Map<string, SourceEventRecord[]>();
           for (const line of eText.split("\n")) {
@@ -753,7 +786,7 @@ export default function LabelDataPage() {
         let draftData: any = null;
         if (activeDoctor) {
           try {
-            const rawDraft = localStorage.getItem(`nktt_draft_${activeDoctor.id}_${matchedCase.case_id}`);
+            const rawDraft = localStorage.getItem(`${DRAFT_PREFIX}${activeDoctor.id}_${matchedCase.case_id}`);
             if (rawDraft) draftData = JSON.parse(rawDraft);
           } catch {}
         }
@@ -927,7 +960,7 @@ export default function LabelDataPage() {
     setIsAutoSaving(true);
     const timer = setTimeout(() => {
       try {
-        const draftKey = `nktt_draft_${activeDoctor.id}_${activeCase.case_id}`;
+        const draftKey = `${DRAFT_PREFIX}${activeDoctor.id}_${activeCase.case_id}`;
         const draftObj = {
           case_id: activeCase.case_id,
           activeSessionIndex,
@@ -985,6 +1018,36 @@ export default function LabelDataPage() {
       };
       return next;
     });
+  };
+
+  // Reset active case to pristine v5 benchmark state (purging local draft)
+  const handleResetCurrentCaseToV5 = () => {
+    if (!activeCase) return;
+    if (activeDoctor) {
+      try {
+        localStorage.removeItem(`${DRAFT_PREFIX}${activeDoctor.id}_${activeCase.case_id}`);
+      } catch {}
+    }
+    setEditedQuery(activeCase.current_query || "");
+    setClinicalNotes("");
+    setEditedTurns({});
+    if (activeCase.targets?.factors) {
+      setEditedFactors(JSON.parse(JSON.stringify(activeCase.targets.factors)));
+    } else {
+      setEditedFactors([]);
+    }
+    if (activeCase.targets?.memory_events) {
+      setEditedRelevantEvents((activeCase.targets.memory_events.relevant_event_ids || []).join(", "));
+      setEditedStaleEvents((activeCase.targets.memory_events.stale_event_ids || []).join(", "));
+      setEditedForbiddenEvents((activeCase.targets.memory_events.forbidden_event_ids || []).join(", "));
+    } else {
+      setEditedRelevantEvents("");
+      setEditedStaleEvents("");
+      setEditedForbiddenEvents("");
+    }
+    setActiveSessionIndex(0);
+    setInspectedSessions(new Set());
+    setIsEditingQuery(false);
   };
 
   // Save current individual case annotation & register confirmation
@@ -1094,7 +1157,7 @@ export default function LabelDataPage() {
     // Auto-save current case before switching batch
     if (activeCase && activeDoctor) {
       try {
-        const draftKey = `nktt_draft_${activeDoctor.id}_${activeCase.case_id}`;
+        const draftKey = `${DRAFT_PREFIX}${activeDoctor.id}_${activeCase.case_id}`;
         localStorage.setItem(
           draftKey,
           JSON.stringify({
@@ -1758,6 +1821,27 @@ export default function LabelDataPage() {
                             <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
                           </svg>
                           <span>{isEditingQuery ? "Thu gọn chỉnh sửa" : "Hiệu chỉnh câu từ"}</span>
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.resetQueryBtn}
+                          onClick={handleResetCurrentCaseToV5}
+                          title="Đặt lại toàn bộ ca bệnh về dữ liệu gốc v5 mới nhất (xóa bản nháp cục bộ)"
+                        >
+                          <svg
+                            width="13"
+                            height="13"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                            <path d="M3 3v5h5" />
+                          </svg>
+                          <span>Làm mới chuẩn v5</span>
                         </button>
                         {editedQuery !== activeCase.current_query && (
                           <button

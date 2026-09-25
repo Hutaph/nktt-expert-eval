@@ -10,6 +10,7 @@ import DoctorLoginModal, {
 import QualityWarningModal from "./components/QualityWarningModal";
 import ClinicalRulesModal from "./components/ClinicalRulesModal";
 import ExampleComparisonModal from "./components/ExampleComparisonModal";
+import { uploadToDrive, syncExpertAnnotationsToDrive } from "./lib/driveSync";
 
 interface AutoExpandingTextareaProps {
   value: string;
@@ -1586,7 +1587,7 @@ export default function LabelDataPage() {
 
   // Main "Lưu" button handler for the entire batch
   const handleSaveBatch = () => {
-    if (!activeDoctor || batchCases.length === 0) return;
+    if (!activeDoctor || batchCases.length === 0 || saving) return;
 
     // 1. Commit ca hiện tại nếu đang mở
     if (activeCase) {
@@ -1609,203 +1610,244 @@ export default function LabelDataPage() {
   // Execute batch save and unlock next batch
   const executeBatchSaveAndUnlock = async () => {
     setShowQualityWarning(false);
-    if (!activeDoctor || batchCases.length === 0) return;
+    if (!activeDoctor || batchCases.length === 0 || saving) return;
+    setSaving(true);
 
-    // Chuẩn hóa mã thư mục bác sĩ (BS01 .. BS05)
-    const doctorFolder = (
-      activeDoctor.folderCode ||
-      (activeDoctor.id === "bs_1"
-        ? "BS01"
-        : activeDoctor.id === "bs_2"
-        ? "BS02"
-        : activeDoctor.id === "bs_3"
-        ? "BS03"
-        : activeDoctor.id === "bs_4"
-        ? "BS04"
-        : "BS05")
-    ).toUpperCase();
-
-    // 1. Thu thập lượt thoại đã hiệu chỉnh dùng chung của bác sĩ
-    let sharedTurnsForDoctor: Record<string, string> = {};
     try {
-      const rawShared = localStorage.getItem(`nktt_shared_turns_v5_${activeDoctor.id}`);
-      if (rawShared) sharedTurnsForDoctor = JSON.parse(rawShared);
-    } catch {}
+      // Chuẩn hóa mã thư mục bác sĩ (BS01 .. BS05)
+      const doctorFolder = (
+        activeDoctor.folderCode ||
+        (activeDoctor.id === "bs_1"
+          ? "BS01"
+          : activeDoctor.id === "bs_2"
+          ? "BS02"
+          : activeDoctor.id === "bs_3"
+          ? "BS03"
+          : activeDoctor.id === "bs_4"
+          ? "BS04"
+          : "BS05")
+      ).toUpperCase();
 
-    // 2. Xây dựng cấu trúc dữ liệu đầy đủ text và trực quan cho từng ca trong Gói
-    const casesDetailed = batchCases.map((c) => {
-      const rec = annotationsMap[c.case_id];
-      const famKey = c.category?.primary_family || "";
-      const catMeta = FAMILY_FRIENDLY_NAMES[famKey] || {
-        label: "Kiến thức nha khoa đại cương",
-        desc: "Không yêu cầu xét tiền sử cá nhân",
-      };
+      // 1. Thu thập lượt thoại đã hiệu chỉnh dùng chung của bác sĩ
+      let sharedTurnsForDoctor: Record<string, string> = {};
+      try {
+        const rawShared = localStorage.getItem(`nktt_shared_turns_v5_${activeDoctor.id}`);
+        if (rawShared) sharedTurnsForDoctor = JSON.parse(rawShared);
+      } catch {}
 
-      // Tìm timeline của bệnh nhân từ cache
-      const userTimeline = cachedTimelinesMap?.get(c.user_id) || (c.user_id === activeCase?.user_id ? timeline : null);
-      const dialogueSessions = (userTimeline?.sessions || []).map((s) => ({
-        session_number: s.session_number,
-        session_timestamp: s.session_timestamp || "",
-        turns: (s.turns || []).map((t) => {
-          const editedText = sharedTurnsForDoctor[t.turn_id] || t.text;
-          const wasTurnEdited = editedText.trim() !== t.text.trim();
-          return {
-            turn_id: t.turn_id,
-            speaker: t.speaker === "PATIENT" || t.speaker === "USER" ? "Người hỏi" : "Bác sĩ / Trợ lý",
-            original_text: t.text,
-            final_text: editedText,
-            was_edited: wasTurnEdited,
-          };
-        }),
-      }));
+      // 2. Xây dựng cấu trúc dữ liệu đầy đủ text và trực quan cho từng ca trong Gói
+      const casesDetailed = batchCases.map((c) => {
+        const rec = annotationsMap[c.case_id];
+        const famKey = c.category?.primary_family || "";
+        const catMeta = FAMILY_FRIENDLY_NAMES[famKey] || {
+          label: "Kiến thức nha khoa đại cương",
+          desc: "Không yêu cầu xét tiền sử cá nhân",
+        };
 
-      const finalQuery = rec?.edited_query || c.current_query || "";
-      const wasQueryEdited = finalQuery.trim() !== (c.current_query || "").trim();
+        // Tìm timeline của bệnh nhân từ cache
+        const userTimeline = cachedTimelinesMap?.get(c.user_id) || (c.user_id === activeCase?.user_id ? timeline : null);
+        const dialogueSessions = (userTimeline?.sessions || []).map((s) => ({
+          session_number: s.session_number,
+          session_timestamp: s.session_timestamp || "",
+          turns: (s.turns || []).map((t) => {
+            const editedText = sharedTurnsForDoctor[t.turn_id] || t.text;
+            const wasTurnEdited = editedText.trim() !== t.text.trim();
+            return {
+              turn_id: t.turn_id,
+              speaker: t.speaker === "PATIENT" || t.speaker === "USER" ? "Người hỏi" : "Bác sĩ / Trợ lý",
+              original_text: t.text,
+              final_text: editedText,
+              was_edited: wasTurnEdited,
+            };
+          }),
+        }));
 
-      const verdictCode = rec?.verdict || "APPROVED";
-      const verdictLabel =
-        verdictCode === "APPROVED"
-          ? "Đạt chuẩn lâm sàng"
-          : verdictCode === "EDITED"
-          ? "Hiệu chỉnh câu từ"
-          : "Cần lưu ý thêm";
+        const finalQuery = rec?.edited_query || c.current_query || "";
+        const wasQueryEdited = finalQuery.trim() !== (c.current_query || "").trim();
 
-      return {
-        case_id: c.case_id,
-        user_id: c.user_id,
-        checkpoint: c.metadata?.checkpoint || "Q1",
-        category: {
-          primary_family: famKey,
-          vietnamese_name: catMeta.label,
-          description: catMeta.desc,
-        },
-        user_query: {
-          original_text: c.current_query || "",
-          final_text: finalQuery,
-          was_edited: wasQueryEdited,
-          change_percent: wasQueryEdited ? calculateQueryChangePercent(c.current_query || "", finalQuery) : 0,
-        },
-        clinical_appraisal: {
-          verdict: verdictCode,
-          verdict_label: verdictLabel,
-          clinical_notes: rec?.clinical_notes || "",
-          checklists: {
-            history_correct: true,
-            safety_compliant: true,
-            clinical_grounded: true,
+        const verdictCode = rec?.verdict || "APPROVED";
+        const verdictLabel =
+          verdictCode === "APPROVED"
+            ? "Đạt chuẩn lâm sàng"
+            : verdictCode === "EDITED"
+            ? "Hiệu chỉnh câu từ"
+            : "Cần lưu ý thêm";
+
+        return {
+          case_id: c.case_id,
+          user_id: c.user_id,
+          checkpoint: c.metadata?.checkpoint || "Q1",
+          category: {
+            primary_family: famKey,
+            vietnamese_name: catMeta.label,
+            description: catMeta.desc,
           },
-          all_checklists_passed: true,
-          all_sessions_inspected: true,
-        },
-        dialogue_history: dialogueSessions,
-        clinical_factors: rec?.factors && rec.factors.length > 0 ? rec.factors : c.targets?.factors || [],
-        memory_events: rec?.memory_events || c.targets?.memory_events || {
-          relevant_event_ids: [],
-          stale_event_ids: [],
-          forbidden_event_ids: [],
-        },
-        annotated_by: activeDoctor.name,
-        annotated_at: rec?.updated_at || new Date().toISOString(),
-      };
-    });
-
-    const batchData = {
-      batch_meta: {
-        doctor_folder: doctorFolder,
-        doctor_id: activeDoctor.id,
-        doctor_name: activeDoctor.name,
-        batch_index: currentBatchIndex,
-        batch_name: `Gói ${currentBatchIndex}`,
-        case_range: `${batchCases[0]?.case_id} - ${batchCases[batchCases.length - 1]?.case_id}`,
-        total_cases: batchCases.length,
-        confirmed_cases_count: batchCases.length,
-        saved_at: new Date().toISOString(),
-        format_version: "v5_full_text",
-      },
-      cases: casesDetailed,
-    };
-
-    // 3. Gọi API lưu trực tiếp vào ổ cứng server Next.js (thư mục annotations/BS0X/batch_X.json)
-    try {
-      await fetch("/api/save-batch", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          doctorFolder,
-          batchIndex: currentBatchIndex,
-          data: batchData,
-        }),
+          user_query: {
+            original_text: c.current_query || "",
+            final_text: finalQuery,
+            was_edited: wasQueryEdited,
+            change_percent: wasQueryEdited ? calculateQueryChangePercent(c.current_query || "", finalQuery) : 0,
+          },
+          clinical_appraisal: {
+            verdict: verdictCode,
+            verdict_label: verdictLabel,
+            clinical_notes: rec?.clinical_notes || "",
+            checklists: {
+              history_correct: true,
+              safety_compliant: true,
+              clinical_grounded: true,
+            },
+            all_checklists_passed: true,
+            all_sessions_inspected: true,
+          },
+          dialogue_history: dialogueSessions,
+          clinical_factors: rec?.factors && rec.factors.length > 0 ? rec.factors : c.targets?.factors || [],
+          memory_events: rec?.memory_events || c.targets?.memory_events || {
+            relevant_event_ids: [],
+            stale_event_ids: [],
+            forbidden_event_ids: [],
+          },
+          annotated_by: activeDoctor.name,
+          annotated_at: rec?.updated_at || new Date().toISOString(),
+        };
       });
-    } catch (e) {
-      console.warn("Loi khi goi API save-batch:", e);
-    }
 
-    // 4. Kích hoạt tải tệp JSON về máy tính của bác sĩ để dự phòng
-    try {
-      const jsonStr = JSON.stringify(batchData, null, 2);
-      const blob = new Blob([jsonStr], { type: "application/json;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${doctorFolder}_batch_${currentBatchIndex}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch (e) {
-      console.error("Loi khi tai file batch:", e);
-    }
+      const batchData = {
+        batch_meta: {
+          doctor_folder: doctorFolder,
+          doctor_id: activeDoctor.id,
+          doctor_name: activeDoctor.name,
+          batch_index: currentBatchIndex,
+          batch_name: `Gói ${currentBatchIndex}`,
+          case_range: `${batchCases[0]?.case_id} - ${batchCases[batchCases.length - 1]?.case_id}`,
+          total_cases: batchCases.length,
+          confirmed_cases_count: batchCases.length,
+          saved_at: new Date().toISOString(),
+          format_version: "v5_full_text",
+        },
+        cases: casesDetailed,
+      };
 
-    // 5. Đánh dấu gói đã hoàn thành
-    const nextCompleted = Array.from(new Set([...completedBatches, currentBatchIndex]));
-    setCompletedBatches(nextCompleted);
-    try {
-      localStorage.setItem(`nktt_completed_batches_${activeDoctor.id}`, JSON.stringify(nextCompleted));
-    } catch {}
-
-    setSaveMessage({
-      text: `Đã lưu thành công Gói ${currentBatchIndex} vào thư mục annotations/${doctorFolder}/batch_${currentBatchIndex}.json và tải tệp về máy!`,
-      isError: false,
-    });
-
-    alert(
-      `Đã lưu thành công toàn bộ Gói ${currentBatchIndex}!\n\n` +
-      `• Đã ghi tệp hệ thống: annotations/${doctorFolder}/batch_${currentBatchIndex}.json\n` +
-      `• Trình duyệt đã tải xuống: ${doctorFolder}_batch_${currentBatchIndex}.json\n\n` +
-      `Gói ${currentBatchIndex < 10 ? currentBatchIndex + 1 : ""} đã được mở khóa để Bác sĩ tiếp tục làm việc.`
-    );
-
-    // Chuyển sang gói tiếp theo nếu có
-    if (currentBatchIndex < 10) {
-      const nextBatch = currentBatchIndex + 1;
-      setCurrentBatchIndex(nextBatch);
-      const nextBatchCases = doctorCases.slice((nextBatch - 1) * 10, nextBatch * 10);
-      if (nextBatchCases.length > 0) {
-        setSelectedCaseId(nextBatchCases[0].case_id);
+      // 3. Ghi nhận dự phòng vào API nội bộ nếu có
+      try {
+        await fetch("/api/save-batch", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            doctorFolder,
+            batchIndex: currentBatchIndex,
+            data: batchData,
+          }),
+        });
+      } catch (e) {
+        // Tự động bỏ qua nếu đang chạy ở chế độ tĩnh
       }
-    } else {
-      alert(`Chúc mừng Bác sĩ ${activeDoctor.name}! Bạn đã hoàn thành toàn bộ 10 gói (100 ca) được phân công.`);
+
+      // 4. Lưu trực tiếp lên Google Drive qua Google Apps Script Webhook
+      setSaveMessage({
+        text: `Đang lưu Gói ${currentBatchIndex} trực tiếp lên Google Drive...`,
+        isError: false,
+      });
+
+      const jsonStr = JSON.stringify(batchData, null, 2);
+      let driveUploadSuccess = false;
+      let driveMessage = "";
+
+      try {
+        const driveResult = await uploadToDrive({
+          fileName: `${doctorFolder}_batch_${currentBatchIndex}.json`,
+          content: jsonStr,
+          mimeType: "application/json",
+          folderName: "NKTT_Expert_Evaluations",
+          metadata: {
+            doctorFolder,
+            doctorId: activeDoctor.id,
+            doctorName: activeDoctor.name,
+            batchIndex: currentBatchIndex,
+            caseRange: `${batchCases[0]?.case_id} - ${batchCases[batchCases.length - 1]?.case_id}`,
+            totalCases: batchCases.length,
+            savedAt: new Date().toISOString(),
+          },
+        });
+
+        if (driveResult.ok) {
+          driveUploadSuccess = true;
+          driveMessage = driveResult.message || "Đã lưu thành công lên Google Drive.";
+        } else {
+          driveMessage = driveResult.error || "Không nhận được phản hồi xác nhận từ Google Drive.";
+        }
+      } catch (err: unknown) {
+        const errMsg = err instanceof Error ? err.message : String(err);
+        driveMessage = `Lỗi kết nối khi gửi dữ liệu lên Google Drive: ${errMsg}`;
+      }
+
+      // 5. Đánh dấu gói đã hoàn thành
+      const nextCompleted = Array.from(new Set([...completedBatches, currentBatchIndex]));
+      setCompletedBatches(nextCompleted);
+      try {
+        localStorage.setItem(`nktt_completed_batches_${activeDoctor.id}`, JSON.stringify(nextCompleted));
+      } catch {}
+
+      if (driveUploadSuccess) {
+        setSaveMessage({
+          text: `Đã lưu thành công Gói ${currentBatchIndex} (${doctorFolder}_batch_${currentBatchIndex}.json) trực tiếp lên Google Drive!`,
+          isError: false,
+        });
+
+        alert(
+          `Đã lưu thành công toàn bộ Gói ${currentBatchIndex}!\n\n` +
+          `- Tệp dữ liệu: ${doctorFolder}_batch_${currentBatchIndex}.json\n` +
+          `- Vị trí lưu trữ: Lưu trực tiếp lên Google Drive (thư mục NKTT_Expert_Evaluations).\n` +
+          `- Hoàn tất lưu trữ tự động, không tải tệp về máy tính của Bác sĩ.\n\n` +
+          `Gói ${currentBatchIndex < 10 ? currentBatchIndex + 1 : ""} đã được mở khóa để Bác sĩ tiếp tục làm việc.`
+        );
+      } else {
+        setSaveMessage({
+          text: `Gói ${currentBatchIndex} đã được ghi nhận trong phiên làm việc. Cảnh báo Drive: ${driveMessage}`,
+          isError: true,
+        });
+
+        alert(
+          `Đã ghi nhận Gói ${currentBatchIndex} trong phiên làm việc!\n\n` +
+          `Lưu ý khi gửi lên Google Drive: ${driveMessage}\n\n` +
+          `Dữ liệu thẩm định đã được lưu an toàn trong trình duyệt. Bác sĩ vẫn có thể tiếp tục làm việc bình thường.`
+        );
+      }
+
+      // Chuyển sang gói tiếp theo nếu có
+      if (currentBatchIndex < 10) {
+        const nextBatch = currentBatchIndex + 1;
+        setCurrentBatchIndex(nextBatch);
+        const nextBatchCases = doctorCases.slice((nextBatch - 1) * 10, nextBatch * 10);
+        if (nextBatchCases.length > 0) {
+          setSelectedCaseId(nextBatchCases[0].case_id);
+        }
+      } else {
+        alert(`Chúc mừng Bác sĩ ${activeDoctor.name}! Bạn đã hoàn thành toàn bộ 10 gói (100 ca) được phân công.`);
+      }
+    } finally {
+      setSaving(false);
     }
   };
 
-  // Export JSONL
-  const handleExportAnnotations = () => {
+  // Đồng bộ toàn bộ dữ liệu thẩm định lên Google Drive
+  const handleExportAnnotations = async () => {
     const stored = getStoredAnnotations();
     const values = Object.values(stored);
     if (values.length === 0) {
-      alert("Chưa có ca bệnh nào được lưu xác nhận để tải về.");
+      alert("Chưa có ca bệnh nào được lưu xác nhận.");
       return;
     }
-    const lines = values.map((v) => JSON.stringify(v)).join("\n") + "\n";
-    const blob = new Blob([lines], { type: "application/x-ndjson;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `expert_annotations_${activeDoctor?.id || "doctor"}.jsonl`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    try {
+      const res = await syncExpertAnnotationsToDrive(activeDoctor?.name || "Bác sĩ", stored);
+      if (res.ok) {
+        alert("Đã lưu trực tiếp toàn bộ dữ liệu đánh giá lên Google Drive thành công.");
+      } else {
+        alert(`Lỗi khi lưu lên Google Drive: ${res.error}`);
+      }
+    } catch {
+      alert("Lỗi kết nối khi gửi dữ liệu lên Google Drive.");
+    }
   };
 
   // Doctor selection handler from login modal -> triggers Rules Modal
@@ -1985,14 +2027,16 @@ export default function LabelDataPage() {
                 type="button"
                 className={[
                   styles.saveMainBtn,
-                  isCurrentBatchFullyConfirmed ? styles.saveMainBtnReady : styles.saveMainBtnLocked,
+                  isCurrentBatchFullyConfirmed && !saving ? styles.saveMainBtnReady : styles.saveMainBtnLocked,
                 ].join(" ")}
                 onClick={handleSaveBatch}
-                disabled={!isCurrentBatchFullyConfirmed}
+                disabled={!isCurrentBatchFullyConfirmed || saving}
                 title={
-                  !isCurrentBatchFullyConfirmed
+                  saving
+                    ? "Đang lưu gói trực tiếp lên Google Drive..."
+                    : !isCurrentBatchFullyConfirmed
                     ? `Cần xác nhận đủ 10/10 ca trong Gói ${currentBatchIndex} để mở khóa nút Lưu (Hiện tại: ${currentBatchConfirmedCount}/10 ca). Hệ thống đang tự động lưu nháp liên tục.`
-                    : `Lưu hoàn tất Gói ${currentBatchIndex} và mở khóa gói tiếp theo`
+                    : `Lưu hoàn tất Gói ${currentBatchIndex} trực tiếp lên Google Drive và mở khóa gói tiếp theo`
                 }
               >
                 <svg
@@ -2019,7 +2063,9 @@ export default function LabelDataPage() {
                   )}
                 </svg>
                 <span>
-                  {isCurrentBatchFullyConfirmed
+                  {saving
+                    ? "Đang lưu lên Drive..."
+                    : isCurrentBatchFullyConfirmed
                     ? `Lưu Gói ${currentBatchIndex}`
                     : `Lưu gói (${currentBatchConfirmedCount}/10 ca)`}
                 </span>
@@ -2113,8 +2159,9 @@ export default function LabelDataPage() {
                 type="button"
                 className={styles.batchReadyAlertBtn}
                 onClick={handleSaveBatch}
+                disabled={saving}
               >
-                Bấm Lưu Gói {currentBatchIndex} ngay
+                {saving ? "Đang lưu lên Drive..." : `Bấm Lưu Gói ${currentBatchIndex} ngay`}
               </button>
             </div>
           )}

@@ -388,41 +388,13 @@ export default function ClinicalLikertEvalView() {
     }
   };
 
-  // Export annotations as JSON or JSONL
+  // Luu truc tiep len Google Drive thay vi tai ve may
   const handleExportJson = () => {
-    const list = Object.values(evaluations);
-    if (list.length === 0) {
-      alert("Chưa có dữ liệu đánh giá nào để xuất.");
-      return;
-    }
-    const jsonStr = JSON.stringify(evaluations, null, 2);
-    const blob = new Blob([jsonStr], { type: "application/json;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `clinical_eval_${selectedDoctorId}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    handleSyncToDrive();
   };
 
   const handleExportJsonl = () => {
-    const list = Object.values(evaluations);
-    if (list.length === 0) {
-      alert("Chưa có dữ liệu đánh giá nào để xuất.");
-      return;
-    }
-    const lines = list.map((item) => JSON.stringify(item)).join("\n") + "\n";
-    const blob = new Blob([lines], { type: "application/x-ndjson;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `clinical_eval_${selectedDoctorId}.jsonl`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    handleSyncToDrive();
   };
 
   // Đồng bộ toàn bộ dữ liệu đánh giá lên Google Drive

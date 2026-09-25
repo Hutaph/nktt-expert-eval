@@ -1728,20 +1728,6 @@ export default function LabelDataPage() {
         cases: casesDetailed,
       };
 
-      // 3. Ghi nhận dự phòng vào API nội bộ nếu có
-      try {
-        await fetch("/api/save-batch", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            doctorFolder,
-            batchIndex: currentBatchIndex,
-            data: batchData,
-          }),
-        });
-      } catch (e) {
-        // Tự động bỏ qua nếu đang chạy ở chế độ tĩnh
-      }
 
       // 4. Lưu trực tiếp lên Google Drive qua Google Apps Script Webhook
       setSaveMessage({

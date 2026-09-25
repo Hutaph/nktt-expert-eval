@@ -58,12 +58,16 @@ async function runAllTests() {
     await page.waitForTimeout(600);
 
     // Kiem tra modal dang nhap xuat hien
-    const portalTitle = await page.locator("text=Cổng Thẩm định Chuyên gia ViDent").isVisible();
-    if (!portalTitle) {
-      throw new Error("Khong tim thay tieu de 'Cổng Thẩm định Chuyên gia ViDent' tren Modal.");
+    const doctorPromptVisible = await page.locator("text=Chọn Bác sĩ chuyên khoa của bạn:").isVisible();
+    if (!doctorPromptVisible) {
+      throw new Error("Khong tim thay muc 'Chọn Bác sĩ chuyên khoa của bạn:' tren Modal.");
     }
     console.log("- Da mo Modal dang nhap Bac si thanh cong.");
     passedCount++;
+
+    // Nhap chuot de tu chon Bac si 01 (khong chon san)
+    await page.locator("text=Bác sĩ Thẩm định 01").first().click();
+    await page.waitForTimeout(300);
 
     // Thu dang nhap sai mat khau
     const passwordInput = page.locator('input[type="password"]');
@@ -80,7 +84,7 @@ async function runAllTests() {
     passedCount++;
 
     // Dang nhap dung mat khau cho Bac si 01
-    await passwordInput.fill("bs01@nktt");
+    await passwordInput.fill("rangtrang38");
     await loginButton.click();
     await page.waitForTimeout(600);
 

@@ -285,7 +285,7 @@ function checkClinicalNotesQuality(
 
 const STORAGE_KEY = "nktt_expert_annotations_v5";
 const DRAFT_PREFIX = "nktt_draft_v5_";
-const DATASET_VERSION_TAG = "v5_20260924_v5clean";
+const DATASET_VERSION_TAG = "v5_20260925_refresh_current";
 
 function getAssetBase(): string {
   if (typeof window === "undefined") return "";
@@ -554,12 +554,34 @@ export default function LabelDataPage() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       try {
+        const DATA_SYNC_TAG = "20260925_refresh_current";
         const keysToRemove: string[] = [
           "nktt_expert_annotations_v5",
           "nktt_expert_annotations_v4",
           "nktt_expert_annotations_v3",
           "nktt_expert_annotations",
         ];
+
+        const currentSync = localStorage.getItem("nktt_data_sync_tag");
+        if (currentSync !== DATA_SYNC_TAG) {
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (
+              key &&
+              (key.startsWith("nktt_completed_batches_") ||
+                key.startsWith("nktt_confirmed_cases_") ||
+                key.startsWith("nktt_doctor_annotations_") ||
+                key.startsWith("nktt_draft_") ||
+                key.startsWith("nktt_expert_annotations") ||
+                key.startsWith("nktt_active_batch_"))
+            ) {
+              keysToRemove.push(key);
+            }
+          }
+          sessionStorage.removeItem("nktt_active_doctor_session");
+          localStorage.setItem("nktt_data_sync_tag", DATA_SYNC_TAG);
+        }
+
         for (let i = 0; i < localStorage.length; i++) {
           const k = localStorage.key(i);
           if (!k) continue;
@@ -608,7 +630,7 @@ export default function LabelDataPage() {
         const assetBase = getAssetBase();
         if (!cachedAllCases) {
           const res = await fetch(
-            `${assetBase}/dataset/vident_longmem_500/benchmark_cases.jsonl?v=${DATASET_VERSION_TAG}`,
+            `${assetBase}/dataset/vident_longmem_500/benchmark_cases.jsonl?v=${DATASET_VERSION_TAG}&t=${Date.now()}`,
             { cache: "no-store" }
           );
           const text = await res.text();
@@ -787,7 +809,7 @@ export default function LabelDataPage() {
         // 1. Load timelines
         if (!cachedTimelinesMap) {
           const tRes = await fetch(
-            `${assetBase}/dataset/vident_longmem_500/timelines.jsonl?v=${DATASET_VERSION_TAG}`,
+            `${assetBase}/dataset/vident_longmem_500/timelines.jsonl?v=${DATASET_VERSION_TAG}&t=${Date.now()}`,
             { cache: "no-store" }
           );
           const tText = await tRes.text();
@@ -806,7 +828,7 @@ export default function LabelDataPage() {
         // 2. Load events
         if (!cachedEventsMap) {
           const eRes = await fetch(
-            `${assetBase}/dataset/vident_longmem_500/source_events.jsonl?v=${DATASET_VERSION_TAG}`,
+            `${assetBase}/dataset/vident_longmem_500/source_events.jsonl?v=${DATASET_VERSION_TAG}&t=${Date.now()}`,
             { cache: "no-store" }
           );
           const eText = await eRes.text();

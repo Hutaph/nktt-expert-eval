@@ -79,7 +79,7 @@ async function runAllTests() {
     console.log("- Kiem tra chan mat khau sai hoat dong chinh xac.");
     passedCount++;
 
-    // Dang nhap dung mat khau cho Bac si 01 (bs01@nktt hoac 123456)
+    // Dang nhap dung mat khau cho Bac si 01
     await passwordInput.fill("bs01@nktt");
     await loginButton.click();
     await page.waitForTimeout(600);

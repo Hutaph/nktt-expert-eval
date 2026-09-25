@@ -74,7 +74,7 @@ export const DOCTORS_LIST: DoctorProfile[] = [
 ];
 
 const MASTER_PASSWORD = "nktt2026";
-const MASTER_PIN = "123456";
+
 
 interface DoctorLoginModalProps {
   isOpen: boolean;
@@ -144,8 +144,7 @@ export default function DoctorLoginModal({
 
     const isValid =
       entered === currentDoctor.password ||
-      entered === MASTER_PASSWORD ||
-      entered === MASTER_PIN;
+      entered === MASTER_PASSWORD;
 
     if (!isValid) {
       setErrorMessage("Mật khẩu không chính xác. Vui lòng kiểm tra lại.");

@@ -6,11 +6,13 @@ import styles from "./ExampleComparisonModal.module.css";
 interface ExampleComparisonModalProps {
   isOpen: boolean;
   onClose: () => void;
+  dismissText?: string;
 }
 
 export default function ExampleComparisonModal({
   isOpen,
   onClose,
+  dismissText = "Đóng cửa sổ",
 }: ExampleComparisonModalProps) {
   const [activeTab, setActiveTab] = useState<"BEFORE" | "AFTER">("BEFORE");
 
@@ -325,7 +327,7 @@ export default function ExampleComparisonModal({
             className={styles.dismissBtn}
             onClick={onClose}
           >
-            Đóng cửa sổ
+            {dismissText}
           </button>
         </div>
       </div>

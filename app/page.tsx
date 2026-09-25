@@ -1815,7 +1815,7 @@ export default function LabelDataPage() {
     setShowRulesModal(true);
   };
 
-  // Confirmation of Clinical Rules -> enters workspace
+  // Confirmation of Clinical Rules -> transitions to Example Comparison Modal
   const handleAcceptRules = () => {
     if (pendingDoctor) {
       setActiveDoctor(pendingDoctor);
@@ -1832,6 +1832,7 @@ export default function LabelDataPage() {
       } catch {}
     }
     setShowRulesModal(false);
+    setShowExampleModal(true);
   };
 
   const currentSession =
@@ -2277,7 +2278,7 @@ export default function LabelDataPage() {
                     <div className={styles.timelineHeader}>
                       <div className={styles.timelineTitleGroup}>
                         <h2 className={styles.sectionTitle}>
-                          Hồ sơ bệnh án & Diễn tiến:
+                          Lịch sử cuộc trò chuyện:
                         </h2>
                       </div>
                       <div className={styles.sessionPills}>
@@ -2614,8 +2615,12 @@ export default function LabelDataPage() {
             isOpen={showRulesModal}
             doctorName={pendingDoctor?.name || activeDoctor?.name}
             canDismiss={Boolean(activeDoctor && !pendingDoctor)}
-            onClose={() => setShowRulesModal(false)}
+            onClose={() => {
+              setShowRulesModal(false);
+              setPendingDoctor(null);
+            }}
             onAccept={handleAcceptRules}
+            acceptButtonText={pendingDoctor ? "Tiếp tục: Xem bảng ví dụ mẫu" : "Xem bảng ví dụ mẫu"}
           />
 
           {/* Quality Warning Modal for Superficial Evaluation */}
@@ -2630,7 +2635,11 @@ export default function LabelDataPage() {
           {/* Example Comparison Modal - Before and After Evaluation Tabs */}
           <ExampleComparisonModal
             isOpen={showExampleModal}
-            onClose={() => setShowExampleModal(false)}
+            onClose={() => {
+              setShowExampleModal(false);
+              setPendingDoctor(null);
+            }}
+            dismissText={pendingDoctor ? "Bắt đầu thẩm định" : "Đóng cửa sổ"}
           />
 
 

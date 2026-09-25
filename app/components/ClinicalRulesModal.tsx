@@ -9,6 +9,7 @@ interface ClinicalRulesModalProps {
   onAccept: () => void;
   onClose?: () => void;
   canDismiss?: boolean;
+  acceptButtonText?: string;
 }
 
 export default function ClinicalRulesModal({
@@ -17,6 +18,7 @@ export default function ClinicalRulesModal({
   onAccept,
   onClose,
   canDismiss = false,
+  acceptButtonText,
 }: ClinicalRulesModalProps) {
   const [agreed, setAgreed] = useState<boolean>(false);
 
@@ -166,7 +168,7 @@ export default function ClinicalRulesModal({
             disabled={!agreed}
             onClick={onAccept}
           >
-            Vào Không Gian Thẩm Định
+            {acceptButtonText || "Tiếp tục: Xem bảng ví dụ mẫu"}
           </button>
         </div>
       </div>

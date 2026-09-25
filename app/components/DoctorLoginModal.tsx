@@ -25,7 +25,7 @@ export const DOCTORS_LIST: DoctorProfile[] = [
     caseRangeLabel: "Ca 001 - 100",
     startIndex: 0,
     endIndex: 99,
-    password: "bs01@nktt",
+    password: "rangtrang38",
   },
   {
     id: "bs_2",
@@ -36,7 +36,7 @@ export const DOCTORS_LIST: DoctorProfile[] = [
     caseRangeLabel: "Ca 101 - 200",
     startIndex: 100,
     endIndex: 199,
-    password: "bs02@nktt",
+    password: "nhakhoa72",
   },
   {
     id: "bs_3",
@@ -47,7 +47,7 @@ export const DOCTORS_LIST: DoctorProfile[] = [
     caseRangeLabel: "Ca 201 - 300",
     startIndex: 200,
     endIndex: 299,
-    password: "bs03@nktt",
+    password: "chinhnha19",
   },
   {
     id: "bs_4",
@@ -58,7 +58,7 @@ export const DOCTORS_LIST: DoctorProfile[] = [
     caseRangeLabel: "Ca 301 - 400",
     startIndex: 300,
     endIndex: 399,
-    password: "bs04@nktt",
+    password: "nuourang85",
   },
   {
     id: "bs_5",
@@ -69,7 +69,7 @@ export const DOCTORS_LIST: DoctorProfile[] = [
     caseRangeLabel: "Ca 401 - 500",
     startIndex: 400,
     endIndex: 499,
-    password: "bs05@nktt",
+    password: "menrang46",
   },
 ];
 
@@ -303,7 +303,7 @@ export default function DoctorLoginModal({
             {errorMessage && <div className={styles.errorMessage}>{errorMessage}</div>}
 
             <div className={styles.passwordHint}>
-              Gợi ý mật khẩu: Mật khẩu mặc định là <code>{currentDoctor.password}</code> hoặc mã PIN phổ quát <code>123456</code> (hoặc <code>nktt2026</code>).
+              Mật khẩu được cung cấp riêng cho từng bác sĩ. Vui lòng liên hệ nhóm nghiên cứu nếu cần hỗ trợ.
             </div>
           </form>
         </div>

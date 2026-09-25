@@ -95,6 +95,9 @@ export default function DoctorLoginModal({
   const [passwordInput, setPasswordInput] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [progressMap, setProgressMap] = useState<Record<string, number>>({});
+  const [resetMode, setResetMode] = useState<boolean>(false);
+  const [resetPin, setResetPin] = useState<string>("");
+  const [resetStatus, setResetStatus] = useState<string | null>(null);
 
   // Load completed batches per doctor from localStorage
   useEffect(() => {
@@ -170,6 +173,26 @@ export default function DoctorLoginModal({
     }
 
     onSelectDoctor(currentDoctor);
+  };
+
+  const handleReset = () => {
+    if (resetPin.trim() !== MASTER_PASSWORD) {
+      setResetStatus("Sai mật khẩu quản trị.");
+      return;
+    }
+    if (typeof window === "undefined") return;
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith("nktt_")) keysToRemove.push(k);
+    }
+    keysToRemove.forEach((k) => localStorage.removeItem(k));
+    sessionStorage.removeItem("nktt_active_doctor_session");
+    setProgressMap({});
+    setResetPin("");
+    setResetMode(false);
+    setResetStatus(null);
+    window.location.reload();
   };
 
   return (
@@ -304,6 +327,90 @@ export default function DoctorLoginModal({
             <div className={styles.passwordHint}>
               Mật khẩu được cung cấp riêng cho từng bác sĩ. Vui lòng liên hệ nhóm nghiên cứu nếu cần hỗ trợ.
             </div>
+
+            {!resetMode ? (
+              <button
+                type="button"
+                onClick={() => { setResetMode(true); setResetStatus(null); setResetPin(""); }}
+                style={{
+                  marginTop: "1.2rem",
+                  background: "none",
+                  border: "none",
+                  color: "var(--color-text-muted)",
+                  fontSize: "0.72rem",
+                  cursor: "pointer",
+                  opacity: 0.45,
+                  textDecoration: "underline",
+                  padding: 0,
+                }}
+              >
+                Quản trị: Xoa du lieu thu nghiem
+              </button>
+            ) : (
+              <div style={{ marginTop: "1rem", padding: "0.85rem", background: "rgba(220,38,38,0.07)", borderRadius: "8px", border: "1px solid rgba(220,38,38,0.25)" }}>
+                <p style={{ margin: "0 0 0.5rem", fontSize: "0.82rem", color: "#dc2626", fontWeight: 600 }}>
+                  Xac nhan xoa toan bo du lieu thi nghiem?
+                </p>
+                <p style={{ margin: "0 0 0.75rem", fontSize: "0.76rem", color: "var(--color-text-muted)" }}>
+                  Hanh dong nay se xoa het annotation, tien do cua 5 bac si tren trinh duyet nay. Khong the hoan tac.
+                </p>
+                <input
+                  type="password"
+                  placeholder="Nhap mat khau quan tri de xac nhan"
+                  value={resetPin}
+                  onChange={(e) => { setResetPin(e.target.value); setResetStatus(null); }}
+                  style={{
+                    width: "100%",
+                    padding: "0.5rem 0.75rem",
+                    border: "1px solid rgba(220,38,38,0.4)",
+                    borderRadius: "6px",
+                    fontSize: "0.82rem",
+                    marginBottom: "0.6rem",
+                    background: "transparent",
+                    color: "inherit",
+                    boxSizing: "border-box",
+                  }}
+                />
+                {resetStatus && (
+                  <p style={{ margin: "0 0 0.5rem", fontSize: "0.78rem", color: "#dc2626" }}>{resetStatus}</p>
+                )}
+                <div style={{ display: "flex", gap: "0.5rem" }}>
+                  <button
+                    type="button"
+                    onClick={handleReset}
+                    style={{
+                      flex: 1,
+                      padding: "0.45rem",
+                      background: "#dc2626",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: "6px",
+                      fontSize: "0.8rem",
+                      cursor: "pointer",
+                      fontWeight: 600,
+                    }}
+                  >
+                    Xac nhan xoa sach
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setResetMode(false); setResetPin(""); setResetStatus(null); }}
+                    style={{
+                      flex: 1,
+                      padding: "0.45rem",
+                      background: "transparent",
+                      border: "1px solid var(--color-border)",
+                      borderRadius: "6px",
+                      fontSize: "0.8rem",
+                      cursor: "pointer",
+                      color: "var(--color-text-muted)",
+                    }}
+                  >
+                    Huy
+                  </button>
+                </div>
+              </div>
+            )}
           </form>
         </div>
       </div>

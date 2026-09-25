@@ -1,306 +1,441 @@
-import { chromium } from "playwright";
+﻿import { chromium } from "playwright";
+
+// -----------------------------------------------------------------------
+// Bo kiem thu toan dien NKTT Expert Eval
+// Cap nhat: Kiem tra on dinh sau khi xoa thong tin Drive khoi dialog luu goi
+// -----------------------------------------------------------------------
 
 async function runAllTests() {
   console.log("=== BAT DAU KIEM THU TOAN DIEN HE THONG (PLAYWRIGHT) ===");
   const startTime = Date.now();
   let passedCount = 0;
   let failedCount = 0;
+  const failedTests = [];
 
-  const browser = await chromium.launch({
-    headless: true,
-  });
+  function pass(label) {
+    passedCount++;
+    console.log(`  [PASS] ${label}`);
+  }
 
+  function fail(label, reason) {
+    failedCount++;
+    failedTests.push({ label, reason });
+    console.error(`  [FAIL] ${label}: ${reason}`);
+  }
+
+  const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({
     viewport: { width: 1440, height: 900 },
     acceptDownloads: true,
   });
-
   const page = await context.newPage();
 
-  // Bat su kien tai tep de dam bao tuyet doi khong co tep nao tai ve may bac si
   let downloadTriggered = false;
   let downloadedFileName = "";
   page.on("download", (download) => {
     downloadTriggered = true;
     downloadedFileName = download.suggestedFilename();
-    console.error("CANH BAO: Phat hien su kien tai tep ve may:", downloadedFileName);
+    console.error("CANH BAO NGHIEM TRONG: Phat hien su kien tai tep:", downloadedFileName);
   });
 
-  // Xu ly hop thoai alert/confirm tu dong
   const dialogMessages = [];
   page.on("dialog", async (dialog) => {
     const text = dialog.message();
     dialogMessages.push(text);
-    console.log("Hop thoai he thong:", text.replace(/\n/g, " ").slice(0, 100) + "...");
+    const preview = text.replace(/\n/g, " ").slice(0, 120);
+    console.log(`  [Dialog] "${preview}${text.length > 120 ? "..." : ""}"`);
     await dialog.accept();
   });
 
-  // Theo doi cac loi console tren trinh duyet
+  const consoleErrors = [];
   page.on("console", (msg) => {
     if (msg.type() === "error") {
-      console.warn("Loi Console:", msg.text().slice(0, 120));
+      consoleErrors.push(msg.text());
+      console.warn("  [Console Error]", msg.text().slice(0, 150));
     }
   });
 
   try {
-    // -----------------------------------------------------------------
-    // Kich ban 1: Truy cap trang va xac thuc dang nhap Bac si
-    // -----------------------------------------------------------------
-    console.log("\n[Kich ban 1] Kiem tra truy cap ung dung va xac thuc Bac si...");
+    // =========================================================
+    // KICH BAN 1: Truy cap trang va khoi tao phien sach
+    // =========================================================
+    console.log("\n[Kich ban 1] Truy cap ung dung va khoi tao phien lam viec sach...");
     await page.goto("http://localhost:3000", { waitUntil: "networkidle" });
-
-    // Xoa sach sessionStorage va localStorage de dam bao phien moi tinh
-    await page.evaluate(() => {
-      sessionStorage.clear();
-      localStorage.clear();
-    });
+    await page.evaluate(() => { sessionStorage.clear(); localStorage.clear(); });
     await page.reload({ waitUntil: "networkidle" });
     await page.waitForTimeout(600);
 
-    // Kiem tra modal dang nhap xuat hien
-    const doctorPromptVisible = await page.locator("text=Chọn Bác sĩ chuyên khoa của bạn:").isVisible();
-    if (!doctorPromptVisible) {
-      throw new Error("Khong tim thay muc 'Chọn Bác sĩ chuyên khoa của bạn:' tren Modal.");
+    const pageTitle = await page.title();
+    if (pageTitle && pageTitle.length > 0) {
+      pass(`Trang tai thanh cong (title: "${pageTitle}")`);
+    } else {
+      fail("Tieu de trang", "Trang khong co tieu de hoac tai that bai");
     }
-    console.log("- Da mo Modal dang nhap Bac si thanh cong.");
-    passedCount++;
 
-    // Nhap chuot de tu chon Bac si 01 (khong chon san)
+    const doctorPromptVisible = await page.locator("text=Chọn Bác sĩ chuyên khoa của bạn:").isVisible().catch(() => false);
+    if (doctorPromptVisible) {
+      pass("Modal dang nhap Bac si xuat hien dung quy trinh");
+    } else {
+      fail("Modal dang nhap", "Khong tim thay modal dang nhap");
+    }
+
+    // =========================================================
+    // KICH BAN 2: Bao mat - Chan sai mat khau
+    // =========================================================
+    console.log("\n[Kich ban 2] Kiem tra bao mat: chan sai mat khau...");
     await page.locator("text=Bác sĩ Thẩm định 01").first().click();
     await page.waitForTimeout(300);
 
-    // Thu dang nhap sai mat khau
     const passwordInput = page.locator('input[type="password"]');
-    await passwordInput.fill("mat_khau_sai_123");
+    await passwordInput.fill("sai_mat_khau_123");
     const loginButton = page.locator('button[type="submit"]:has-text("Vào làm việc")');
     await loginButton.click();
     await page.waitForTimeout(400);
 
     const errorVisible = await page.locator("text=Mật khẩu không chính xác").isVisible();
-    if (!errorVisible) {
-      throw new Error("He thong khong canh bao khi nhap sai mat khau.");
+    if (errorVisible) {
+      pass("He thong chan mat khau sai dung cach");
+    } else {
+      fail("Chan sai mat khau", "He thong khong hien thi thong bao loi khi nhap sai mat khau");
     }
-    console.log("- Kiem tra chan mat khau sai hoat dong chinh xac.");
-    passedCount++;
 
-    // Dang nhap dung mat khau cho Bac si 01
+    const pwValue = await passwordInput.inputValue();
+    if (pwValue.length > 0) {
+      pass("Truong mat khau giu nguyen noi dung sau khi sai (UX tot)");
+    } else {
+      fail("UX truong mat khau", "Truong mat khau bi xoa sach - anh huong trai nghiem");
+    }
+
+    // =========================================================
+    // KICH BAN 3: Dang nhap thanh cong va Onboarding
+    // =========================================================
+    console.log("\n[Kich ban 3] Dang nhap thanh cong va kiem tra Onboarding...");
     await passwordInput.fill("rangtrang38");
     await loginButton.click();
     await page.waitForTimeout(600);
 
-    // -----------------------------------------------------------------
-    // Kich ban 2: Trinh tu Onboarding - Modal Noi quy -> Modal Mau vi du
-    // -----------------------------------------------------------------
-    console.log("\n[Kich ban 2] Kiem tra quy trinh Onboarding (Noi quy va Mau vi du)...");
     const rulesModalVisible = await page.locator("text=Quy chuẩn & Cam kết Thẩm định Lâm sàng").isVisible();
-    if (!rulesModalVisible) {
-      throw new Error("Modal Noi quy khong xuat hien sau khi dang nhap thanh cong.");
+    if (rulesModalVisible) {
+      pass("Modal Quy chuan & Cam ket xuat hien sau khi dang nhap");
+    } else {
+      fail("Modal Quy chuan", "Modal Noi quy khong xuat hien sau khi dang nhap");
     }
-    console.log("- Modal Quy chuan & Cam ket lam sang xuat hien dung quy trinh.");
-    passedCount++;
 
-    // Kiem tra nut tiep tuc bi khoa khi chua tich cam ket
     const continueBtn = page.locator('button:has-text("Tiếp tục: Xem bảng ví dụ mẫu")');
-    const isBtnDisabled = await continueBtn.isDisabled();
-    if (!isBtnDisabled) {
-      throw new Error("Nut tiep tuc chua duoc vo hieu hoa khi chua tich cam ket.");
+    if (await continueBtn.isDisabled()) {
+      pass("Nut Tiep tuc bi khoa khi chua tich cam ket");
+    } else {
+      fail("Khoa nut Tiep tuc", "Nut Tiep tuc chua bi vo hieu hoa khi chua tich cam ket");
     }
 
-    // Tich cam ket noi quy
-    const agreementCheckbox = page.locator('input[type="checkbox"]');
-    await agreementCheckbox.check();
+    await page.locator('input[type="checkbox"]').check();
     await page.waitForTimeout(200);
-
-    const isBtnEnabled = !(await continueBtn.isDisabled());
-    if (!isBtnEnabled) {
-      throw new Error("Nut tiep tuc van bi khoa sau khi da tich cam ket.");
+    if (!(await continueBtn.isDisabled())) {
+      pass("Nut Tiep tuc mo khoa ngay sau khi tich cam ket");
+    } else {
+      fail("Mo khoa nut Tiep tuc", "Nut Tiep tuc van bi khoa sau khi da tich cam ket");
     }
     await continueBtn.click();
     await page.waitForTimeout(600);
-    console.log("- Cam ket noi quy hoat dong chinh xac, da chuyen sang Modal Vi du.");
-    passedCount++;
 
-    // Kiem tra Modal Mau vi du doi chieu
+    // =========================================================
+    // KICH BAN 4: Modal Vi du doi chieu
+    // =========================================================
+    console.log("\n[Kich ban 4] Kiem tra Modal Vi du doi chieu...");
     const exampleModalVisible = await page.locator("text=Bảng Mẫu Đối Chiếu: Trước & Sau Khi Hiệu Chỉnh").isVisible();
-    if (!exampleModalVisible) {
-      throw new Error("Modal Mau vi du doi chieu khong xuat hien sau Modal Noi quy.");
+    if (exampleModalVisible) {
+      pass("Modal Vi du doi chieu xuat hien dung thu tu");
+    } else {
+      fail("Modal Vi du", "Modal Vi du doi chieu khong xuat hien");
     }
-    console.log("- Modal Mau vi du doi chieu xuat hien dung thu tu.");
-    passedCount++;
 
-    // Kiem tra chuyen doi tab trong Modal Vi du
     const tabAfterBtn = page.locator('button:has-text("Tab 2: Sau khi Bác sĩ hiệu chỉnh")');
     if (await tabAfterBtn.isVisible()) {
       await tabAfterBtn.click();
       await page.waitForTimeout(300);
-      const afterContentVisible = await page.locator("text=Quy chuẩn sau khi Bác sĩ hiệu chỉnh").isVisible();
-      if (!afterContentVisible) {
-        throw new Error("Chuyen tab sang 'Sau khi hieu chinh' khong hien thi dung noi dung.");
+      if (await page.locator("text=Quy chuẩn sau khi Bác sĩ hiệu chỉnh").isVisible()) {
+        pass("Chuyen doi Tab 2 trong Modal Vi du hien thi dung noi dung");
+      } else {
+        fail("Tab Vi du", "Chuyen sang Tab 2 nhung noi dung khong hien thi dung");
       }
-      console.log("- Tinh nang chuyen doi tab Mau vi du hoat dong tot.");
-      passedCount++;
+    } else {
+      fail("Tab Vi du", "Nut Tab 2 khong tim thay trong Modal Vi du");
     }
 
-    // Dong Modal Vi du bang nut "Bat dau tham dinh" de vao ban lam viec
-    const startWorkBtn = page.locator('button:has-text("Bắt đầu thẩm định")');
-    await startWorkBtn.click();
+    await page.locator('button:has-text("Bắt đầu thẩm định")').click();
     await page.waitForTimeout(800);
 
-    // -----------------------------------------------------------------
-    // Kich ban 3: Kiem tra giao dien Ban lam viec chinh
-    // -----------------------------------------------------------------
-    console.log("\n[Kich ban 3] Kiem tra giao dien Ban lam viec chinh...");
-    const doctorBadgeVisible = await page.locator("text=Bác sĩ Thẩm định 01").first().isVisible();
-    if (!doctorBadgeVisible) {
-      throw new Error("Khong tim thay thong tin Bac si tren thanh tieu de.");
+    // =========================================================
+    // KICH BAN 5: Giao dien Ban lam viec chinh
+    // =========================================================
+    console.log("\n[Kich ban 5] Kiem tra giao dien Ban lam viec chinh...");
+    if (await page.locator("text=Bác sĩ Thẩm định 01").first().isVisible()) {
+      pass("Thong tin Bac si hien thi chinh xac tren giao dien chinh");
+    } else {
+      fail("Thong tin Bac si", "Khong tim thay ten Bac si tren giao dien chinh");
     }
-    console.log("- Thong tin Bac si dang hoat dong hien thi chinh xac.");
-    passedCount++;
 
-    // Kiem tra tieu de "Lich su cuoc tro chuyen:"
-    const conversationHistoryHeading = await page.locator("text=Lịch sử cuộc trò chuyện:").isVisible();
-    if (!conversationHistoryHeading) {
-      throw new Error("Tieu de 'Lich su cuoc tro chuyen:' khong hien thi dung nhu yeu cau.");
+    if (await page.locator("text=Lịch sử cuộc trò chuyện:").isVisible()) {
+      pass("Tieu de 'Lich su cuoc tro chuyen:' hien thi chinh xac");
+    } else {
+      fail("Tieu de Lich su", "Khong tim thay 'Lich su cuoc tro chuyen:'");
     }
-    console.log("- Tieu de 'Lich su cuoc tro chuyen:' hien thi chuan xac.");
-    passedCount++;
 
-    // Kiem tra o ghi chu "Ghi chu bo sung (tuy chon)"
-    const optionalNotesHeading = await page.locator("text=Ghi chú bổ sung (tùy chọn)").isVisible();
-    if (!optionalNotesHeading) {
-      throw new Error("Nhan 'Ghi chu bo sung (tuy chon)' khong hien thi dung.");
+    if (await page.locator("text=Ghi chú bổ sung (tùy chọn)").isVisible()) {
+      pass("Nhan 'Ghi chu bo sung (tuy chon)' hien thi dung");
+    } else {
+      fail("Nhan Ghi chu", "Khong tim thay nhan 'Ghi chu bo sung (tuy chon)'");
     }
-    console.log("- O ghi chu bo sung la tuy chon, dung yeu cau.");
-    passedCount++;
 
-    // Kiem tra 3 nut verdict cu da bi xoa bo hoan toan
-    const oldVerdictBtn1 = await page.locator('button:has-text("Đạt chuẩn lâm sàng")').count();
-    const oldVerdictBtn2 = await page.locator('button:has-text("Cần hiệu chỉnh câu từ")').count();
-    const oldVerdictBtn3 = await page.locator('button:has-text("Cần lưu ý thêm")').count();
-    if (oldVerdictBtn1 > 0 || oldVerdictBtn2 > 0 || oldVerdictBtn3 > 0) {
-      throw new Error("3 nut nhan verdict thu cong van con ton tai tren giao dien.");
+    const v1 = await page.locator('button:has-text("Đạt chuẩn lâm sàng")').count();
+    const v2 = await page.locator('button:has-text("Cần hiệu chỉnh câu từ")').count();
+    const v3 = await page.locator('button:has-text("Cần lưu ý thêm")').count();
+    if (v1 === 0 && v2 === 0 && v3 === 0) {
+      pass("Cac nut verdict thu cong da duoc loai bo triet de");
+    } else {
+      fail("Loai bo nut verdict", "Van con nut verdict thu cong ton tai");
     }
-    console.log("- Da xac nhan 3 nut verdict thu cong da duoc loai bo triet de.");
-    passedCount++;
 
-    // -----------------------------------------------------------------
-    // Kich ban 4: Kiem tra tu dong nhan dien verdict khi hieu chinh
-    // -----------------------------------------------------------------
-    console.log("\n[Kich ban 4] Kiem tra tu dong nhan dien verdict khi hieu chinh...");
-    const queryTextarea = page.locator('textarea[title*="Nội dung câu hỏi của người hỏi"]').first();
-    if (await queryTextarea.isVisible()) {
-      const origValue = await queryTextarea.inputValue();
-      await queryTextarea.fill(origValue + " (chuẩn y khoa)");
+    // =========================================================
+    // KICH BAN 6: Thanh phan Likert va nhap lieu
+    // =========================================================
+    console.log("\n[Kich ban 6] Kiem tra thanh phan Likert va nhap lieu...");
+    // ClinicalLikertEvalView la component rieng biet (chua tich hop vao giao dien chinh)
+    // Kiem tra giao dien xem danh gia cua ca benh dang co nhung truong nhap lieu gi
+    await page.waitForTimeout(500);
+
+    // Kiem tra cac thanh phan nhap lieu chinh: textarea hieu chinh, input tim kiem
+    const textareaCount = await page.locator('textarea').count();
+    const inputCount = await page.locator('input[type="text"]').count();
+    const confirmBtn = page.locator('button[title*="Xác nhận thẩm định ca này"]');
+    if (textareaCount > 0) {
+      pass(`Giao dien hieu chinh co ${textareaCount} truong textarea san sang de nhap lieu`);
+    } else if (inputCount > 0) {
+      pass(`Giao dien hieu chinh co ${inputCount} truong input san sang de nhap lieu`);
+    } else {
+      fail("Truong nhap lieu hieu chinh", "Khong tim thay bat ky truong nhap lieu nao tren giao dien ca benh");
+    }
+
+    // Kiem tra nut xac nhan ca benh hien thi
+    if (await confirmBtn.isVisible()) {
+      pass("Nut xac nhan tham dinh ca benh hien thi san sang");
+    } else {
+      fail("Nut xac nhan ca", "Khong tim thay nut xac nhan tham dinh ca benh");
+    }
+
+    const queryTA = page.locator('textarea[title*="Nội dung câu hỏi của người hỏi"]').first();
+    if (await queryTA.isVisible()) {
+      const origVal = await queryTA.inputValue();
+      await queryTA.fill(origVal + " (chuẩn y khoa)");
       await page.waitForTimeout(300);
-      console.log("- Da hieu chinh cau hoi benh nhan.");
-    }
-
-    const notesTextarea = page.locator('textarea[placeholder*="Ghi chú thêm"]').first();
-    if (await notesTextarea.isVisible()) {
-      await notesTextarea.fill("Lưu ý chuyên môn: đã chuẩn hóa thuật ngữ răng hàm mặt.");
-      console.log("- Da nhap ghi chu bo sung tuy chon.");
-    }
-    passedCount++;
-
-    // -----------------------------------------------------------------
-    // Kich ban 5: Xac nhan du 10 ca trong Goi 1
-    // -----------------------------------------------------------------
-    console.log("\n[Kich ban 5] Tien hanh xac nhan du 10/10 ca trong Goi 1...");
-    for (let i = 1; i <= 10; i++) {
-      const confirmCaseBtn = page.locator('button[title*="Xác nhận thẩm định ca này"]');
-      if (await confirmCaseBtn.isVisible()) {
-        await confirmCaseBtn.click();
-        await page.waitForTimeout(400);
-        console.log(`- Da xac nhan Ca ${i}/10.`);
+      if ((await queryTA.inputValue()).includes("chuẩn y khoa")) {
+        pass("Nhap lieu hieu chinh cau hoi benh nhan thanh cong");
       } else {
-        throw new Error(`Khong tim thay nut xac nhan tai ca thu ${i}.`);
+        fail("Nhap lieu Textarea", "Gia tri textarea khong cap nhat sau khi nhap");
       }
     }
 
-    // Kiem tra thong bao hoan tat 10/10 ca
-    const batchReadyBanner = await page.locator("text=Gói 1 đã hoàn tất 10/10 ca").isVisible();
-    if (!batchReadyBanner) {
-      throw new Error("Khong hien thi thong bao Goi 1 da hoan tat 10/10 ca.");
+    const notesTA = page.locator('textarea[placeholder*="Ghi chú thêm"]').first();
+    if (await notesTA.isVisible()) {
+      const testNote = "Kiem thu: chuan hoa thuat ngu rang ham mat.";
+      await notesTA.fill(testNote);
+      await page.waitForTimeout(200);
+      if ((await notesTA.inputValue()) === testNote) {
+        pass("O ghi chu bo sung nhan va luu noi dung dung");
+      } else {
+        fail("Ghi chu bo sung", "Noi dung ghi chu khong duoc luu dung");
+      }
     }
-    console.log("- Thong bao hoan tat 10/10 ca xuat hien chuan xac.");
-    passedCount++;
 
-    // -----------------------------------------------------------------
-    // Kich ban 6: Luu Goi 1 - Kiem tra luu truc tiep Google Drive & KHONG tai tep ve may
-    // -----------------------------------------------------------------
-    console.log("\n[Kich ban 6] Kiem tra Luu Goi 1: Truc tiep Google Drive & TUYET DOI KHONG tai ve may...");
+    // =========================================================
+    // KICH BAN 7: Xac nhan 10/10 ca trong Goi 1
+    // =========================================================
+    console.log("\n[Kich ban 7] Tien hanh xac nhan du 10/10 ca trong Goi 1...");
+    let confirmedCases = 0;
+    for (let i = 1; i <= 10; i++) {
+      const btn = page.locator('button[title*="Xác nhận thẩm định ca này"]');
+      if (await btn.isVisible()) {
+        await btn.click();
+        await page.waitForTimeout(400);
+        confirmedCases++;
+      } else {
+        fail(`Xac nhan Ca ${i}/10`, `Khong tim thay nut xac nhan tai ca thu ${i}`);
+        break;
+      }
+    }
+    if (confirmedCases === 10) {
+      pass("Da xac nhan thanh cong ca 10/10 ca benh trong Goi 1");
+    }
 
-    // Dat lai co kiem tra tai tep
-    downloadTriggered = false;
-
-    // Bam nut Luu Goi 1 tren thanh tieu de hoac banner
-    const saveBatchBtn = page.locator('button:has-text("Bấm Lưu Gói 1 ngay")');
-    if (await saveBatchBtn.isVisible()) {
-      await saveBatchBtn.click();
+    if (await page.locator("text=Gói 1 đã hoàn tất 10/10 ca").isVisible()) {
+      pass("Banner thong bao hoan tat 10/10 ca hien thi chinh xac");
     } else {
-      const topSaveBtn = page.locator('button:has-text("Lưu Gói 1")');
-      await topSaveBtn.click();
+      fail("Banner hoan tat Goi 1", "Khong hien thi banner 'Goi 1 da hoan tat 10/10 ca'");
     }
 
-    // Cho qua trinh luu Drive hoan tat (Google Apps Script tra ve phan hoi)
+    // =========================================================
+    // KICH BAN 8: Luu Goi 1 - Thong bao SACH & KHONG tai tep
+    // =========================================================
+    console.log("\n[Kich ban 8] Luu Goi 1: Thong bao sach & TUYET DOI KHONG tai tep ve may...");
+    downloadTriggered = false;
+    const dialogCountBefore = dialogMessages.length;
+
+    const saveBtn1 = page.locator('button:has-text("Bấm Lưu Gói 1 ngay")');
+    const saveBtn2 = page.locator('button:has-text("Lưu Gói 1")');
+    if (await saveBtn1.isVisible()) {
+      await saveBtn1.click();
+    } else if (await saveBtn2.isVisible()) {
+      await saveBtn2.click();
+    } else {
+      fail("Nut Luu Goi 1", "Khong tim thay nut luu Goi 1");
+    }
+
     await page.waitForTimeout(4000);
 
-    // Kiem tra tuyet doi KHONG co su kien download
-    if (downloadTriggered) {
-      throw new Error(`VI PHAM: Phat hien tep bi tai ve may bac si: ${downloadedFileName}`);
-    }
-    console.log("- Xac nhan tuyet doi: Khong co bat ky tep nao bi tai ve may bac si!");
-    passedCount++;
-
-    // Kiem tra thong bao xac nhan da luu Google Drive trong dialogMessages
-    const hasDriveMention = dialogMessages.some((msg) =>
-      msg.includes("Google Drive") || msg.includes("NKTT_Expert_Evaluations") || msg.includes("Gói 1")
-    );
-    if (!hasDriveMention) {
-      console.warn("Luu y: Dialog khong chua thong tin Drive hoac du lieu dang duoc ghi nhan.");
+    if (!downloadTriggered) {
+      pass("Tuyet doi xac nhan: KHONG co tep nao bi tai ve may bac si");
     } else {
-      console.log("- Thong bao xac nhan da luu truc tiep len Google Drive thanh cong.");
-      passedCount++;
+      fail("Kiem soat download", `VI PHAM: Tep bi tai ve may: ${downloadedFileName}`);
     }
 
-    // Kiem tra Goi 2 da duoc mo khoa
-    await page.waitForTimeout(1000);
+    // Cho them 2 giay de dam bao tat ca dialog da duoc xu ly
+    await page.waitForTimeout(2000);
+    const allDialogsSoFar = dialogMessages.slice(dialogCountBefore);
+
+    // Tim dialog lien quan den luu goi (co the la thanh cong hoac loi Drive)
+    const saveRelatedDialogs = allDialogsSoFar.filter(
+      (d) => d.includes("Gói 1") || d.includes("ghi nhận") || d.includes("thành công") || d.includes("Google Drive")
+    );
+
+    if (saveRelatedDialogs.length > 0) {
+      const dlg = saveRelatedDialogs[0];
+
+      // Kiem tra dialog KHONG chua thong tin thu muc NKTT_Expert_Evaluations hoac Tep du lieu
+      const hasNoFolderInfo =
+        !dlg.includes("NKTT_Expert_Evaluations") &&
+        !dlg.includes("Tệp dữ liệu:") &&
+        !dlg.includes("Vị trí lưu trữ:");
+      if (hasNoFolderInfo) {
+        pass("Thong bao luu Goi SACH: Khong chua thong tin thu muc/tep cu (dung yeu cau)");
+      } else {
+        fail("Noi dung thong bao luu", "Thong bao van con chua thong tin thu muc/tep da yeu cau xoa");
+      }
+
+      const hasBasicInfo = dlg.includes("Gói 1") || dlg.includes("thành công") || dlg.includes("ghi nhận");
+      if (hasBasicInfo) {
+        pass("Thong bao luu Goi chua du thong tin co ban");
+      } else {
+        fail("Thong tin co ban dialog", "Thong bao luu Goi thieu thong tin co ban");
+      }
+    } else {
+      fail("Dialog luu Goi", `Khong co hop thoai xac nhan sau khi luu Goi 1. Tong so dialog trong phien: ${allDialogsSoFar.length}`);
+    }
+
+    // =========================================================
+    // KICH BAN 9: Goi 2 duoc mo khoa
+    // =========================================================
+    console.log("\n[Kich ban 9] Kiem tra Goi 2 duoc mo khoa sau khi luu Goi 1...");
+    // Cho React cap nhat state sau khi luu
+    await page.waitForTimeout(2500);
     const batch2Btn = page.locator('button:has-text("Gói 2")');
-    const isBatch2Visible = await batch2Btn.isVisible();
-    if (!isBatch2Visible) {
-      throw new Error("Nut Goi 2 khong hien thi sau khi luu Goi 1.");
+    if (await batch2Btn.isVisible()) {
+      pass("Nut Goi 2 hien thi sau khi luu Goi 1");
+      const isDisabled = await batch2Btn.isDisabled();
+      if (!isDisabled) {
+        pass("Goi 2 da duoc mo khoa, Bac si co the tiep tuc");
+      } else {
+        // Nut bi disabled: Kiem tra xem Drive co thanh cong khong (neu Drive that bai, goi van duoc mo khoa theo code)
+        // Kiem tra nut Goi 2 trong truong hop state chua cap nhat (doi them)
+        await page.waitForTimeout(1500);
+        const isDisabled2 = await batch2Btn.isDisabled();
+        if (!isDisabled2) {
+          pass("Goi 2 duoc mo khoa sau khi doi them thoi gian React re-render");
+        } else {
+          fail("Mo khoa Goi 2", "Nut Goi 2 van bi vo hieu hoa sau 4 giay - co the completedBatches chua cap nhat");
+        }
+      }
+    } else {
+      fail("Nut Goi 2", "Nut Goi 2 khong hien thi sau khi luu Goi 1");
     }
-    console.log("- Goi 2 da duoc mo khoa thanh cong de Bac si tiep tuc lam viec.");
-    passedCount++;
 
-    // -----------------------------------------------------------------
-    // Kich ban 7: Kiem tra duy tri trang thai phien lam viec
-    // -----------------------------------------------------------------
-    console.log("\n[Kich ban 7] Kiem tra duy tri trang thai khi lam moi trang (Reload)...");
+    // =========================================================
+    // KICH BAN 10: Chuyen sang Goi 2
+    // =========================================================
+    console.log("\n[Kich ban 10] Chuyen sang Goi 2 va kiem tra trang thai...");
+    const b2Btn = page.locator('button:has-text("Gói 2")');
+    if (await b2Btn.isVisible() && !(await b2Btn.isDisabled())) {
+      await b2Btn.click();
+      await page.waitForTimeout(600);
+      if (await page.locator("text=Gói 2").first().isVisible()) {
+        pass("Giao dien chuyen sang Goi 2 thanh cong");
+      } else {
+        fail("Chuyen sang Goi 2", "Giao dien khong phan anh Goi 2 sau khi bam");
+      }
+      if (await page.locator('button[title*="Xác nhận thẩm định ca này"]').isVisible()) {
+        pass("Nut xac nhan ca san sang cho Goi 2");
+      } else {
+        fail("Nut xac nhan Goi 2", "Khong tim thay nut xac nhan cho Goi 2");
+      }
+    }
+
+    // =========================================================
+    // KICH BAN 11: Duy tri phien khi Reload
+    // =========================================================
+    console.log("\n[Kich ban 11] Kiem tra duy tri phien lam viec khi tai lai trang...");
     await page.reload({ waitUntil: "networkidle" });
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(1200);
 
-    const docStillVisible = await page.locator("text=Bác sĩ Thẩm định 01").first().isVisible();
-    if (docStillVisible) {
-      console.log("- Phien lam viec cua Bac si duoc bao toan chinh xac sau khi tai lai trang.");
-      passedCount++;
+    if (await page.locator("text=Bác sĩ Thẩm định 01").first().isVisible()) {
+      pass("Phien lam viec Bac si duoc bao toan sau khi tai lai trang");
+    } else {
+      fail("Bao toan phien", "Mat phien lam viec sau khi tai lai trang");
     }
 
-    console.log("\n================ KET QUA KIEM THU ================");
-    console.log(`Tong so bai kiem thu: ${passedCount + failedCount}`);
-    console.log(`Thanh cong (PASSED): ${passedCount}`);
-    console.log(`That bai (FAILED): ${failedCount}`);
-    console.log(`Thoi gian thuc hien: ${((Date.now() - startTime) / 1000).toFixed(2)} giay`);
-    console.log("==================================================");
-
-    if (failedCount > 0) {
-      process.exit(1);
+    const savedKeys = await page.evaluate(() =>
+      Object.keys(localStorage).filter((k) => k.includes("batch") || k.includes("goi") || k.includes("annotation"))
+    );
+    if (savedKeys.length > 0) {
+      pass(`Du lieu tham dinh duoc bao toan trong localStorage (${savedKeys.length} muc)`);
+    } else {
+      fail("Bao toan localStorage", "Khong tim thay du lieu tham dinh sau reload");
     }
+
+    // =========================================================
+    // KICH BAN 12: Kiem tra tong the loi console
+    // =========================================================
+    console.log("\n[Kich ban 12] Danh gia tong the loi console...");
+    const critErrors = consoleErrors.filter(
+      (e) => !e.includes("favicon") && !e.includes("net::ERR_") && !e.includes("Failed to load resource") && e.length > 0
+    );
+    if (critErrors.length === 0) {
+      pass("Khong co loi console nghiem trong trong suot phien kiem thu");
+    } else {
+      fail("Loi Console", `Co ${critErrors.length} loi: ${critErrors[0].slice(0, 100)}`);
+    }
+
+    // =========================================================
+    // KET QUA TONG HOP
+    // =========================================================
+    const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
+    console.log("\n================== KET QUA KIEM THU ==================");
+    console.log(`Tong so bai kiem thu : ${passedCount + failedCount}`);
+    console.log(`Thanh cong  (PASSED) : ${passedCount}`);
+    console.log(`That bai    (FAILED) : ${failedCount}`);
+    console.log(`Thoi gian            : ${elapsed} giay`);
+    if (failedTests.length > 0) {
+      console.log("\nDanh sach cac kiem thu THAT BAI:");
+      failedTests.forEach((t, idx) => {
+        console.log(`  ${idx + 1}. [${t.label}] - Ly do: ${t.reason}`);
+      });
+    }
+    console.log("=======================================================\n");
+    if (failedCount > 0) process.exit(1);
+
   } catch (error) {
-    console.error("\nLOI TRONG QUA TRINH KIEM THU:", error);
+    console.error("\nLOI NGHIEM TRONG TRONG QUA TRINH KIEM THU:", error.message || error);
     try {
-      await page.screenshot({ path: "test-failure.png", fullPage: true });
-      console.log("Da luu anh chup man hinh loi tai: test-failure.png");
+      await page.screenshot({ path: "tests/test-failure.png", fullPage: true });
+      console.log("Da luu anh chup man hinh loi tai: tests/test-failure.png");
     } catch {}
     process.exit(1);
   } finally {
@@ -309,3 +444,5 @@ async function runAllTests() {
 }
 
 runAllTests();
+
+

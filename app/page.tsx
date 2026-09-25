@@ -554,7 +554,7 @@ export default function LabelDataPage() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       try {
-        const DATA_SYNC_TAG = "20260925_refresh_current";
+        const DATA_SYNC_TAG = "20260926_production_launch";
         const keysToRemove: string[] = [
           "nktt_expert_annotations_v5",
           "nktt_expert_annotations_v4",
@@ -1798,15 +1798,12 @@ export default function LabelDataPage() {
 
       if (driveUploadSuccess) {
         setSaveMessage({
-          text: `Đã lưu thành công Gói ${currentBatchIndex} (${doctorFolder}_batch_${currentBatchIndex}.json) trực tiếp lên Google Drive!`,
+          text: `Đã lưu thành công Gói ${currentBatchIndex}!`,
           isError: false,
         });
 
         alert(
           `Đã lưu thành công toàn bộ Gói ${currentBatchIndex}!\n\n` +
-          `- Tệp dữ liệu: ${doctorFolder}_batch_${currentBatchIndex}.json\n` +
-          `- Vị trí lưu trữ: Lưu trực tiếp lên Google Drive (thư mục NKTT_Expert_Evaluations).\n` +
-          `- Hoàn tất lưu trữ tự động, không tải tệp về máy tính của Bác sĩ.\n\n` +
           `Gói ${currentBatchIndex < 10 ? currentBatchIndex + 1 : ""} đã được mở khóa để Bác sĩ tiếp tục làm việc.`
         );
       } else {

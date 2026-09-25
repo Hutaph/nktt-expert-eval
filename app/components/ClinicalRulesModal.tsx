@@ -69,7 +69,7 @@ export default function ClinicalRulesModal({
         {/* Content Body */}
         <div className={styles.rulesBody}>
           <div className={styles.rulesNoticeBox}>
-            <strong>Kính gửi Bác sĩ {doctorName || "chuyên khoa"}:</strong> Nhiệm vụ của Bác sĩ là đọc từng ca hội thoại giữa bệnh nhân và hệ thống AI nha khoa, sau đó đánh giá chất lượng tư vấn và biên tập lại (nếu cần) theo đúng chuẩn mực lâm sàng Răng Hàm Mặt. Đề nghị Bác sĩ thực hiện nghiêm túc 5 nguyên tắc dưới đây trước khi bắt đầu:
+            <strong>Kính gửi Bác sĩ {doctorName || "chuyên khoa"}:</strong> Nhiệm vụ của Bác sĩ là thẩm định tính đúng sai của lượt thoại AI và biên tập lại câu trả lời theo các nguyên tắc ngắn gọn dưới đây:
           </div>
 
           <div className={styles.rulesList}>
@@ -78,10 +78,10 @@ export default function ClinicalRulesModal({
               <div className={styles.ruleBadge}>Nguyên tắc 1</div>
               <div className={styles.ruleContent}>
                 <h4 className={styles.ruleHeading}>
-                  Phát Hiện &amp; Chấn Chỉnh Sai Sót An Toàn Lâm Sàng
+                  Thẩm Định Kiến Thức &amp; An Toàn Lâm Sàng Ở Thời Điểm Hiện Tại
                 </h4>
                 <p className={styles.ruleDesc}>
-                  Bác sĩ phải xác định và sửa triệt để mọi nội dung AI tư vấn sai về mặt y khoa: khuyến cáo dùng thuốc kháng sinh hoặc giảm đau liều cao mà không có chỉ định khám trực tiếp; xem nhẹ dấu hiệu cấp cứu hàm mặt; hoặc hướng dẫn kỹ thuật sai gây nguy hiểm cho bệnh nhân (ví dụ: dùng chlorhexidine thay thế hoàn toàn bàn chải răng; dùng chỉ thường không có đầu luồn khi đang mang mắc cài). Trường hợp phát hiện sai sót nghiêm trọng, Bác sĩ viết lại câu trả lời đúng chuẩn, không để nguyên bản thô.
+                  Đánh giá tính chính xác y khoa ngay trong lượt thoại hiện tại. Sửa triệt để các tư vấn sai hoặc nguy hiểm (tự ý chỉ định kháng sinh, giảm đau liều cao, hoặc hướng dẫn sai kỹ thuật chăm sóc).
                 </p>
               </div>
             </div>
@@ -91,10 +91,10 @@ export default function ClinicalRulesModal({
               <div className={styles.ruleBadge}>Nguyên tắc 2</div>
               <div className={styles.ruleContent}>
                 <h4 className={styles.ruleHeading}>
-                  Đọc Toàn Bộ Dòng Thời Gian Trước Khi Thẩm Định
+                  Thẩm Định Ngữ Nghĩa Ở Thời Điểm Hiện Tại
                 </h4>
                 <p className={styles.ruleDesc}>
-                  Trước khi thẩm định từng lượt thoại, Bác sĩ bắt buộc xem lại toàn bộ lịch sử các lần khám trước trong dòng thời gian của ca bệnh. Phải phân biệt chính xác tiền sử đang còn hiệu lực (ví dụ: đang mang mắc cài, đang dùng hàm duy trì cố định, dị ứng vật liệu nha khoa) với các thủ thuật đã hoàn tất (đã tháo niềng, răng khôn đã nhổ lành hẳn). Không thẩm định dựa trên một lượt thoại riêng lẻ mà bỏ qua bối cảnh lâm sàng xuyên suốt của bệnh nhân.
+                  Kiểm tra câu trả lời có giải quyết đúng thắc mắc của bệnh nhân hay không. Chỉ cần thẩm định ngữ nghĩa và kiến thức tại thời điểm hiện tại, không cần đọc toàn bộ dòng thời gian của ca bệnh.
                 </p>
               </div>
             </div>
@@ -104,10 +104,10 @@ export default function ClinicalRulesModal({
               <div className={styles.ruleBadge}>Nguyên tắc 3</div>
               <div className={styles.ruleContent}>
                 <h4 className={styles.ruleHeading}>
-                  Trau Chuốt Câu Từ Tự Nhiên, Không Thay Đổi Bản Chất Lâm Sàng
+                  Giữ Nguyên Ý Nghĩa Của Câu &amp; Cuộc Trò Chuyện
                 </h4>
                 <p className={styles.ruleDesc}>
-                  Khi biên tập câu hỏi của bệnh nhân hoặc câu trả lời của AI, Bác sĩ chỉ chỉnh sửa câu từ cho trôi chảy, tự nhiên và chuẩn xác thuật ngữ Răng Hàm Mặt. Tuyệt đối không tự ý đổi bản chất bệnh lý, đảo ngược tình trạng lâm sàng hoặc thêm bớt triệu chứng không có trong ngữ cảnh gốc. Ví dụ: không được đổi “đang đeo hàm duy trì” thành “đã tháo hoàn toàn”; không thêm triệu chứng đau khu trú vào ca bệnh vốn chỉ hỏi về vệ sinh răng miệng thông thường.
+                  Tuyệt đối không thay đổi ý định của bệnh nhân, không đảo ngược tình huống lâm sàng hay thêm bớt triệu chứng bệnh lý mới làm lệch bối cảnh gốc.
                 </p>
               </div>
             </div>
@@ -117,10 +117,10 @@ export default function ClinicalRulesModal({
               <div className={styles.ruleBadge}>Nguyên tắc 4</div>
               <div className={styles.ruleContent}>
                 <h4 className={styles.ruleHeading}>
-                  Ghi Chú Chuyên Môn Rõ Ràng Cho Từng Ca
+                  Ngôn Ngữ Tự Nhiên &amp; Chuẩn Xác Thuật Ngữ
                 </h4>
                 <p className={styles.ruleDesc}>
-                  Sau mỗi ca thẩm định, Bác sĩ bắt buộc điền ghi chú chuyên môn tối thiểu 20 ký tự, nêu cụ thể lý do chuẩn y (ví dụ: &ldquo;Câu trả lời đủ chỉ dẫn kỹ thuật, an toàn lâm sàng&rdquo;) hoặc mô tả điểm đã chỉnh sửa (ví dụ: &ldquo;Sửa chỉ định chlorhexidine: chỉ dùng ngắn hạn khi có chỉ định, không thay thế bàn chải&rdquo;). Ghi chú sao chép lặp lại hoặc để trống sẽ bị hệ thống từ chối lưu.
+                  Biên tập câu từ trôi chảy, tự nhiên, chuẩn thuật ngữ Răng Hàm Mặt và dễ hiểu với người bệnh; tránh văn phong cứng nhắc, máy móc.
                 </p>
               </div>
             </div>
@@ -130,10 +130,10 @@ export default function ClinicalRulesModal({
               <div className={styles.ruleBadge}>Nguyên tắc 5</div>
               <div className={styles.ruleContent}>
                 <h4 className={styles.ruleHeading}>
-                  Hoàn Thành Đủ 10 Ca/Gói, Lưu Trước Khi Chuyển Gói Tiếp Theo
+                  Ghi Chú Ngắn Gọn &amp; Hoàn Thành Đủ 10 Ca/Gói
                 </h4>
                 <p className={styles.ruleDesc}>
-                  Mỗi gói thẩm định gồm 10 ca liên tiếp. Bác sĩ phải hoàn thành và kiểm tra lại toàn bộ 10 ca trong gói hiện tại, sau đó nhấn nút Xác nhận &amp; Lưu Gói để đồng bộ lên hệ thống. Chỉ khi gói hiện tại được lưu thành công, gói kế tiếp mới được mở khóa. Không bỏ qua ca, không chuyển gói khi chưa lưu đầy đủ.
+                  Ghi chú ngắn gọn lý do duyệt hoặc nội dung đã chỉnh sửa (tối thiểu 20 ký tự). Hoàn thành đủ 10 ca và nhấn nút Lưu Gói để mở gói tiếp theo.
                 </p>
               </div>
             </div>

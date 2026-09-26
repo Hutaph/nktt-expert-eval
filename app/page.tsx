@@ -494,6 +494,14 @@ export default function LabelDataPage() {
   // Query editing toggle
   const [isEditingQuery, setIsEditingQuery] = useState<boolean>(false);
 
+  // Trạng thái bật chế độ sửa cho từng lượt thoại (nút x mở sửa, nút v bỏ qua/chuẩn rồi)
+  const [editingTurnIds, setEditingTurnIds] = useState<Record<string, boolean>>({});
+
+  // Độ rộng và trạng thái mở rộng của cột bên phải
+  const [rightWidth, setRightWidth] = useState<number>(390);
+  const [isRightExtended, setIsRightExtended] = useState<boolean>(false);
+  const isDraggingRef = useRef(false);
+
   // Clinical Verdict State
   const [currentVerdict, setCurrentVerdict] = useState<"APPROVED" | "EDITED" | "FLAGGED">("APPROVED");
 
@@ -1661,6 +1669,66 @@ export default function LabelDataPage() {
     }
   };
 
+  // Thao tác chỉnh sửa từng lượt thoại qua nút x và v
+  const handleToggleTurnEdit = (turnId: string) => {
+    setEditingTurnIds((prev) => ({
+      ...prev,
+      [turnId]: !prev[turnId],
+    }));
+  };
+
+  const handleMarkTurnStandard = (turnId: string) => {
+    setEditingTurnIds((prev) => ({
+      ...prev,
+      [turnId]: false,
+    }));
+  };
+
+  const handleRevertTurn = (turnId: string, originalText: string) => {
+    handleTurnChange(turnId, originalText);
+    setEditingTurnIds((prev) => ({
+      ...prev,
+      [turnId]: false,
+    }));
+  };
+
+  // Mở rộng hoặc thu gọn cột bên phải
+  const toggleExtendRight = () => {
+    if (isRightExtended || rightWidth > 450) {
+      setRightWidth(390);
+      setIsRightExtended(false);
+    } else {
+      setRightWidth(600);
+      setIsRightExtended(true);
+    }
+  };
+
+  // Kéo chuột thay đổi kích thước cột bên phải
+  const handleMouseDownResizer = (e: React.MouseEvent) => {
+    e.preventDefault();
+    isDraggingRef.current = true;
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      if (!isDraggingRef.current) return;
+      const newWidth = Math.max(300, Math.min(800, window.innerWidth - moveEvent.clientX));
+      setRightWidth(newWidth);
+      setIsRightExtended(newWidth > 450);
+    };
+
+    const handleMouseUp = () => {
+      isDraggingRef.current = false;
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+  };
+
   // Handle Factor edit
   const handleFactorChange = (index: number, field: keyof FactorRecord, val: string) => {
     setEditedFactors((prev) => {
@@ -2523,16 +2591,6 @@ export default function LabelDataPage() {
             </div>
           </div>
 
-          {/* Batch Incomplete Notice Banner */}
-          {!completedBatches.includes(currentBatchIndex) && !isCurrentBatchFullyConfirmed && (
-            <div className={styles.batchNoticeBanner}>
-              <span className={styles.batchNoticeBadge}>Lưu ý bắt buộc</span>
-              <span className={styles.batchNoticeText}>
-                Hệ thống chỉ lưu và đồng bộ lên Google Drive khi Bác sĩ hoàn thành đủ <strong>10/10 ca</strong> trong gói và bấm nút <strong className={styles.batchNoticeStrong}>Lưu Gói {currentBatchIndex}</strong> (hiện đã xác nhận {currentBatchConfirmedCount}/10 ca). Nếu đóng hoặc thoát trang web khi gói chưa hoàn tất, tiến độ đang làm chỉ lưu tạm trên trình duyệt này và không thể xem tiếp từ thiết bị khác.
-              </span>
-            </div>
-          )}
-
           {/* Batch 10/10 Cases Completed Banner Notification */}
           {isCurrentBatchFullyConfirmed && !completedBatches.includes(currentBatchIndex) && (
             <div className={styles.batchReadyAlert}>
@@ -2556,7 +2614,10 @@ export default function LabelDataPage() {
           )}
 
           {/* Main Workspace: 3 Columns Focused on Clinical Review */}
-          <div className={styles.workspace}>
+          <div
+            className={styles.workspace}
+            style={{ gridTemplateColumns: `260px 1fr ${rightWidth}px` }}
+          >
             {/* Left Column: Cases of the current batch */}
             <section className={styles.sidebar} aria-label="Danh sách ca bệnh trong gói">
               <div className={styles.filterSection}>
@@ -2810,6 +2871,7 @@ export default function LabelDataPage() {
                               const isModified =
                                 editedTurns[turn.turn_id] !== undefined &&
                                 editedTurns[turn.turn_id] !== turn.text;
+                              const isEditing = Boolean(editingTurnIds[turn.turn_id]);
 
                               return (
                                 <div
@@ -2833,25 +2895,6 @@ export default function LabelDataPage() {
                                         <span className={styles.bubbleSpeaker}>
                                           {isDoctor ? "Bác sĩ" : "Người hỏi"}
                                         </span>
-                                        <span
-                                          className={styles.pencilHint}
-                                          title="Bác sĩ có thể nhấp trực tiếp vào ô chữ bên dưới để chỉnh sửa"
-                                        >
-                                          <svg
-                                            width="11"
-                                            height="11"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            strokeWidth="2"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            className={styles.pencilIcon}
-                                          >
-                                            <path d="M12 20h9" />
-                                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-                                          </svg>
-                                        </span>
                                         {isModified && (
                                           <span
                                             className={styles.modifiedTag}
@@ -2862,11 +2905,37 @@ export default function LabelDataPage() {
                                         )}
                                       </div>
                                       <div className={styles.bubbleHeaderRight}>
+                                        {/* Nút x hoặc v: v thì bỏ qua vì chuẩn rồi, x thì được sửa */}
+                                        <div className={styles.bubbleActionGroup}>
+                                          <button
+                                            type="button"
+                                            className={[
+                                              styles.bubbleBtnV,
+                                              !isEditing ? styles.bubbleBtnVActive : "",
+                                            ].filter(Boolean).join(" ")}
+                                            onClick={() => handleMarkTurnStandard(turn.turn_id)}
+                                            title="v: Chuẩn rồi - Bỏ qua vì đã chuẩn"
+                                          >
+                                            v
+                                          </button>
+                                          <button
+                                            type="button"
+                                            className={[
+                                              styles.bubbleBtnX,
+                                              isEditing ? styles.bubbleBtnXActive : "",
+                                            ].filter(Boolean).join(" ")}
+                                            onClick={() => handleToggleTurnEdit(turn.turn_id)}
+                                            title="x: Sửa - Cho phép chỉnh sửa câu này"
+                                          >
+                                            x
+                                          </button>
+                                        </div>
+
                                         {isModified && (
                                           <button
                                             type="button"
                                             className={styles.bubbleRevertBtn}
-                                            onClick={() => handleTurnChange(turn.turn_id, turn.text)}
+                                            onClick={() => handleRevertTurn(turn.turn_id, turn.text)}
                                             title="Khôi phục nguyên văn ban đầu"
                                           >
                                             Khôi phục
@@ -2882,13 +2951,31 @@ export default function LabelDataPage() {
                                         ) : null}
                                       </div>
                                     </div>
-                                    <AutoExpandingTextarea
-                                      value={currentTurnText}
-                                      onChange={(e) => handleTurnChange(turn.turn_id, e.target.value)}
-                                      className={styles.bubbleTextarea}
-                                      placeholder="Nội dung câu thoại..."
-                                      title="Nhấp để chỉnh sửa trực tiếp nội dung lượt thoại này"
-                                    />
+
+                                    {isEditing ? (
+                                      <div className={styles.bubbleEditWrapper}>
+                                        <AutoExpandingTextarea
+                                          value={currentTurnText}
+                                          onChange={(e) => handleTurnChange(turn.turn_id, e.target.value)}
+                                          className={styles.bubbleTextarea}
+                                          placeholder="Nội dung câu thoại..."
+                                          title="Đang chỉnh sửa nội dung lượt thoại này"
+                                        />
+                                        <div className={styles.bubbleEditFooter}>
+                                          <span className={styles.bubbleEditStatus}>Đang sửa câu thoại</span>
+                                          <button
+                                            type="button"
+                                            className={styles.bubbleSaveEditBtn}
+                                            onClick={() => handleMarkTurnStandard(turn.turn_id)}
+                                            title="Xác nhận câu này đã chuẩn và đóng ô sửa"
+                                          >
+                                            v Chuẩn rồi
+                                          </button>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <p className={styles.bubbleTextReadonly}>{currentTurnText}</p>
+                                    )}
                                   </div>
                                 </div>
                               );
@@ -2968,6 +3055,14 @@ export default function LabelDataPage() {
 
             {/* Right Column: Clinical Judgment */}
             <section className={styles.rightSidebar} aria-label="Biện giải lâm sàng và xác nhận">
+              {/* Thanh phân cách kéo thả thay đổi kích thước cột bên phải */}
+              <div
+                className={styles.colResizer}
+                onMouseDown={handleMouseDownResizer}
+                onDoubleClick={toggleExtendRight}
+                title="Nhấn giữ và kéo sang trái/phải để thay đổi độ rộng, hoặc nhấp đúp để mở rộng/thu gọn"
+              />
+
               {/* Review Save Section */}
               <div className={styles.reviewSection}>
                 <div className={styles.reviewSectionHeader}>
@@ -2975,25 +3070,23 @@ export default function LabelDataPage() {
                     <h2 className={styles.sectionTitle}>
                       Xác nhận & Ghi chú
                     </h2>
-                    {activeCase && confirmedCaseIds.has(activeCase.case_id) ? (
-                      <span className={styles.confirmedBadge}>
-                        <svg
-                          width="12"
-                          height="12"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                        Đã xác nhận
-                      </span>
-                    ) : (
-                      <span className={styles.pendingBadge}>Chưa xác nhận</span>
-                    )}
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                      <button
+                        type="button"
+                        className={styles.extendToggleBtn}
+                        onClick={toggleExtendRight}
+                        title={isRightExtended || rightWidth > 450 ? "Thu gọn cột bên phải về kích thước chuẩn" : "Mở rộng cột bên phải"}
+                      >
+                        {isRightExtended || rightWidth > 450 ? "Thu gọn" : "Mở rộng"}
+                      </button>
+                      {activeCase && confirmedCaseIds.has(activeCase.case_id) ? (
+                        <span className={styles.confirmedBadge}>
+                          Đã xác nhận
+                        </span>
+                      ) : (
+                        <span className={styles.pendingBadge}>Chưa xác nhận</span>
+                      )}
+                    </div>
                   </div>
                   <p className={styles.sectionSubtitle}>
                     Ghi chú điểm lưu ý lâm sàng (nếu có) và xác nhận ca

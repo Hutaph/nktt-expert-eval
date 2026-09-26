@@ -1995,6 +1995,113 @@
   user-select: text;
 }
 
+/* Khối nút thao tác x và v trên bong bóng chat */
+.bubbleActionGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  background-color: rgba(255, 255, 255, 0.85);
+  padding: 0.1rem 0.25rem;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.bubbleBtnV,
+.bubbleBtnX {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 20px;
+  padding: 0 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 3px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  line-height: 1;
+  font-family: inherit;
+}
+
+/* Nút v: Chuẩn rồi - Bỏ qua */
+.bubbleBtnV {
+  color: #059669;
+  background-color: #ecfdf5;
+  border-color: #a7f3d0;
+}
+
+.bubbleBtnV:hover {
+  background-color: #d1fae5;
+  color: #047857;
+  border-color: #6ee7b7;
+}
+
+.bubbleBtnVActive {
+  background-color: #10b981;
+  color: #ffffff;
+  border-color: #059669;
+}
+
+/* Nút x: Cần sửa - Cho phép chỉnh sửa */
+.bubbleBtnX {
+  color: #b45309;
+  background-color: #fffbeb;
+  border-color: #fde68a;
+}
+
+.bubbleBtnX:hover {
+  background-color: #fef3c7;
+  color: #92400e;
+  border-color: #fcd34d;
+}
+
+.bubbleBtnXActive {
+  background-color: #d97706;
+  color: #ffffff;
+  border-color: #b45309;
+}
+
+/* Khung chỉnh sửa nội dung lượt thoại */
+.bubbleEditWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  width: 100%;
+}
+
+.bubbleEditFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.15rem 0.2rem;
+  gap: 0.5rem;
+}
+
+.bubbleEditStatus {
+  font-size: 0.68rem;
+  color: #b45309;
+  font-weight: 500;
+}
+
+.bubbleSaveEditBtn {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #065f46;
+  background-color: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  border-radius: 4px;
+  padding: 0.15rem 0.5rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.bubbleSaveEditBtn:hover {
+  background-color: #d1fae5;
+  color: #047857;
+  border-color: #6ee7b7;
+}
+
 /* Session Footer Action (Under Bubbles) */
 .sessionFooterAction {
   display: flex;
@@ -2163,6 +2270,7 @@
 
 /* Right Sidebar Container */
 .rightSidebar {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -2170,6 +2278,43 @@
   overflow: hidden;
   padding: 0.35rem 0.45rem;
   box-sizing: border-box;
+}
+
+/* Thanh phân cách kéo thả thay đổi kích thước cột bên phải */
+.colResizer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  background-color: transparent;
+  transition: background-color 0.15s ease;
+  z-index: 20;
+}
+
+.colResizer:hover {
+  background-color: rgba(20, 107, 104, 0.4);
+}
+
+/* Nút bấm chuyển đổi mở rộng / thu gọn cột bên phải */
+.extendToggleBtn {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-primary, #146b68);
+  background-color: #f0fdfa;
+  border: 1px solid #ccfbf1;
+  border-radius: 4px;
+  padding: 0.2rem 0.5rem;
+  cursor: pointer;
+  line-height: 1;
+  transition: all 0.15s ease;
+}
+
+.extendToggleBtn:hover {
+  background-color: #ccfbf1;
+  color: #0f766e;
+  border-color: #99f6e4;
 }
 
 /* Review Section Card */
@@ -2523,9 +2668,9 @@
 
 .notesTextarea {
   width: 100%;
-  min-height: 48px;
-  max-height: 68px;
-  padding: 0.35rem 0.55rem;
+  min-height: 60px;
+  max-height: 250px;
+  padding: 0.45rem 0.65rem;
   font-size: 0.78rem;
   line-height: 1.35;
   color: #1e293b;
@@ -2533,7 +2678,7 @@
   border: 1.5px solid #cbd5e1;
   border-radius: 6px;
   outline: none;
-  resize: none;
+  resize: vertical;
   box-sizing: border-box;
   font-family: inherit;
   transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;

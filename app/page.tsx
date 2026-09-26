@@ -1262,15 +1262,27 @@ export default function LabelDataPage() {
     return unevaluatedTurnsCount === 0;
   }, [allVisibleTurns, unevaluatedTurnsCount]);
 
-  // Yêu cầu thẩm định: Đánh dấu đủ 3 tiêu chuẩn + nhận xét đạt chuẩn + xem qua toàn bộ các lần khám + chọn đủ (v hoặc x) cho mọi câu thoại
+  const isAnyTurnEditing = useMemo(() => {
+    return Object.values(editingTurnIds).some(Boolean);
+  }, [editingTurnIds]);
+
+  // Yêu cầu thẩm định: Đánh dấu đủ 3 tiêu chuẩn + nhận xét đạt chuẩn + xem qua toàn bộ các lần khám + chọn đủ (v hoặc x) cho mọi câu thoại + không có câu nào đang sửa dở
   const canConfirmCase =
     isChecklistComplete &&
     notesQuality.isValid &&
     hasInspectedAllSessions &&
-    hasEvaluatedAllTurns;
+    hasEvaluatedAllTurns &&
+    !isAnyTurnEditing;
 
   const handleSelectSession = useCallback((idx: number) => {
     if (idx === activeSessionIndex) return;
+
+    // Kiểm tra: Đang có câu thoại mở ô sửa chưa nhấn Xong
+    const activeEditingId = Object.keys(editingTurnIds).find((id) => editingTurnIds[id]);
+    if (activeEditingId) {
+      alert("Bác sĩ vui lòng nhấn \"Xong\" ở câu thoại đang sửa trước khi chuyển sang lần khám khác.");
+      return;
+    }
 
     // Bắt buộc: Phải chọn (v hoặc x) cho tất cả các câu thoại trong lần khám hiện tại mới được qua lần khám khác
     const currentSess = timeline?.sessions?.[activeSessionIndex];
@@ -1312,7 +1324,7 @@ export default function LabelDataPage() {
         chatEl.scrollTo({ top: 0, behavior: "smooth" });
       }
     }, 50);
-  }, [timeline, activeDoctor, activeCase, activeSessionIndex, turnEvaluations]);
+  }, [timeline, activeDoctor, activeCase, activeSessionIndex, turnEvaluations, editingTurnIds]);
 
   // Current case index calculations for seamless navigation
   const currentCaseIndexInBatch = useMemo(() => {
@@ -1548,6 +1560,13 @@ export default function LabelDataPage() {
   const handleConfirmAndNextCase = () => {
     if (!activeCase || !activeDoctor) return;
 
+    // 0. Kiểm tra nếu có câu thoại đang mở sửa mà chưa bấm Xong
+    const activeEditingId = Object.keys(editingTurnIds).find((id) => editingTurnIds[id]);
+    if (activeEditingId) {
+      alert("Bác sĩ vui lòng nhấn \"Xong\" ở câu thoại đang sửa trước khi xác nhận ca bệnh.");
+      return;
+    }
+
     // 1. Kiểm tra tất cả câu thoại trong tất cả các lần khám hiển thị đã được đánh giá (v hoặc x) chưa
     for (const sess of visibleSessions) {
       const unselected = (sess.turns || []).filter((t) => !turnEvaluations[t.turn_id]);
@@ -1726,17 +1745,34 @@ export default function LabelDataPage() {
 
   // Thao tác đánh giá từng lượt thoại (nút v hoặc x)
   const handleToggleTurnEval = (turnId: string, val: "v" | "x") => {
-    setTurnEvaluations((prev) => {
-      const next = { ...prev };
-      if (next[turnId] === val) {
-        delete next[turnId];
-      } else {
-        next[turnId] = val;
-      }
-      return next;
-    });
-    // Nếu chọn v thì đóng khung sửa nếu đang mở
-    if (val === "v") {
+    // Nếu đang có một câu thoại khác đang ở chế độ sửa chưa nhấn Xong, chặn lại!
+    const activeEditingId = Object.keys(editingTurnIds).find((id) => editingTurnIds[id]);
+    if (activeEditingId && activeEditingId !== turnId) {
+      alert("Bác sĩ vui lòng nhấn \"Xong\" ở câu thoại đang sửa trước khi chuyển qua câu thoại khác.");
+      return;
+    }
+
+    if (val === "x") {
+      // Bấm x thì mở ô cho sửa text luôn
+      setTurnEvaluations((prev) => ({
+        ...prev,
+        [turnId]: "x",
+      }));
+      setEditingTurnIds((prev) => ({
+        ...prev,
+        [turnId]: true,
+      }));
+    } else {
+      // val === "v": Đánh dấu chuẩn và đóng ô sửa
+      setTurnEvaluations((prev) => {
+        const next = { ...prev };
+        if (next[turnId] === "v") {
+          delete next[turnId];
+        } else {
+          next[turnId] = "v";
+        }
+        return next;
+      });
       setEditingTurnIds((prev) => ({
         ...prev,
         [turnId]: false,
@@ -1744,8 +1780,13 @@ export default function LabelDataPage() {
     }
   };
 
-  // Thao tác bật/tắt ô chỉnh sửa câu thoại (tùy chọn khi câu bị gắn x)
+  // Thao tác bật/tắt ô chỉnh sửa câu thoại
   const handleToggleTurnEdit = (turnId: string) => {
+    const activeEditingId = Object.keys(editingTurnIds).find((id) => editingTurnIds[id]);
+    if (activeEditingId && activeEditingId !== turnId) {
+      alert("Bác sĩ vui lòng nhấn \"Xong\" ở câu thoại đang sửa trước khi chuyển qua câu thoại khác.");
+      return;
+    }
     setEditingTurnIds((prev) => ({
       ...prev,
       [turnId]: !prev[turnId],
@@ -3027,168 +3068,191 @@ export default function LabelDataPage() {
                           </div>
 
                           <div className={styles.turnsList}>
-                            {currentSession.turns.map((turn) => {
-                              const isDoctor =
-                                turn.speaker?.toLowerCase().includes("doctor") ||
-                                turn.speaker?.toLowerCase().includes("assistant");
-                              const currentTurnText =
-                                editedTurns[turn.turn_id] !== undefined
-                                  ? editedTurns[turn.turn_id]
-                                  : turn.text;
-                              const isModified =
-                                editedTurns[turn.turn_id] !== undefined &&
-                                editedTurns[turn.turn_id] !== turn.text;
-                              const isEditing = Boolean(editingTurnIds[turn.turn_id]);
-                              const currentEval = turnEvaluations[turn.turn_id];
-                              const isV = currentEval === "v";
-                              const isX = currentEval === "x";
+                            {(() => {
+                              const activeEditingId = Object.keys(editingTurnIds).find((id) => editingTurnIds[id]) || null;
+                              return currentSession.turns.map((turn) => {
+                                const isDoctor =
+                                  turn.speaker?.toLowerCase().includes("doctor") ||
+                                  turn.speaker?.toLowerCase().includes("assistant");
+                                const currentTurnText =
+                                  editedTurns[turn.turn_id] !== undefined
+                                    ? editedTurns[turn.turn_id]
+                                    : turn.text;
+                                const isModified =
+                                  editedTurns[turn.turn_id] !== undefined &&
+                                  editedTurns[turn.turn_id] !== turn.text;
+                                const isEditing = Boolean(editingTurnIds[turn.turn_id]);
+                                const isOtherEditing = Boolean(activeEditingId && activeEditingId !== turn.turn_id);
+                                const currentEval = turnEvaluations[turn.turn_id];
+                                const isV = currentEval === "v";
+                                const isX = currentEval === "x";
 
-                              return (
-                                <div
-                                  key={turn.turn_id}
-                                  className={[
-                                    styles.chatBubbleWrapper,
-                                    isDoctor ? styles.bubbleWrapperRight : styles.bubbleWrapperLeft,
-                                  ].join(" ")}
-                                >
+                                return (
                                   <div
+                                    key={turn.turn_id}
                                     className={[
-                                      styles.chatBubble,
-                                      isDoctor ? styles.bubbleDoctor : styles.bubblePatient,
-                                      isModified ? styles.chatBubbleEdited : "",
-                                    ]
-                                      .filter(Boolean)
-                                      .join(" ")}
+                                      styles.chatBubbleWrapper,
+                                      isDoctor ? styles.bubbleWrapperRight : styles.bubbleWrapperLeft,
+                                    ].join(" ")}
                                   >
-                                    <div className={styles.bubbleHeader}>
-                                      <div className={styles.bubbleSpeakerRow}>
-                                        <span className={styles.bubbleSpeaker}>
-                                          {isDoctor ? "Bác sĩ" : "Người hỏi"}
-                                        </span>
-                                        {isModified && (
-                                          <span
-                                            className={styles.modifiedTag}
-                                            title="Nội dung đã được chỉnh sửa"
-                                          >
-                                            Đã sửa
+                                    <div
+                                      className={[
+                                        styles.chatBubble,
+                                        isDoctor ? styles.bubbleDoctor : styles.bubblePatient,
+                                        isModified ? styles.chatBubbleEdited : "",
+                                      ]
+                                        .filter(Boolean)
+                                        .join(" ")}
+                                    >
+                                      <div className={styles.bubbleHeader}>
+                                        <div className={styles.bubbleSpeakerRow}>
+                                          <span className={styles.bubbleSpeaker}>
+                                            {isDoctor ? "Bác sĩ" : "Người hỏi"}
                                           </span>
-                                        )}
-                                      </div>
-                                      <div className={styles.bubbleHeaderRight}>
-                                        {/* Nút x hoặc v: ko chọn sẵn, bắt buộc phải chọn mới được qua lần khác (ko cần ghi text) */}
-                                        <div
-                                          className={[
-                                            styles.bubbleActionGroup,
-                                            !currentEval ? styles.bubbleActionGroupUnselected : "",
-                                          ].filter(Boolean).join(" ")}
-                                        >
-                                          <button
-                                            type="button"
-                                            className={[
-                                              styles.bubbleBtnV,
-                                              isV ? styles.bubbleBtnVActive : "",
-                                            ].filter(Boolean).join(" ")}
-                                            onClick={() => handleToggleTurnEval(turn.turn_id, "v")}
-                                            title={isV ? "Đã chọn: v (Chuẩn rồi) - Bấm lại để bỏ chọn" : "v: Chuẩn rồi - Đạt chuẩn lâm sàng"}
-                                          >
-                                            <svg
-                                              width="13"
-                                              height="13"
-                                              viewBox="0 0 24 24"
-                                              fill="none"
-                                              stroke="currentColor"
-                                              strokeWidth="3"
-                                              strokeLinecap="round"
-                                              strokeLinejoin="round"
+                                          {isModified && (
+                                            <span
+                                              className={styles.modifiedTag}
+                                              title="Nội dung đã được chỉnh sửa"
                                             >
-                                              <polyline points="20 6 9 17 4 12" />
-                                            </svg>
-                                          </button>
-                                          <button
-                                            type="button"
-                                            className={[
-                                              styles.bubbleBtnX,
-                                              isX ? styles.bubbleBtnXActive : "",
-                                            ].filter(Boolean).join(" ")}
-                                            onClick={() => handleToggleTurnEval(turn.turn_id, "x")}
-                                            title={isX ? "Đã chọn: x (Chưa chuẩn) - Bấm lại để bỏ chọn" : "x: Chưa chuẩn - Cần xem xét"}
-                                          >
-                                            <svg
-                                              width="13"
-                                              height="13"
-                                              viewBox="0 0 24 24"
-                                              fill="none"
-                                              stroke="currentColor"
-                                              strokeWidth="2.8"
-                                              strokeLinecap="round"
-                                              strokeLinejoin="round"
-                                            >
-                                              <line x1="18" y1="6" x2="6" y2="18" />
-                                              <line x1="6" y1="6" x2="18" y2="18" />
-                                            </svg>
-                                          </button>
+                                              Đã sửa
+                                            </span>
+                                          )}
                                         </div>
-
-                                        {isX && (
-                                          <button
-                                            type="button"
-                                            className={styles.bubbleEditToggleBtn}
-                                            onClick={() => handleToggleTurnEdit(turn.turn_id)}
-                                            title={isEditing ? "Đóng ô chỉnh sửa" : "Chỉnh sửa nội dung câu thoại (tùy chọn)"}
+                                        <div className={styles.bubbleHeaderRight}>
+                                          {/* Nút x hoặc v: bấm x thì mở ô sửa text luôn, bắt buộc nhấn xong để chuyển qua bubble khác */}
+                                          <div
+                                            className={[
+                                              styles.bubbleActionGroup,
+                                              !currentEval ? styles.bubbleActionGroupUnselected : "",
+                                              isOtherEditing ? styles.bubbleActionGroupBlocked : "",
+                                            ]
+                                              .filter(Boolean)
+                                              .join(" ")}
                                           >
-                                            <span>{isEditing ? "Đóng sửa" : "Sửa text"}</span>
-                                          </button>
-                                        )}
+                                            <button
+                                              type="button"
+                                              className={[
+                                                styles.bubbleBtnV,
+                                                isV ? styles.bubbleBtnVActive : "",
+                                              ].filter(Boolean).join(" ")}
+                                              onClick={() => handleToggleTurnEval(turn.turn_id, "v")}
+                                              title={
+                                                isOtherEditing
+                                                  ? "Vui lòng nhấn Xong ở câu thoại đang sửa trước khi chuyển qua câu khác"
+                                                  : isV
+                                                  ? "Đã chọn: v (Chuẩn rồi) - Bấm lại để bỏ chọn"
+                                                  : "v: Chuẩn rồi - Đạt chuẩn lâm sàng"
+                                              }
+                                            >
+                                              <svg
+                                                width="13"
+                                                height="13"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="3"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                              >
+                                                <polyline points="20 6 9 17 4 12" />
+                                              </svg>
+                                            </button>
+                                            <button
+                                              type="button"
+                                              className={[
+                                                styles.bubbleBtnX,
+                                                isX ? styles.bubbleBtnXActive : "",
+                                              ].filter(Boolean).join(" ")}
+                                              onClick={() => handleToggleTurnEval(turn.turn_id, "x")}
+                                              title={
+                                                isOtherEditing
+                                                  ? "Vui lòng nhấn Xong ở câu thoại đang sửa trước khi chuyển qua câu khác"
+                                                  : isX && isEditing
+                                                  ? "Đang mở ô chỉnh sửa"
+                                                  : isX
+                                                  ? "Đã chọn: x (Chưa chuẩn) - Bấm để mở lại ô sửa"
+                                                  : "x: Chưa chuẩn - Bấm để mở ô sửa text"
+                                              }
+                                            >
+                                              <svg
+                                                width="13"
+                                                height="13"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="2.8"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                              >
+                                                <line x1="18" y1="6" x2="6" y2="18" />
+                                                <line x1="6" y1="6" x2="18" y2="18" />
+                                              </svg>
+                                            </button>
+                                          </div>
 
-                                        {isModified && (
-                                          <button
-                                            type="button"
-                                            className={styles.bubbleRevertBtn}
-                                            onClick={() => handleRevertTurn(turn.turn_id, turn.text)}
-                                            title="Khôi phục nguyên văn ban đầu"
-                                          >
-                                            Khôi phục
-                                          </button>
-                                        )}
-                                        {turn.turn_timestamp ? (
-                                          <span className={styles.turnBadgeSubtle}>
-                                            {new Date(turn.turn_timestamp).toLocaleTimeString("vi-VN", {
-                                              hour: "2-digit",
-                                              minute: "2-digit",
-                                            })}
-                                          </span>
-                                        ) : null}
+                                          {isX && !isEditing && (
+                                            <button
+                                              type="button"
+                                              className={styles.bubbleEditToggleBtn}
+                                              onClick={() => handleToggleTurnEdit(turn.turn_id)}
+                                              title={isOtherEditing ? "Vui lòng nhấn Xong ở câu thoại đang sửa" : "Mở lại ô chỉnh sửa nội dung"}
+                                            >
+                                              <span>Sửa lại</span>
+                                            </button>
+                                          )}
+
+                                          {isModified && (
+                                            <button
+                                              type="button"
+                                              className={styles.bubbleRevertBtn}
+                                              onClick={() => handleRevertTurn(turn.turn_id, turn.text)}
+                                              title="Khôi phục nguyên văn ban đầu"
+                                            >
+                                              Khôi phục
+                                            </button>
+                                          )}
+                                          {turn.turn_timestamp ? (
+                                            <span className={styles.turnBadgeSubtle}>
+                                              {new Date(turn.turn_timestamp).toLocaleTimeString("vi-VN", {
+                                                hour: "2-digit",
+                                                minute: "2-digit",
+                                              })}
+                                            </span>
+                                          ) : null}
+                                        </div>
                                       </div>
+
+                                      {isEditing ? (
+                                        <div className={styles.bubbleEditWrapper}>
+                                          <AutoExpandingTextarea
+                                            value={currentTurnText}
+                                            onChange={(e) => handleTurnChange(turn.turn_id, e.target.value)}
+                                            className={styles.bubbleTextarea}
+                                            placeholder="Nội dung câu thoại..."
+                                            title="Đang chỉnh sửa nội dung lượt thoại này"
+                                          />
+                                          <div className={styles.bubbleEditFooter}>
+                                            <span className={styles.bubbleEditStatus}>
+                                              Đang sửa câu thoại (Bắt buộc nhấn Xong để hoàn tất)
+                                            </span>
+                                            <button
+                                              type="button"
+                                              className={styles.bubbleCloseEditBtn}
+                                              onClick={() => handleCloseTurnEdit(turn.turn_id)}
+                                              title="Nhấn Xong để hoàn tất chỉnh sửa và tiếp tục câu khác"
+                                            >
+                                              <span>Xong</span>
+                                            </button>
+                                          </div>
+                                        </div>
+                                      ) : (
+                                        <p className={styles.bubbleTextReadonly}>{currentTurnText}</p>
+                                      )}
                                     </div>
-
-                                    {isEditing ? (
-                                      <div className={styles.bubbleEditWrapper}>
-                                        <AutoExpandingTextarea
-                                          value={currentTurnText}
-                                          onChange={(e) => handleTurnChange(turn.turn_id, e.target.value)}
-                                          className={styles.bubbleTextarea}
-                                          placeholder="Nội dung câu thoại..."
-                                          title="Đang chỉnh sửa nội dung lượt thoại này"
-                                        />
-                                        <div className={styles.bubbleEditFooter}>
-                                          <span className={styles.bubbleEditStatus}>Đang sửa nội dung câu thoại (tùy chọn)</span>
-                                          <button
-                                            type="button"
-                                            className={styles.bubbleCloseEditBtn}
-                                            onClick={() => handleCloseTurnEdit(turn.turn_id)}
-                                            title="Đóng ô chỉnh sửa (vẫn giữ đánh giá x)"
-                                          >
-                                            <span>Xong</span>
-                                          </button>
-                                        </div>
-                                      </div>
-                                    ) : (
-                                      <p className={styles.bubbleTextReadonly}>{currentTurnText}</p>
-                                    )}
                                   </div>
-                                </div>
-                              );
-                            })}
+                                );
+                              });
+                            })()}
                           </div>
                         </div>
                       )}

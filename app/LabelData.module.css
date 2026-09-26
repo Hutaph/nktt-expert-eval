@@ -2292,24 +2292,32 @@
   font-weight: 500;
 }
 
+.bubbleActionGroupBlocked {
+  opacity: 0.55;
+  filter: grayscale(0.4);
+}
+
 .bubbleCloseEditBtn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 3px 10px;
-  font-size: 0.72rem;
+  padding: 4px 14px;
+  font-size: 0.75rem;
   font-weight: 600;
-  color: #334155;
-  background-color: #f1f5f9;
-  border: 1px solid #cbd5e1;
-  border-radius: 4px;
+  color: #ffffff;
+  background-color: #059669;
+  border: 1px solid #047857;
+  border-radius: 5px;
   cursor: pointer;
   transition: all 0.15s ease;
+  box-shadow: 0 1px 3px rgba(5, 150, 105, 0.25);
 }
 
 .bubbleCloseEditBtn:hover {
-  background-color: #e2e8f0;
-  color: #0f172a;
+  background-color: #047857;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(5, 150, 105, 0.35);
 }
 
 /* Session Footer Action (Under Bubbles) */

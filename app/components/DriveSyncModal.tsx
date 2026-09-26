@@ -25,6 +25,11 @@ function doGet(e) {
       });
     }
 
+    if (action === "get_all_batches_summary") {
+      var folderName = params.folderName || DEFAULT_FOLDER_NAME;
+      return handleGetAllBatchesSummary(folderName);
+    }
+
     if (action === "get_doctor_batches") {
       var folderName = params.folderName || DEFAULT_FOLDER_NAME;
       var doctorFolder = (params.doctorFolder || params.doctorId || "").toString().trim().toUpperCase();
@@ -53,6 +58,11 @@ function doPost(e) {
 
     if (action === "ping") {
       return createJsonResponse({ status: "success", message: "Ket noi Google Drive thanh cong." });
+    }
+
+    if (action === "get_all_batches_summary") {
+      var folderName = payload.folderName || DEFAULT_FOLDER_NAME;
+      return handleGetAllBatchesSummary(folderName);
     }
 
     if (action === "get_doctor_batches") {
@@ -98,6 +108,35 @@ function doPost(e) {
   } catch (err) {
     return createJsonResponse({ status: "error", message: "Loi: " + err.toString() });
   }
+}
+
+function handleGetAllBatchesSummary(folderName) {
+  var targetFolder = getOrCreateFolder(folderName);
+  var filesIterator = targetFolder.getFiles();
+  var summary = {};
+  var regex = /^([A-Za-z0-9_]+)_batch_(\\d+)\\.json$/i;
+
+  while (filesIterator.hasNext()) {
+    var file = filesIterator.next();
+    var fname = file.getName();
+    var match = fname.match(regex);
+    if (match) {
+      var docCode = match[1].toUpperCase();
+      var batchIndex = parseInt(match[2], 10);
+      if (!summary[docCode]) summary[docCode] = [];
+      if (summary[docCode].indexOf(batchIndex) === -1) summary[docCode].push(batchIndex);
+    }
+  }
+
+  for (var k in summary) {
+    summary[k].sort(function(a, b) { return a - b; });
+  }
+
+  return createJsonResponse({
+    status: "success",
+    summary: summary,
+    timestamp: new Date().toISOString()
+  });
 }
 
 function handleGetDoctorBatches(folderName, doctorFolder) {

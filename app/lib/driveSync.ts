@@ -411,3 +411,73 @@ export async function fetchDoctorBatchesFromDrive(
   };
 }
 
+/**
+ * Tải danh sách tóm tắt tất cả các gói đã hoàn tất của mọi bác sĩ từ Google Drive
+ * Trả về định dạng: { BS01: [1], BS05: [1] }
+ */
+export async function fetchAllBatchesSummaryFromDrive(
+  options?: { webhookUrl?: string; folderName?: string; timeoutMs?: number }
+): Promise<{
+  ok: boolean;
+  summary: Record<string, number[]>;
+  error?: string;
+}> {
+  const config = getDriveConfig();
+  const url = (options?.webhookUrl || config.webhookUrl).trim();
+  const folderName = (options?.folderName || config.folderName).trim() || DEFAULT_FOLDER;
+  const timeoutMs = options?.timeoutMs || 4000;
+
+  if (!url) {
+    return { ok: false, summary: {}, error: "Chưa cấu hình URL Google Apps Script." };
+  }
+
+  // Phương thức 1: Gọi lệnh tổng hợp get_all_batches_summary
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+    const getUrl = `${url}?action=get_all_batches_summary&folderName=${encodeURIComponent(
+      folderName
+    )}&t=${Date.now()}`;
+
+    const res = await fetch(getUrl, {
+      method: "GET",
+      signal: controller.signal,
+      redirect: "follow",
+    });
+
+    clearTimeout(timer);
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.status === "success" && data.summary && typeof data.summary === "object") {
+        return { ok: true, summary: data.summary };
+      }
+    }
+  } catch {}
+
+  // Phương thức 2: Dự phòng quét song song 5 bác sĩ qua get_doctor_batches
+  try {
+    const docCodes = ["BS01", "BS02", "BS03", "BS04", "BS05"];
+    const results = await Promise.all(
+      docCodes.map((code) =>
+        fetchDoctorBatchesFromDrive(code, { webhookUrl: url, folderName, timeoutMs: 3500 })
+      )
+    );
+
+    const summary: Record<string, number[]> = {};
+    docCodes.forEach((code, idx) => {
+      const r = results[idx];
+      if (r && r.ok && Array.isArray(r.batches) && r.batches.length > 0) {
+        summary[code] = r.batches.map((b) => b.batchIndex).sort((a, b) => a - b);
+      }
+    });
+
+    return { ok: true, summary };
+  } catch (err: unknown) {
+    const errMsg = err instanceof Error ? err.message : String(err);
+    return { ok: false, summary: {}, error: errMsg };
+  }
+}
+
+

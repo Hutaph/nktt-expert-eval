@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import styles from "./DoctorAuth.module.css";
+import { fetchAllBatchesSummaryFromDrive } from "../lib/driveSync";
 
 export interface DoctorProfile {
   id: string;
@@ -114,60 +115,98 @@ export default function DoctorLoginModal({
     });
     setProgressMap(progress);
 
-    // Đồng bộ kiểm tra thêm từ các gói tĩnh trên máy chủ/thư mục annotations
+    // Đồng bộ kiểm tra song song từ Google Drive và tệp tĩnh trên máy chủ
     let isSubscribed = true;
-    async function syncProgressWithFiles() {
+    async function syncProgressWithDriveAndFiles() {
+      const updatedProgress: Record<string, number> = { ...progress };
+      let changed = false;
+
+      // Bước 1: Kéo tóm tắt toàn bộ các gói từ Google Drive (Xử lý nhanh không gây giật lag)
+      try {
+        const driveSummary = await fetchAllBatchesSummaryFromDrive({ timeoutMs: 4000 });
+        if (driveSummary.ok && driveSummary.summary) {
+          for (const doc of DOCTORS_LIST) {
+            const folder = doc.folderCode.toUpperCase();
+            const driveBatches = driveSummary.summary[folder] || [];
+            if (driveBatches.length > 0) {
+              const currentDocCount = updatedProgress[doc.id] || 0;
+              if (driveBatches.length > currentDocCount) {
+                updatedProgress[doc.id] = driveBatches.length;
+                changed = true;
+                try {
+                  localStorage.setItem(
+                    `nktt_completed_batches_${doc.id}`,
+                    JSON.stringify(driveBatches)
+                  );
+                } catch {}
+              }
+            }
+          }
+          if (changed && isSubscribed) {
+            setProgressMap({ ...updatedProgress });
+          }
+        }
+      } catch (err) {
+        console.warn("Lỗi khi kiểm tra tiến độ từ Google Drive:", err);
+      }
+
+      // Bước 2: Quét kiểm tra song song từ tệp tĩnh public/annotations trên máy chủ web
       const assetBase =
         typeof window !== "undefined" && window.location.pathname.startsWith("/nktt-expert-eval")
           ? "/nktt-expert-eval"
           : "";
-      const updatedProgress: Record<string, number> = { ...progress };
-      let changed = false;
 
-      for (const doc of DOCTORS_LIST) {
-        const folder = doc.folderCode.toUpperCase();
-        const docCompleted = new Set<number>();
-        try {
-          const saved = localStorage.getItem(`nktt_completed_batches_${doc.id}`);
-          if (saved) {
-            const list = JSON.parse(saved);
-            if (Array.isArray(list)) list.forEach((n) => docCompleted.add(n));
-          }
-        } catch {}
+      await Promise.all(
+        DOCTORS_LIST.map(async (doc) => {
+          const folder = doc.folderCode.toUpperCase();
+          const docCompleted = new Set<number>();
 
-        for (let b = 1; b <= 10; b++) {
           try {
-            const res = await fetch(`${assetBase}/annotations/${folder}/${folder}_batch_${b}.json?t=${Date.now()}`, {
-              cache: "no-store",
-            });
-            if (res.ok) {
-              const data = await res.json();
-              if (data?.cases && Array.isArray(data.cases) && data.cases.length > 0) {
-                docCompleted.add(b);
-              }
+            const saved = localStorage.getItem(`nktt_completed_batches_${doc.id}`);
+            if (saved) {
+              const list = JSON.parse(saved);
+              if (Array.isArray(list)) list.forEach((n) => docCompleted.add(n));
             }
           } catch {}
-        }
 
-        const count = docCompleted.size;
-        if (count > (updatedProgress[doc.id] || 0)) {
-          updatedProgress[doc.id] = count;
-          changed = true;
-          try {
-            localStorage.setItem(
-              `nktt_completed_batches_${doc.id}`,
-              JSON.stringify(Array.from(docCompleted).sort((a, b) => a - b))
-            );
-          } catch {}
-        }
-      }
+          // Kiểm tra nhanh song song 10 gói thay vì đợi tuần tự từng gói
+          const batchPromises = Array.from({ length: 10 }, (_, i) => i + 1).map(async (b) => {
+            if (docCompleted.has(b)) return;
+            try {
+              const res = await fetch(`${assetBase}/annotations/${folder}/${folder}_batch_${b}.json?t=${Date.now()}`, {
+                cache: "no-store",
+              });
+              if (res.ok) {
+                const data = await res.json();
+                if (data?.cases && Array.isArray(data.cases) && data.cases.length > 0) {
+                  docCompleted.add(b);
+                }
+              }
+            } catch {}
+          });
+
+          await Promise.all(batchPromises);
+
+          const count = docCompleted.size;
+          if (count > (updatedProgress[doc.id] || 0)) {
+            updatedProgress[doc.id] = count;
+            changed = true;
+            try {
+              localStorage.setItem(
+                `nktt_completed_batches_${doc.id}`,
+                JSON.stringify(Array.from(docCompleted).sort((a, b) => a - b))
+              );
+            } catch {}
+          }
+        })
+      );
 
       if (changed && isSubscribed) {
-        setProgressMap(updatedProgress);
+        setProgressMap({ ...updatedProgress });
       }
     }
 
-    syncProgressWithFiles();
+    syncProgressWithDriveAndFiles();
     return () => {
       isSubscribed = false;
     };

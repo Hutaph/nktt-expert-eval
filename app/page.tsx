@@ -1674,9 +1674,14 @@ export default function LabelDataPage() {
           turns: (s.turns || []).map((t) => {
             const editedText = sharedTurnsForDoctor[t.turn_id] || t.text;
             const wasTurnEdited = editedText.trim() !== t.text.trim();
+            const isPatient =
+              t.speaker?.toUpperCase() === "PATIENT" ||
+              t.speaker?.toUpperCase() === "USER" ||
+              t.speaker?.toLowerCase().includes("patient") ||
+              t.speaker?.toLowerCase().includes("user");
             return {
               turn_id: t.turn_id,
-              speaker: t.speaker === "PATIENT" || t.speaker === "USER" ? "Người hỏi" : "Bác sĩ / Trợ lý",
+              speaker: isPatient ? "Người hỏi" : "Bác sĩ / Trợ lý",
               original_text: t.text,
               final_text: editedText,
               was_edited: wasTurnEdited,

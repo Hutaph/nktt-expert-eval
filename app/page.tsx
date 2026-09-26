@@ -648,7 +648,7 @@ export default function LabelDataPage() {
     }
     setAnnotator(activeDoctor.name);
 
-    // 4. Đồng bộ tuyệt đối hai chiều: Quét và khôi phục các gói đã hoàn tất từ Google Drive và máy chủ
+    // 4. Đồng bộ hai chiều: Quét và khôi phục các gói đã hoàn tất từ Google Drive (Drive là nguồn chân lý duy nhất)
     let isSubscribed = true;
     async function reconcileServerBatches() {
       if (!activeDoctor) return;
@@ -665,117 +665,91 @@ export default function LabelDataPage() {
           : "BS05")
       ).toUpperCase();
 
-      const assetBase = getAssetBase();
-      const mergedCompleted = new Set<number>(completedList);
-      const mergedConfirmed = new Set<string>(initialConfirmed);
-      const updatedAnnotations = { ...docAnnotations };
-      let sharedTurnsObj: Record<string, string> = {};
-      try {
-        const rawShared = localStorage.getItem(`nktt_shared_turns_v5_${activeDoctor.id}`);
-        if (rawShared) sharedTurnsObj = JSON.parse(rawShared);
-      } catch {}
-
-      let hasUpdate = false;
-      let driveCount = 0;
-
-      // Bước 1: Thử kéo dữ liệu từ Google Drive (Đồng bộ 2 chiều)
       try {
         const driveRes = await fetchDoctorBatchesFromDrive(docFolder);
-        if (driveRes.ok && Array.isArray(driveRes.batches) && driveRes.batches.length > 0) {
-          for (const bItem of driveRes.batches) {
-            const bIndex = bItem.batchIndex;
+        if (driveRes.ok) {
+          const driveBatches = Array.isArray(driveRes.batches) ? driveRes.batches : [];
+          const driveCompletedIndices = new Set<number>(driveBatches.map((b) => b.batchIndex));
+          const sortedCompleted = Array.from(driveCompletedIndices).sort((a, b) => a - b);
+
+          const validConfirmed = new Set<string>();
+          const validAnnotations: Record<string, ExpertAnnotationRecord> = {};
+          const validSharedTurns: Record<string, string> = {};
+
+          for (const bItem of driveBatches) {
             const cList = bItem.data?.cases;
-            if (bIndex && Array.isArray(cList) && cList.length > 0) {
-              if (!mergedCompleted.has(bIndex)) {
-                mergedCompleted.add(bIndex);
-                hasUpdate = true;
-                driveCount++;
-              }
+            if (Array.isArray(cList)) {
               for (const c of cList) {
                 if (c.case_id) {
-                  if (!mergedConfirmed.has(c.case_id)) {
-                    mergedConfirmed.add(c.case_id);
-                    hasUpdate = true;
-                  }
+                  validConfirmed.add(c.case_id);
                   const { record, turnsMap } = extractCaseAnnotationFromBatchData(c, activeDoctor.name);
-                  updatedAnnotations[c.case_id] = record;
-                  Object.assign(sharedTurnsObj, turnsMap);
-                  hasUpdate = true;
+                  validAnnotations[c.case_id] = record;
+                  Object.assign(validSharedTurns, turnsMap);
                 }
               }
+            }
+          }
+
+          // Dọn dẹp nháp và dữ liệu của các gói không còn tồn tại trên Google Drive
+          for (let b = 1; b <= 10; b++) {
+            if (!driveCompletedIndices.has(b)) {
+              try {
+                localStorage.removeItem(`nktt_batch_draft_${activeDoctor.id}_${b}`);
+              } catch {}
+            }
+          }
+
+          if (isSubscribed) {
+            setCompletedBatches(sortedCompleted);
+            setConfirmedCaseIds(validConfirmed);
+            setAnnotationsMap(validAnnotations);
+            setEditedTurns(validSharedTurns);
+
+            try {
+              localStorage.setItem(`nktt_completed_batches_${activeDoctor.id}`, JSON.stringify(sortedCompleted));
+              localStorage.setItem(`nktt_confirmed_cases_${activeDoctor.id}`, JSON.stringify(Array.from(validConfirmed)));
+              localStorage.setItem(`nktt_doctor_annotations_${activeDoctor.id}`, JSON.stringify(validAnnotations));
+              localStorage.setItem(`nktt_shared_turns_v5_${activeDoctor.id}`, JSON.stringify(validSharedTurns));
+            } catch {}
+
+            // Chọn gói làm việc phù hợp: gói đầu tiên chưa hoàn tất trên Drive
+            let nextBatch = 1;
+            for (let b = 1; b <= 10; b++) {
+              if (!driveCompletedIndices.has(b)) {
+                nextBatch = b;
+                break;
+              }
+            }
+            setCurrentBatchIndex(nextBatch);
+
+            if (driveBatches.length > 0) {
+              setSaveMessage({
+                text: `Đã tự động đồng bộ ${driveBatches.length} gói từ Google Drive!`,
+                isError: false,
+              });
+            } else if (completedList.length > 0 || initialConfirmed.size > 0) {
+              setSaveMessage({
+                text: "Dữ liệu trên Google Drive đã được làm mới (0 gói). Web đã được đồng bộ về trạng thái ban đầu!",
+                isError: false,
+              });
             }
           }
         }
       } catch (err) {
         console.warn("Lỗi khi kiểm tra Google Drive:", err);
       }
-
-      // Bước 2: Quét dự phòng thêm từ thư mục tĩnh public/annotations trên máy chủ web
-      for (let b = 1; b <= 10; b++) {
-        try {
-          const res = await fetch(`${assetBase}/annotations/${docFolder}/${docFolder}_batch_${b}.json?t=${Date.now()}`, {
-            cache: "no-store",
-          });
-          if (res.ok) {
-            const data = await res.json();
-            if (data?.cases && Array.isArray(data.cases) && data.cases.length > 0) {
-              if (!mergedCompleted.has(b)) {
-                mergedCompleted.add(b);
-                hasUpdate = true;
-              }
-              for (const c of data.cases) {
-                if (c.case_id) {
-                  if (!mergedConfirmed.has(c.case_id)) {
-                    mergedConfirmed.add(c.case_id);
-                    hasUpdate = true;
-                  }
-                  const { record, turnsMap } = extractCaseAnnotationFromBatchData(c, activeDoctor.name);
-                  updatedAnnotations[c.case_id] = record;
-                  Object.assign(sharedTurnsObj, turnsMap);
-                  hasUpdate = true;
-                }
-              }
-            }
-          }
-        } catch {}
-      }
-
-      if (hasUpdate && isSubscribed) {
-        const sortedCompleted = Array.from(mergedCompleted).sort((a, b) => a - b);
-        const sortedConfirmed = Array.from(mergedConfirmed);
-        setCompletedBatches(sortedCompleted);
-        setConfirmedCaseIds(new Set(sortedConfirmed));
-        setAnnotationsMap(updatedAnnotations);
-
-        try {
-          localStorage.setItem(`nktt_completed_batches_${activeDoctor.id}`, JSON.stringify(sortedCompleted));
-          localStorage.setItem(`nktt_confirmed_cases_${activeDoctor.id}`, JSON.stringify(sortedConfirmed));
-          localStorage.setItem(`nktt_doctor_annotations_${activeDoctor.id}`, JSON.stringify(updatedAnnotations));
-          localStorage.setItem(`nktt_shared_turns_v5_${activeDoctor.id}`, JSON.stringify(sharedTurnsObj));
-        } catch {}
-
-        setEditedTurns((prev) => ({ ...prev, ...sharedTurnsObj }));
-
-        // Tự động mở khóa gói tiếp theo nếu gói hiện tại đã hoàn tất
-        setCurrentBatchIndex((prev) => {
-          if (sortedCompleted.includes(prev) && prev < 10) {
-            return prev + 1;
-          }
-          return prev;
-        });
-
-        if (driveCount > 0) {
-          setSaveMessage({
-            text: `Đã tự động đồng bộ ${driveCount} gói từ Google Drive!`,
-            isError: false,
-          });
-        }
-      }
     }
 
     reconcileServerBatches();
+
+    const handleWindowFocus = () => {
+      reconcileServerBatches();
+    };
+    window.addEventListener("focus", handleWindowFocus);
+
     return () => {
       isSubscribed = false;
+      window.removeEventListener("focus", handleWindowFocus);
     };
   }, [activeDoctor]);
 
@@ -2254,43 +2228,40 @@ export default function LabelDataPage() {
         return;
       }
 
-      if (!driveRes.batches || driveRes.batches.length === 0) {
-        alert(`Google Drive hiện chưa có gói nào đã lưu của Bác sĩ ${activeDoctor.name}.`);
-        return;
-      }
+      const driveBatches = Array.isArray(driveRes.batches) ? driveRes.batches : [];
+      const driveCompletedIndices = new Set<number>(driveBatches.map((b) => b.batchIndex));
+      const sortedCompleted = Array.from(driveCompletedIndices).sort((a, b) => a - b);
 
-      const nextCompleted = new Set<number>(completedBatches);
-      const nextConfirmed = new Set<string>(confirmedCaseIds);
-      const nextAnnotations = { ...annotationsMap };
-      let sharedTurnsObj: Record<string, string> = {};
-      try {
-        const rawShared = localStorage.getItem(`nktt_shared_turns_v5_${activeDoctor.id}`);
-        if (rawShared) sharedTurnsObj = JSON.parse(rawShared);
-      } catch {}
+      const nextConfirmed = new Set<string>();
+      const nextAnnotations: Record<string, ExpertAnnotationRecord> = {};
+      const sharedTurnsObj: Record<string, string> = {};
 
-      let restoredCount = 0;
-
-      for (const bItem of driveRes.batches) {
-        const bIndex = bItem.batchIndex;
+      for (const bItem of driveBatches) {
         const cList = bItem.data?.cases;
-        if (bIndex && Array.isArray(cList) && cList.length > 0) {
-          nextCompleted.add(bIndex);
+        if (Array.isArray(cList)) {
           for (const c of cList) {
             if (c.case_id) {
               nextConfirmed.add(c.case_id);
               const { record, turnsMap } = extractCaseAnnotationFromBatchData(c, activeDoctor.name);
               nextAnnotations[c.case_id] = record;
               Object.assign(sharedTurnsObj, turnsMap);
-              restoredCount++;
             }
           }
         }
       }
 
-      const sortedCompleted = Array.from(nextCompleted).sort((a, b) => a - b);
+      // Xóa nháp của các gói không tồn tại trên Drive
+      for (let b = 1; b <= 10; b++) {
+        if (!driveCompletedIndices.has(b)) {
+          try {
+            localStorage.removeItem(`nktt_batch_draft_${activeDoctor.id}_${b}`);
+          } catch {}
+        }
+      }
+
       const sortedConfirmed = Array.from(nextConfirmed);
       setCompletedBatches(sortedCompleted);
-      setConfirmedCaseIds(new Set(sortedConfirmed));
+      setConfirmedCaseIds(nextConfirmed);
       setAnnotationsMap(nextAnnotations);
 
       localStorage.setItem(`nktt_completed_batches_${activeDoctor.id}`, JSON.stringify(sortedCompleted));
@@ -2298,7 +2269,7 @@ export default function LabelDataPage() {
       localStorage.setItem(`nktt_doctor_annotations_${activeDoctor.id}`, JSON.stringify(nextAnnotations));
       localStorage.setItem(`nktt_shared_turns_v5_${activeDoctor.id}`, JSON.stringify(sharedTurnsObj));
 
-      setEditedTurns((prev) => ({ ...prev, ...sharedTurnsObj }));
+      setEditedTurns(sharedTurnsObj);
       if (selectedCaseId && nextAnnotations[selectedCaseId]) {
         const cur = nextAnnotations[selectedCaseId];
         setEditedQuery(cur.edited_query || "");
@@ -2306,12 +2277,14 @@ export default function LabelDataPage() {
         setCurrentVerdict(cur.verdict || "APPROVED");
       }
 
-      setCurrentBatchIndex((prev) => {
-        if (sortedCompleted.includes(prev) && prev < 10) {
-          return prev + 1;
+      let nextBatch = 1;
+      for (let b = 1; b <= 10; b++) {
+        if (!driveCompletedIndices.has(b)) {
+          nextBatch = b;
+          break;
         }
-        return prev;
-      });
+      }
+      setCurrentBatchIndex(nextBatch);
 
       alert(
         `Đồng bộ thành công từ Google Drive!\n\n` +

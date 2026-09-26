@@ -343,6 +343,7 @@ export async function fetchDoctorBatchesFromDrive(
       method: "GET",
       signal: controller.signal,
       redirect: "follow",
+      cache: "no-store",
     });
 
     clearTimeout(timer);
@@ -444,6 +445,7 @@ export async function fetchAllBatchesSummaryFromDrive(
       method: "GET",
       signal: controller.signal,
       redirect: "follow",
+      cache: "no-store",
     });
 
     clearTimeout(timer);

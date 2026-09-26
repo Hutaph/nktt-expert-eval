@@ -121,25 +121,23 @@ export default function DoctorLoginModal({
       const updatedProgress: Record<string, number> = { ...progress };
       let changed = false;
 
-      // Bước 1: Kéo tóm tắt toàn bộ các gói từ Google Drive (Xử lý nhanh không gây giật lag)
+      // Đồng bộ trực tiếp từ Google Drive (Google Drive là nguồn chân lý duy nhất)
       try {
-        const driveSummary = await fetchAllBatchesSummaryFromDrive({ timeoutMs: 4000 });
+        const driveSummary = await fetchAllBatchesSummaryFromDrive({ timeoutMs: 5000 });
         if (driveSummary.ok && driveSummary.summary) {
           for (const doc of DOCTORS_LIST) {
             const folder = doc.folderCode.toUpperCase();
             const driveBatches = driveSummary.summary[folder] || [];
-            if (driveBatches.length > 0) {
-              const currentDocCount = updatedProgress[doc.id] || 0;
-              if (driveBatches.length > currentDocCount) {
-                updatedProgress[doc.id] = driveBatches.length;
-                changed = true;
-                try {
-                  localStorage.setItem(
-                    `nktt_completed_batches_${doc.id}`,
-                    JSON.stringify(driveBatches)
-                  );
-                } catch {}
-              }
+            const newCount = driveBatches.length;
+            if (updatedProgress[doc.id] !== newCount) {
+              updatedProgress[doc.id] = newCount;
+              changed = true;
+              try {
+                localStorage.setItem(
+                  `nktt_completed_batches_${doc.id}`,
+                  JSON.stringify(driveBatches)
+                );
+              } catch {}
             }
           }
           if (changed && isSubscribed) {
@@ -148,61 +146,6 @@ export default function DoctorLoginModal({
         }
       } catch (err) {
         console.warn("Lỗi khi kiểm tra tiến độ từ Google Drive:", err);
-      }
-
-      // Bước 2: Quét kiểm tra song song từ tệp tĩnh public/annotations trên máy chủ web
-      const assetBase =
-        typeof window !== "undefined" && window.location.pathname.startsWith("/nktt-expert-eval")
-          ? "/nktt-expert-eval"
-          : "";
-
-      await Promise.all(
-        DOCTORS_LIST.map(async (doc) => {
-          const folder = doc.folderCode.toUpperCase();
-          const docCompleted = new Set<number>();
-
-          try {
-            const saved = localStorage.getItem(`nktt_completed_batches_${doc.id}`);
-            if (saved) {
-              const list = JSON.parse(saved);
-              if (Array.isArray(list)) list.forEach((n) => docCompleted.add(n));
-            }
-          } catch {}
-
-          // Kiểm tra nhanh song song 10 gói thay vì đợi tuần tự từng gói
-          const batchPromises = Array.from({ length: 10 }, (_, i) => i + 1).map(async (b) => {
-            if (docCompleted.has(b)) return;
-            try {
-              const res = await fetch(`${assetBase}/annotations/${folder}/${folder}_batch_${b}.json?t=${Date.now()}`, {
-                cache: "no-store",
-              });
-              if (res.ok) {
-                const data = await res.json();
-                if (data?.cases && Array.isArray(data.cases) && data.cases.length > 0) {
-                  docCompleted.add(b);
-                }
-              }
-            } catch {}
-          });
-
-          await Promise.all(batchPromises);
-
-          const count = docCompleted.size;
-          if (count > (updatedProgress[doc.id] || 0)) {
-            updatedProgress[doc.id] = count;
-            changed = true;
-            try {
-              localStorage.setItem(
-                `nktt_completed_batches_${doc.id}`,
-                JSON.stringify(Array.from(docCompleted).sort((a, b) => a - b))
-              );
-            } catch {}
-          }
-        })
-      );
-
-      if (changed && isSubscribed) {
-        setProgressMap({ ...updatedProgress });
       }
     }
 

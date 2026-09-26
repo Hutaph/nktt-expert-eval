@@ -139,6 +139,11 @@ export default function ClinicalRulesModal({
             </div>
           </div>
 
+          {/* Important Storage Notice */}
+          <div className={styles.rulesNoticeBox} style={{ marginTop: "1rem", backgroundColor: "#fffbeb", borderColor: "#fde68a", color: "#92400e" }}>
+            <strong>Lưu ý bắt buộc về lưu trữ:</strong> Dữ liệu chỉ được gửi và lưu trữ an toàn lên Google Drive khi Bác sĩ hoàn thành đủ cả 10 ca trong gói và bấm nút <em>"Lưu Gói"</em>. Nếu đóng trình duyệt khi gói chưa hoàn thành, tiến độ dở dang chỉ lưu nháp trên máy hiện tại và sẽ không thể xem tiếp từ máy tính khác.
+          </div>
+
           {/* Agreement Checkbox */}
           <div className={styles.agreementBox}>
             <label className={styles.agreementLabel}>

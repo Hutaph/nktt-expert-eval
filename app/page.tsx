@@ -533,6 +533,31 @@ export default function LabelDataPage() {
     setShowDoctorModal(true);
   }, []);
 
+  // Cảnh báo trước khi thoát hoặc tải lại trang web nếu gói chưa hoàn thành hoặc chưa lưu
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // Kích hoạt khi bác sĩ đang làm việc và chưa hoàn thành đủ 10 gói hoặc gói hiện tại chưa lưu
+      const hasUncompletedBatch =
+        Boolean(activeDoctor) &&
+        (!completedBatches.includes(currentBatchIndex) || completedBatches.length < 10);
+
+      if (hasUncompletedBatch) {
+        e.preventDefault();
+        const warningMsg =
+          "Lưu ý quan trọng: Bác sĩ cần hoàn thành đủ 10/10 ca trong gói và bấm nút Lưu Gói để dữ liệu được lưu an toàn lên Google Drive. Nếu thoát bây giờ, tiến độ dở dang chỉ lưu nháp trên trình duyệt này và không thể xem từ thiết bị khác.";
+        e.returnValue = warningMsg;
+        return warningMsg;
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [activeDoctor, completedBatches, currentBatchIndex]);
+
   // When active doctor changes, load their confirmed cases and completed batches
   useEffect(() => {
     if (!activeDoctor) return;
@@ -1833,7 +1858,9 @@ export default function LabelDataPage() {
     const unconfirmed = batchCases.filter((c) => !confirmedCaseIds.has(c.case_id));
     if (unconfirmed.length > 0) {
       alert(
-        `Gói ${currentBatchIndex} còn ${unconfirmed.length}/10 ca chưa được Bác sĩ bấm nút xác nhận (ví dụ ca: ${unconfirmed[0].case_id}).\n\nBác sĩ vui lòng rà soát hồ sơ và bấm nút xác nhận cho đủ cả 10 ca trước khi Lưu gói.`
+        `Lưu ý bắt buộc: Bác sĩ cần hoàn thành và bấm xác nhận đủ 10/10 ca trong Gói ${currentBatchIndex} thì mới được lưu gói lên Google Drive.\n\n` +
+        `Hiện tại còn ${unconfirmed.length}/10 ca chưa xác nhận (ví dụ ca: ${unconfirmed[0].case_id}).\n\n` +
+        `Tiến độ làm việc từng ca của Bác sĩ vẫn đang được hệ thống tự động lưu nháp liên tục trên trình duyệt này.`
       );
       return;
     }
@@ -2175,6 +2202,19 @@ export default function LabelDataPage() {
     }
   };
 
+  // Doctor profile badge click -> confirm if switching while current batch in progress
+  const handleOpenDoctorModal = () => {
+    if (activeDoctor && !completedBatches.includes(currentBatchIndex) && currentBatchConfirmedCount > 0) {
+      const confirmSwitch = window.confirm(
+        `Lưu ý quan trọng: Gói ${currentBatchIndex} đang thẩm định dở dang (${currentBatchConfirmedCount}/10 ca).\n\n` +
+        `Bác sĩ cần hoàn thành đủ 10/10 ca và bấm nút "Lưu Gói ${currentBatchIndex}" thì dữ liệu mới được đồng bộ lên Google Drive.\n\n` +
+        `Bác sĩ có chắc chắn muốn chuyển đổi tài khoản Bác sĩ không?`
+      );
+      if (!confirmSwitch) return;
+    }
+    setShowDoctorModal(true);
+  };
+
   // Doctor selection handler from login modal -> triggers Rules Modal
   const handleDoctorSelected = (doc: DoctorProfile) => {
     setPendingDoctor(doc);
@@ -2301,7 +2341,7 @@ export default function LabelDataPage() {
               {/* Doctor Profile Badge */}
               <div
                 className={styles.doctorProfileBadge}
-                onClick={() => setShowDoctorModal(true)}
+                onClick={handleOpenDoctorModal}
                 style={{ cursor: "pointer" }}
                 title="Bấm để chuyển đổi Bác sĩ chuyên khoa"
               >
@@ -2369,12 +2409,12 @@ export default function LabelDataPage() {
                   isCurrentBatchFullyConfirmed && !saving ? styles.saveMainBtnReady : styles.saveMainBtnLocked,
                 ].join(" ")}
                 onClick={handleSaveBatch}
-                disabled={!isCurrentBatchFullyConfirmed || saving}
+                disabled={saving}
                 title={
                   saving
                     ? "Đang lưu gói trực tiếp lên Google Drive..."
                     : !isCurrentBatchFullyConfirmed
-                    ? `Cần xác nhận đủ 10/10 ca trong Gói ${currentBatchIndex} để mở khóa nút Lưu (Hiện tại: ${currentBatchConfirmedCount}/10 ca). Hệ thống đang tự động lưu nháp liên tục.`
+                    ? `Cần xác nhận đủ 10/10 ca trong Gói ${currentBatchIndex} để mở khóa nút Lưu (Hiện tại: ${currentBatchConfirmedCount}/10 ca). Bác sĩ có thể bấm vào đây để xem hướng dẫn.`
                     : `Lưu hoàn tất Gói ${currentBatchIndex} trực tiếp lên Google Drive và mở khóa gói tiếp theo`
                 }
               >
@@ -2482,6 +2522,16 @@ export default function LabelDataPage() {
               })}
             </div>
           </div>
+
+          {/* Batch Incomplete Notice Banner */}
+          {!completedBatches.includes(currentBatchIndex) && !isCurrentBatchFullyConfirmed && (
+            <div className={styles.batchNoticeBanner}>
+              <span className={styles.batchNoticeBadge}>Lưu ý bắt buộc</span>
+              <span className={styles.batchNoticeText}>
+                Hệ thống chỉ lưu và đồng bộ lên Google Drive khi Bác sĩ hoàn thành đủ <strong>10/10 ca</strong> trong gói và bấm nút <strong className={styles.batchNoticeStrong}>Lưu Gói {currentBatchIndex}</strong> (hiện đã xác nhận {currentBatchConfirmedCount}/10 ca). Nếu đóng hoặc thoát trang web khi gói chưa hoàn tất, tiến độ đang làm chỉ lưu tạm trên trình duyệt này và không thể xem tiếp từ thiết bị khác.
+              </span>
+            </div>
+          )}
 
           {/* Batch 10/10 Cases Completed Banner Notification */}
           {isCurrentBatchFullyConfirmed && !completedBatches.includes(currentBatchIndex) && (

@@ -313,10 +313,6 @@ export default function DoctorLoginModal({
                     </div>
                     <h3 className={styles.doctorName}>{doc.name}</h3>
                     <p className={styles.doctorQuota}>{doc.role}</p>
-                    <div className={styles.doctorProgressRow}>
-                      <span>Tiến độ:</span>
-                      <span>{completedCount}/10 gói hoàn tất</span>
-                    </div>
                   </div>
                 );
               })}

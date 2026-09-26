@@ -184,6 +184,7 @@ interface ExpertAnnotationRecord {
   edited_query?: string;
   query_change_percent?: number;
   edited_turns?: TurnRecord[];
+  turn_evaluations?: Record<string, "v" | "x">;
   factors?: FactorRecord[];
   memory_events?: {
     relevant_event_ids: string[];
@@ -494,7 +495,11 @@ export default function LabelDataPage() {
   // Query editing toggle
   const [isEditingQuery, setIsEditingQuery] = useState<boolean>(false);
 
-  // Trạng thái bật chế độ sửa cho từng lượt thoại (nút x mở sửa, nút v bỏ qua/chuẩn rồi)
+  // Trạng thái đánh giá từng lượt thoại: "v" (chuẩn rồi) hoặc "x" (chưa chuẩn)
+  // Mặc định rỗng {}, không chọn sẵn bất kỳ nút nào
+  const [turnEvaluations, setTurnEvaluations] = useState<Record<string, "v" | "x">>({});
+
+  // Trạng thái bật chế độ sửa nội dung cho từng lượt thoại (tùy chọn khi chọn x)
   const [editingTurnIds, setEditingTurnIds] = useState<Record<string, boolean>>({});
 
   // Độ rộng và trạng thái mở rộng / ẩn của cột bên trái (danh sách ca bệnh)
@@ -1241,10 +1246,45 @@ export default function LabelDataPage() {
 
   const isChecklistComplete = checklistHistory && checklistSafety && checklistCore;
 
-  // Yêu cầu thẩm định: Đánh dấu đủ 3 tiêu chuẩn + nhận xét đạt chuẩn + xem qua toàn bộ các lần khám của ca
-  const canConfirmCase = isChecklistComplete && notesQuality.isValid && hasInspectedAllSessions;
+  // Danh sách toàn bộ các câu thoại trong tất cả các lần khám hiển thị của ca
+  const allVisibleTurns = useMemo(() => {
+    return visibleSessions.flatMap((s) => s.turns || []);
+  }, [visibleSessions]);
+
+  // Số lượng câu thoại chưa được chọn (v hoặc x)
+  const unevaluatedTurnsCount = useMemo(() => {
+    return allVisibleTurns.filter((t) => !turnEvaluations[t.turn_id]).length;
+  }, [allVisibleTurns, turnEvaluations]);
+
+  // Đã đánh giá toàn bộ câu thoại (v hoặc x) trong tất cả các lần khám
+  const hasEvaluatedAllTurns = useMemo(() => {
+    if (allVisibleTurns.length === 0) return true;
+    return unevaluatedTurnsCount === 0;
+  }, [allVisibleTurns, unevaluatedTurnsCount]);
+
+  // Yêu cầu thẩm định: Đánh dấu đủ 3 tiêu chuẩn + nhận xét đạt chuẩn + xem qua toàn bộ các lần khám + chọn đủ (v hoặc x) cho mọi câu thoại
+  const canConfirmCase =
+    isChecklistComplete &&
+    notesQuality.isValid &&
+    hasInspectedAllSessions &&
+    hasEvaluatedAllTurns;
 
   const handleSelectSession = useCallback((idx: number) => {
+    if (idx === activeSessionIndex) return;
+
+    // Bắt buộc: Phải chọn (v hoặc x) cho tất cả các câu thoại trong lần khám hiện tại mới được qua lần khám khác
+    const currentSess = timeline?.sessions?.[activeSessionIndex];
+    if (currentSess && currentSess.turns && currentSess.turns.length > 0) {
+      const unselectedTurns = currentSess.turns.filter((t) => !turnEvaluations[t.turn_id]);
+      if (unselectedTurns.length > 0) {
+        alert(
+          `Bắt buộc đánh giá: Bác sĩ vui lòng chọn (v hoặc x) cho tất cả các câu thoại trong Lần ${currentSess.session_number} trước khi chuyển sang lần khám khác.\n\n` +
+          `Hiện còn ${unselectedTurns.length}/${currentSess.turns.length} câu thoại chưa được chọn.`
+        );
+        return;
+      }
+    }
+
     setActiveSessionIndex(idx);
     if (timeline?.sessions?.[idx]) {
       const sNum = timeline.sessions[idx].session_number;
@@ -1272,7 +1312,7 @@ export default function LabelDataPage() {
         chatEl.scrollTo({ top: 0, behavior: "smooth" });
       }
     }, 50);
-  }, [timeline, activeDoctor, activeCase]);
+  }, [timeline, activeDoctor, activeCase, activeSessionIndex, turnEvaluations]);
 
   // Current case index calculations for seamless navigation
   const currentCaseIndexInBatch = useMemo(() => {
@@ -1349,6 +1389,12 @@ export default function LabelDataPage() {
           } catch {}
         }
 
+        // Cap nhat timeline va events ngay lap tuc
+        const uTimeline = cachedTimelinesMap?.get(matched.user_id) || null;
+        if (uTimeline) setTimeline(uTimeline);
+        const uEvents = cachedEventsMap?.get(matched.user_id) || [];
+        if (uEvents.length > 0) setEvents(uEvents);
+
         if (isConfirmed && saved && !isFakeDefaultNote(saved.clinical_notes)) {
           setEditedQuery(saved.edited_query || matched.current_query || "");
           setClinicalNotes(saved.clinical_notes || "");
@@ -1364,6 +1410,18 @@ export default function LabelDataPage() {
             });
           }
           setEditedTurns({ ...tMap, ...sharedTurns });
+          if (saved.turn_evaluations) {
+            setTurnEvaluations(saved.turn_evaluations);
+          } else {
+            const fallbackEvals: Record<string, "v" | "x"> = {};
+            const editedIds = new Set((saved.edited_turns || []).map((t) => t.turn_id));
+            uTimeline?.sessions?.forEach((s) => {
+              s.turns?.forEach((t) => {
+                fallbackEvals[t.turn_id] = editedIds.has(t.turn_id) ? "x" : "v";
+              });
+            });
+            setTurnEvaluations(fallbackEvals);
+          }
           if (saved.factors && saved.factors.length > 0) {
             setEditedFactors(JSON.parse(JSON.stringify(saved.factors)));
           } else if (matched.targets?.factors) {
@@ -1392,6 +1450,7 @@ export default function LabelDataPage() {
             setCurrentVerdict("APPROVED");
           }
           setEditedTurns({ ...(draftData.editedTurns || {}), ...sharedTurns });
+          setTurnEvaluations(draftData.turnEvaluations || {});
           if (draftData.editedFactors) {
             setEditedFactors(draftData.editedFactors);
           } else {
@@ -1408,6 +1467,7 @@ export default function LabelDataPage() {
           setClinicalNotes("");
           setCurrentVerdict("APPROVED");
           setEditedTurns({ ...sharedTurns });
+          setTurnEvaluations({});
           if (matched.targets?.factors) {
             setEditedFactors(JSON.parse(JSON.stringify(matched.targets.factors)));
           } else {
@@ -1426,11 +1486,7 @@ export default function LabelDataPage() {
           setChecklistSafety(false);
           setChecklistCore(false);
         }
-        // Cap nhat timeline va events ngay lap tuc
-        const uTimeline = cachedTimelinesMap?.get(matched.user_id) || null;
-        if (uTimeline) setTimeline(uTimeline);
-        const uEvents = cachedEventsMap?.get(matched.user_id) || [];
-        if (uEvents.length > 0) setEvents(uEvents);
+        setEditingTurnIds({});
 
         // Mac dinh mo moc kham dau tien cua chang ca nay
         const matchedCasesList = allCases.filter((c) => c.user_id === matched.user_id);
@@ -1492,7 +1548,23 @@ export default function LabelDataPage() {
   const handleConfirmAndNextCase = () => {
     if (!activeCase || !activeDoctor) return;
 
-    // Kiểm tra điều kiện bắt buộc: Bác sĩ phải xem hết các lần khám của ca này
+    // 1. Kiểm tra tất cả câu thoại trong tất cả các lần khám hiển thị đã được đánh giá (v hoặc x) chưa
+    for (const sess of visibleSessions) {
+      const unselected = (sess.turns || []).filter((t) => !turnEvaluations[t.turn_id]);
+      if (unselected.length > 0) {
+        alert(
+          `Chưa hoàn tất đánh giá: Lần ${sess.session_number} còn ${unselected.length}/${sess.turns.length} câu thoại chưa được chọn (v hoặc x).\n\n` +
+          `Bác sĩ vui lòng chọn đầy đủ trước khi xác nhận ca bệnh.`
+        );
+        const sessIdx = timeline?.sessions?.findIndex((s) => s.session_id === sess.session_id);
+        if (sessIdx !== undefined && sessIdx >= 0) {
+          setActiveSessionIndex(sessIdx);
+        }
+        return;
+      }
+    }
+
+    // 2. Kiểm tra điều kiện bắt buộc: Bác sĩ phải xem hết các lần khám của ca này
     if (!hasInspectedAllSessions) {
       const uninspected = visibleSessions.filter((s) => !inspectedSessions.has(s.session_number));
       const uninspectedListStr = uninspected.map((s) => `Lần ${s.session_number}`).join(", ");
@@ -1551,6 +1623,7 @@ export default function LabelDataPage() {
           editedQuery,
           clinicalNotes,
           editedTurns,
+          turnEvaluations,
           editedFactors,
           editedRelevantEvents,
           editedStaleEvents,
@@ -1579,6 +1652,7 @@ export default function LabelDataPage() {
     editedQuery,
     clinicalNotes,
     editedTurns,
+    turnEvaluations,
     editedFactors,
     editedRelevantEvents,
     editedStaleEvents,
@@ -1650,7 +1724,27 @@ export default function LabelDataPage() {
     }
   };
 
-  // Thao tác chỉnh sửa từng lượt thoại qua nút x và v
+  // Thao tác đánh giá từng lượt thoại (nút v hoặc x)
+  const handleToggleTurnEval = (turnId: string, val: "v" | "x") => {
+    setTurnEvaluations((prev) => {
+      const next = { ...prev };
+      if (next[turnId] === val) {
+        delete next[turnId];
+      } else {
+        next[turnId] = val;
+      }
+      return next;
+    });
+    // Nếu chọn v thì đóng khung sửa nếu đang mở
+    if (val === "v") {
+      setEditingTurnIds((prev) => ({
+        ...prev,
+        [turnId]: false,
+      }));
+    }
+  };
+
+  // Thao tác bật/tắt ô chỉnh sửa câu thoại (tùy chọn khi câu bị gắn x)
   const handleToggleTurnEdit = (turnId: string) => {
     setEditingTurnIds((prev) => ({
       ...prev,
@@ -1658,7 +1752,15 @@ export default function LabelDataPage() {
     }));
   };
 
+  const handleCloseTurnEdit = (turnId: string) => {
+    setEditingTurnIds((prev) => ({
+      ...prev,
+      [turnId]: false,
+    }));
+  };
+
   const handleMarkTurnStandard = (turnId: string) => {
+    handleToggleTurnEval(turnId, "v");
     setEditingTurnIds((prev) => ({
       ...prev,
       [turnId]: false,
@@ -1811,8 +1913,12 @@ export default function LabelDataPage() {
     }
 
     const hasTurnEdits = editedTurnsList.length > 0;
+    const hasTurnFlaggedX = Object.values(turnEvaluations).some((val) => val === "x");
     const hasQueryEdit = Boolean(activeCase.current_query && editedQuery.trim() !== activeCase.current_query.trim());
-    const resolvedVerdict: "APPROVED" | "EDITED" | "FLAGGED" = (hasTurnEdits || hasQueryEdit) ? "EDITED" : "APPROVED";
+    let resolvedVerdict: "APPROVED" | "EDITED" | "FLAGGED" = currentVerdict;
+    if (currentVerdict === "APPROVED" && (hasTurnEdits || hasQueryEdit || hasTurnFlaggedX)) {
+      resolvedVerdict = "EDITED";
+    }
     setCurrentVerdict(resolvedVerdict);
 
     const record: ExpertAnnotationRecord = {
@@ -1824,6 +1930,7 @@ export default function LabelDataPage() {
       edited_query: editedQuery.trim() !== activeCase.current_query.trim() ? editedQuery.trim() : undefined,
       query_change_percent: queryChangePercent > 0 ? queryChangePercent : undefined,
       edited_turns: editedTurnsList.length > 0 ? editedTurnsList : undefined,
+      turn_evaluations: turnEvaluations,
       factors: editedFactors,
       memory_events: parsedMemoryEvents,
       annotator: activeDoctor.name,
@@ -2837,6 +2944,9 @@ export default function LabelDataPage() {
                             ) ?? -1;
                             const isSelected = actualIdx === activeSessionIndex;
                             const isInspected = inspectedSessions.has(s.session_number);
+                            const sTurns = s.turns || [];
+                            const sEvalCount = sTurns.filter((t) => Boolean(turnEvaluations[t.turn_id])).length;
+                            const isSessTurnsDone = sTurns.length === 0 || sEvalCount === sTurns.length;
 
                             return (
                               <button
@@ -2845,21 +2955,27 @@ export default function LabelDataPage() {
                                 className={[
                                   styles.sessionPill,
                                   isSelected ? styles.sessionPillActive : "",
-                                  isInspected && !isSelected ? styles.sessionPillCompleted : "",
-                                  !isInspected && !isSelected ? styles.sessionPillUnread : "",
+                                  isSessTurnsDone && !isSelected ? styles.sessionPillCompleted : "",
+                                  !isSessTurnsDone && !isSelected ? styles.sessionPillUnread : "",
                                 ]
                                   .filter(Boolean)
                                   .join(" ")}
                                 onClick={() => {
                                   if (actualIdx >= 0) handleSelectSession(actualIdx);
                                 }}
-                                title={`Lần ${s.session_number}${
-                                  isInspected ? " (Đã xem)" : " (Chưa xem - nhấp để xem)"
+                                title={`Lần ${s.session_number}: ${
+                                  sTurns.length > 0
+                                    ? `Đã chọn ${sEvalCount}/${sTurns.length} câu thoại`
+                                    : "Không có câu thoại"
                                 }`}
                               >
                                 <span>Lần {s.session_number}</span>
                                 <span style={{ fontSize: "0.65rem", marginLeft: "2px", opacity: 0.85 }}>
-                                  {isInspected ? "(Đã xem)" : "(Chưa xem)"}
+                                  {sTurns.length > 0
+                                    ? isSessTurnsDone
+                                      ? "(Đã chọn đủ)"
+                                      : `(${sEvalCount}/${sTurns.length})`
+                                    : isInspected ? "(Đã xem)" : "(Chưa xem)"}
                                 </span>
                               </button>
                             );
@@ -2878,15 +2994,15 @@ export default function LabelDataPage() {
                               marginLeft: "auto",
                               padding: "0.15rem 0.5rem",
                               borderRadius: "4px",
-                              backgroundColor: hasInspectedAllSessions ? "#ecfdf5" : "#fffbeb",
-                              color: hasInspectedAllSessions ? "#065f46" : "#b45309",
-                              border: `1px solid ${hasInspectedAllSessions ? "#a7f3d0" : "#fde68a"}`,
+                              backgroundColor: hasEvaluatedAllTurns && hasInspectedAllSessions ? "#ecfdf5" : "#fffbeb",
+                              color: hasEvaluatedAllTurns && hasInspectedAllSessions ? "#065f46" : "#b45309",
+                              border: `1px solid ${hasEvaluatedAllTurns && hasInspectedAllSessions ? "#a7f3d0" : "#fde68a"}`,
                               whiteSpace: "nowrap",
                             }}
                           >
-                            {hasInspectedAllSessions
-                              ? `Đã xem đủ ${visibleSessions.length}/${visibleSessions.length} lần`
-                              : `Đã xem ${inspectedCount}/${visibleSessions.length} lần (Cần xem hết để xác nhận)`}
+                            {hasEvaluatedAllTurns
+                              ? `Đã chọn đủ ${allVisibleTurns.length}/${allVisibleTurns.length} câu thoại`
+                              : `Đã chọn ${allVisibleTurns.length - unevaluatedTurnsCount}/${allVisibleTurns.length} câu (Bắt buộc chọn hết mới qua lần khác)`}
                           </span>
                         )}
                       </div>
@@ -2923,6 +3039,9 @@ export default function LabelDataPage() {
                                 editedTurns[turn.turn_id] !== undefined &&
                                 editedTurns[turn.turn_id] !== turn.text;
                               const isEditing = Boolean(editingTurnIds[turn.turn_id]);
+                              const currentEval = turnEvaluations[turn.turn_id];
+                              const isV = currentEval === "v";
+                              const isX = currentEval === "x";
 
                               return (
                                 <div
@@ -2956,16 +3075,21 @@ export default function LabelDataPage() {
                                         )}
                                       </div>
                                       <div className={styles.bubbleHeaderRight}>
-                                        {/* Nút x hoặc v: v thì bỏ qua vì chuẩn rồi, x thì được sửa */}
-                                        <div className={styles.bubbleActionGroup}>
+                                        {/* Nút x hoặc v: ko chọn sẵn, bắt buộc phải chọn mới được qua lần khác (ko cần ghi text) */}
+                                        <div
+                                          className={[
+                                            styles.bubbleActionGroup,
+                                            !currentEval ? styles.bubbleActionGroupUnselected : "",
+                                          ].filter(Boolean).join(" ")}
+                                        >
                                           <button
                                             type="button"
                                             className={[
                                               styles.bubbleBtnV,
-                                              !isEditing ? styles.bubbleBtnVActive : "",
+                                              isV ? styles.bubbleBtnVActive : "",
                                             ].filter(Boolean).join(" ")}
-                                            onClick={() => handleMarkTurnStandard(turn.turn_id)}
-                                            title="v: Chuẩn rồi - Đạt chuẩn lâm sàng"
+                                            onClick={() => handleToggleTurnEval(turn.turn_id, "v")}
+                                            title={isV ? "Đã chọn: v (Chuẩn rồi) - Bấm lại để bỏ chọn" : "v: Chuẩn rồi - Đạt chuẩn lâm sàng"}
                                           >
                                             <svg
                                               width="13"
@@ -2984,10 +3108,10 @@ export default function LabelDataPage() {
                                             type="button"
                                             className={[
                                               styles.bubbleBtnX,
-                                              isEditing ? styles.bubbleBtnXActive : "",
+                                              isX ? styles.bubbleBtnXActive : "",
                                             ].filter(Boolean).join(" ")}
-                                            onClick={() => handleToggleTurnEdit(turn.turn_id)}
-                                            title="x: Sửa - Cho phép chỉnh sửa câu này"
+                                            onClick={() => handleToggleTurnEval(turn.turn_id, "x")}
+                                            title={isX ? "Đã chọn: x (Chưa chuẩn) - Bấm lại để bỏ chọn" : "x: Chưa chuẩn - Cần xem xét"}
                                           >
                                             <svg
                                               width="13"
@@ -3004,6 +3128,17 @@ export default function LabelDataPage() {
                                             </svg>
                                           </button>
                                         </div>
+
+                                        {isX && (
+                                          <button
+                                            type="button"
+                                            className={styles.bubbleEditToggleBtn}
+                                            onClick={() => handleToggleTurnEdit(turn.turn_id)}
+                                            title={isEditing ? "Đóng ô chỉnh sửa" : "Chỉnh sửa nội dung câu thoại (tùy chọn)"}
+                                          >
+                                            <span>{isEditing ? "Đóng sửa" : "Sửa text"}</span>
+                                          </button>
+                                        )}
 
                                         {isModified && (
                                           <button
@@ -3036,26 +3171,14 @@ export default function LabelDataPage() {
                                           title="Đang chỉnh sửa nội dung lượt thoại này"
                                         />
                                         <div className={styles.bubbleEditFooter}>
-                                          <span className={styles.bubbleEditStatus}>Đang sửa câu thoại</span>
+                                          <span className={styles.bubbleEditStatus}>Đang sửa nội dung câu thoại (tùy chọn)</span>
                                           <button
                                             type="button"
-                                            className={styles.bubbleSaveEditBtn}
-                                            onClick={() => handleMarkTurnStandard(turn.turn_id)}
-                                            title="Xác nhận câu này đã chuẩn và đóng ô sửa"
+                                            className={styles.bubbleCloseEditBtn}
+                                            onClick={() => handleCloseTurnEdit(turn.turn_id)}
+                                            title="Đóng ô chỉnh sửa (vẫn giữ đánh giá x)"
                                           >
-                                            <svg
-                                              width="12"
-                                              height="12"
-                                              viewBox="0 0 24 24"
-                                              fill="none"
-                                              stroke="currentColor"
-                                              strokeWidth="3"
-                                              strokeLinecap="round"
-                                              strokeLinejoin="round"
-                                            >
-                                              <polyline points="20 6 9 17 4 12" />
-                                            </svg>
-                                            <span>Chuẩn rồi</span>
+                                            <span>Xong</span>
                                           </button>
                                         </div>
                                       </div>
@@ -3099,10 +3222,16 @@ export default function LabelDataPage() {
                             })()}
                           </div>
 
-                          <div style={{ fontSize: "0.75rem", fontWeight: 600, color: hasInspectedAllSessions ? "#065f46" : "#b45309" }}>
-                            {hasInspectedAllSessions
-                              ? `Đã xem đủ ${visibleSessions.length}/${visibleSessions.length} lần khám của ca này`
-                              : `Tiến độ: Đã xem ${inspectedCount}/${visibleSessions.length} lần khám (Cần xem hết để xác nhận)`}
+                          <div
+                            style={{
+                              fontSize: "0.75rem",
+                              fontWeight: 600,
+                              color: hasEvaluatedAllTurns && hasInspectedAllSessions ? "#065f46" : "#b45309",
+                            }}
+                          >
+                            {hasEvaluatedAllTurns
+                              ? `Đã chọn đủ các câu thoại cho toàn bộ các lần khám (${allVisibleTurns.length}/${allVisibleTurns.length} câu)`
+                              : `Tiến độ: Đã chọn ${allVisibleTurns.length - unevaluatedTurnsCount}/${allVisibleTurns.length} câu thoại (Bắt buộc chọn hết mới qua lần khác)`}
                           </div>
 
                           <div>
@@ -3115,16 +3244,35 @@ export default function LabelDataPage() {
                                 const nextActualIdx = timeline?.sessions?.findIndex(
                                   (sess) => sess.session_id === nextSess.session_id
                                 ) ?? -1;
+                                const curTurns = currentSession?.turns || [];
+                                const curUnselected = curTurns.filter((t) => !turnEvaluations[t.turn_id]).length;
+                                const isCurDone = curTurns.length === 0 || curUnselected === 0;
+
                                 return (
                                   <button
                                     type="button"
-                                    className={[styles.chatSessionNavBtn, styles.chatSessionNavNext].join(" ")}
+                                    className={[
+                                      styles.chatSessionNavBtn,
+                                      styles.chatSessionNavNext,
+                                      !isCurDone ? styles.chatSessionNavDisabled : "",
+                                    ]
+                                      .filter(Boolean)
+                                      .join(" ")}
                                     onClick={() => {
                                       if (nextActualIdx >= 0) handleSelectSession(nextActualIdx);
                                     }}
-                                    title={`Chuyển sang xem tiếp Lần ${nextSess.session_number}`}
+                                    title={
+                                      !isCurDone
+                                        ? `Cần chọn xong ${curUnselected} câu còn lại ở lần này để xem tiếp`
+                                        : `Chuyển sang xem tiếp Lần ${nextSess.session_number}`
+                                    }
                                   >
                                     <span>Tiếp theo: Xem Lần {nextSess.session_number} &rarr;</span>
+                                    {!isCurDone && (
+                                      <span className={styles.chatSessionNavBadge}>
+                                        (Còn {curUnselected} câu chưa chọn)
+                                      </span>
+                                    )}
                                   </button>
                                 );
                               }
@@ -3215,8 +3363,19 @@ export default function LabelDataPage() {
                     />
                   </div>
 
-                  {/* Điều kiện bắt buộc: Phải xem hết các lần khám */}
-                  {!hasInspectedAllSessions && visibleSessions.length > 1 && (
+                  {/* Điều kiện bắt buộc: Phải đánh giá hết các câu thoại và xem hết các lần khám */}
+                  {!hasEvaluatedAllTurns && (
+                    <div className={styles.sessionReqBanner}>
+                      <div className={styles.sessionReqTitle}>
+                        Điều kiện bắt buộc: Chưa đánh giá hết các câu thoại
+                      </div>
+                      <div>
+                        Đã chọn {allVisibleTurns.length - unevaluatedTurnsCount}/{allVisibleTurns.length} câu thoại. Bác sĩ vui lòng chọn (v hoặc x) cho tất cả các câu thoại trước khi xác nhận.
+                      </div>
+                    </div>
+                  )}
+
+                  {!hasInspectedAllSessions && visibleSessions.length > 1 && hasEvaluatedAllTurns && (
                     <div className={styles.sessionReqBanner}>
                       <div className={styles.sessionReqTitle}>
                         Điều kiện bắt buộc: Chưa xem hết các lần khám
@@ -3234,7 +3393,7 @@ export default function LabelDataPage() {
                       styles.saveBtn,
                       activeCase && confirmedCaseIds.has(activeCase.case_id)
                         ? styles.saveBtnConfirmed
-                        : !hasInspectedAllSessions && visibleSessions.length > 1
+                        : !hasEvaluatedAllTurns || (!hasInspectedAllSessions && visibleSessions.length > 1)
                         ? styles.saveBtnWarning
                         : "",
                     ]
@@ -3243,7 +3402,9 @@ export default function LabelDataPage() {
                     disabled={saving}
                     onClick={handleConfirmAndNextCase}
                     title={
-                      !hasInspectedAllSessions && visibleSessions.length > 1
+                      !hasEvaluatedAllTurns
+                        ? `Cần chọn (v hoặc x) cho tất cả ${allVisibleTurns.length} câu thoại trước khi xác nhận (Đã chọn: ${allVisibleTurns.length - unevaluatedTurnsCount}/${allVisibleTurns.length})`
+                        : !hasInspectedAllSessions && visibleSessions.length > 1
                         ? `Cần xem hết ${visibleSessions.length} lần khám trước khi xác nhận (Đã xem: ${inspectedCount}/${visibleSessions.length})`
                         : "Xác nhận thẩm định ca này và chuyển sang ca tiếp theo"
                     }
@@ -3263,6 +3424,8 @@ export default function LabelDataPage() {
                     <span>
                       {saving
                         ? "Đang lưu..."
+                        : !hasEvaluatedAllTurns
+                        ? `Cần chọn hết câu thoại (${allVisibleTurns.length - unevaluatedTurnsCount}/${allVisibleTurns.length})`
                         : !hasInspectedAllSessions && visibleSessions.length > 1
                         ? `Cần xem hết ${visibleSessions.length} lần khám (${inspectedCount}/${visibleSessions.length})`
                         : currentCaseIndexInBatch < batchCases.length - 1

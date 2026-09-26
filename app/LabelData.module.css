@@ -2182,8 +2182,13 @@
   background-color: #ffffff;
   padding: 2px 3px;
   border-radius: 6px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.12);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.bubbleActionGroupUnselected {
+  border: 1px dashed #cbd5e1;
+  background-color: #f8fafc;
 }
 
 .bubbleBtnV,
@@ -2195,52 +2200,74 @@
   height: 22px;
   padding: 0;
   border-radius: 4px;
-  border: 1px solid transparent;
+  border: 1px solid #e2e8f0;
   cursor: pointer;
   transition: all 0.15s ease;
   line-height: 1;
 }
 
-/* Nút v: Chuẩn rồi - Bỏ qua */
+/* Nút v khi chưa chọn: trung tính */
 .bubbleBtnV {
-  color: #059669;
-  background-color: #ecfdf5;
-  border-color: #a7f3d0;
+  color: #94a3b8;
+  background-color: #ffffff;
+  border-color: #e2e8f0;
 }
 
 .bubbleBtnV:hover {
-  background-color: #d1fae5;
-  color: #047857;
-  border-color: #6ee7b7;
+  background-color: #ecfdf5;
+  color: #059669;
+  border-color: #a7f3d0;
   transform: translateY(-1px);
 }
 
 .bubbleBtnVActive {
-  background-color: #10b981;
-  color: #ffffff;
-  border-color: #059669;
+  background-color: #10b981 !important;
+  color: #ffffff !important;
+  border-color: #059669 !important;
   box-shadow: 0 1px 3px rgba(16, 185, 129, 0.35);
 }
 
-/* Nút x: Cần sửa - Cho phép chỉnh sửa */
+/* Nút x khi chưa chọn: trung tính */
 .bubbleBtnX {
-  color: #b45309;
-  background-color: #fffbeb;
-  border-color: #fde68a;
+  color: #94a3b8;
+  background-color: #ffffff;
+  border-color: #e2e8f0;
 }
 
 .bubbleBtnX:hover {
-  background-color: #fef3c7;
-  color: #92400e;
-  border-color: #fcd34d;
+  background-color: #fffbeb;
+  color: #b45309;
+  border-color: #fde68a;
   transform: translateY(-1px);
 }
 
 .bubbleBtnXActive {
-  background-color: #f59e0b;
-  color: #ffffff;
-  border-color: #d97706;
+  background-color: #f59e0b !important;
+  color: #ffffff !important;
+  border-color: #d97706 !important;
   box-shadow: 0 1px 3px rgba(245, 158, 11, 0.35);
+}
+
+/* Nút mở ô sửa text khi đã đánh dấu x */
+.bubbleEditToggleBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 7px;
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: #92400e;
+  background-color: #fef3c7;
+  border: 1px solid #fcd34d;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  line-height: 1.2;
+}
+
+.bubbleEditToggleBtn:hover {
+  background-color: #fde68a;
+  color: #78350f;
 }
 
 /* Khung chỉnh sửa nội dung lượt thoại */
@@ -2265,25 +2292,24 @@
   font-weight: 500;
 }
 
-.bubbleSaveEditBtn {
+.bubbleCloseEditBtn {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
-  font-size: 0.7rem;
+  justify-content: center;
+  padding: 3px 10px;
+  font-size: 0.72rem;
   font-weight: 600;
-  color: #065f46;
-  background-color: #ecfdf5;
-  border: 1px solid #a7f3d0;
+  color: #334155;
+  background-color: #f1f5f9;
+  border: 1px solid #cbd5e1;
   border-radius: 4px;
-  padding: 0.2rem 0.5rem;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
-.bubbleSaveEditBtn:hover {
-  background-color: #d1fae5;
-  color: #047857;
-  border-color: #6ee7b7;
+.bubbleCloseEditBtn:hover {
+  background-color: #e2e8f0;
+  color: #0f172a;
 }
 
 /* Session Footer Action (Under Bubbles) */
@@ -3010,6 +3036,28 @@
 .chatSessionNavNext:hover {
   background: linear-gradient(135deg, #187d79 0%, #115e5b 100%);
   color: #ffffff;
+}
+
+.chatSessionNavDisabled {
+  background: #fffbeb !important;
+  border-color: #fde68a !important;
+  color: #92400e !important;
+  box-shadow: none !important;
+}
+
+.chatSessionNavDisabled:hover {
+  background: #fef3c7 !important;
+  color: #78350f !important;
+}
+
+.chatSessionNavBadge {
+  font-size: 0.68rem;
+  font-weight: 600;
+  margin-left: 4px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background-color: #fef3c7;
+  color: #b45309;
 }
 
 .sessionReqBanner {

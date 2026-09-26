@@ -481,6 +481,7 @@ export default function LabelDataPage() {
   // When active doctor changes, load their confirmed cases and completed batches
   useEffect(() => {
     if (!activeDoctor) return;
+    setSelectedCaseId(null);
 
     // Purge only ancient legacy global keys
     if (typeof window !== "undefined") {
@@ -711,23 +712,50 @@ export default function LabelDataPage() {
     return doctorCases.slice(start, start + 10);
   }, [doctorCases, currentBatchIndex]);
 
-  // Auto-select case of current batch (prefer remembered active case)
+  // Tự động chọn ca phù hợp trong gói hiện tại:
+  // Luôn bắt đầu từ ca đầu tiên chưa xác nhận trong gói.
+  // Nếu gói đã hoàn tất 100% (tất cả 10 ca đã xác nhận), mở Ca 1 để bác sĩ rà soát lại từ đầu.
+  // Tuyệt đối không nhảy vào Ca 10 khi mở ứng dụng hoặc khi chưa làm xong các ca trước.
   useEffect(() => {
     if (batchCases.length > 0) {
       if (!selectedCaseId || !batchCases.some((c) => c.case_id === selectedCaseId)) {
-        let targetCaseId = batchCases[0].case_id;
-        if (activeDoctor) {
+        // 1. Tìm ca đầu tiên chưa được xác nhận trong gói này
+        const firstUnconfirmed = batchCases.find((c) => !confirmedCaseIds.has(c.case_id));
+        // 2. Mặc định là ca chưa xác nhận đầu tiên, nếu đã xong cả gói thì mở Ca 1 của gói để rà soát
+        let targetCaseId = firstUnconfirmed ? firstUnconfirmed.case_id : batchCases[0].case_id;
+
+        // 3. Nếu bác sĩ có lưu ca đang xem dở trong localStorage:
+        // CHỈ chấp nhận nếu:
+        // - Ca đó thuộc gói hiện tại
+        // - Ca đó KHÔNG bị khóa (tất cả các ca đứng trước trong doctorCases đã được xác nhận)
+        // - VÀ gói chưa hoàn tất toàn bộ (tránh trường hợp sau khi xong ca 10 lại bị kẹt ở ca 10 khi mở lại gói)
+        const isBatchFullyConfirmed = batchCases.every((c) => confirmedCaseIds.has(c.case_id));
+        if (activeDoctor && !isBatchFullyConfirmed) {
           try {
             const savedCaseId = localStorage.getItem(`nktt_active_case_${activeDoctor.id}`);
             if (savedCaseId && batchCases.some((c) => c.case_id === savedCaseId)) {
-              targetCaseId = savedCaseId;
+              const savedIdxInDoc = doctorCases.findIndex((c) => c.case_id === savedCaseId);
+              const isUnlocked =
+                savedIdxInDoc === 0 ||
+                (savedIdxInDoc > 0 &&
+                  doctorCases.slice(0, savedIdxInDoc).every((c) => confirmedCaseIds.has(c.case_id)));
+
+              if (isUnlocked) {
+                targetCaseId = savedCaseId;
+              }
             }
           } catch {}
         }
+
         setSelectedCaseId(targetCaseId);
+        if (activeDoctor) {
+          try {
+            localStorage.setItem(`nktt_active_case_${activeDoctor.id}`, targetCaseId);
+          } catch {}
+        }
       }
     }
-  }, [batchCases, selectedCaseId, activeDoctor]);
+  }, [batchCases, selectedCaseId, activeDoctor, confirmedCaseIds, doctorCases]);
 
   // Cases filtered by search within the current batch
   const filteredCases = useMemo(() => {
@@ -1865,7 +1893,13 @@ export default function LabelDataPage() {
         setCurrentBatchIndex(nextBatch);
         const nextBatchCases = doctorCases.slice((nextBatch - 1) * 10, nextBatch * 10);
         if (nextBatchCases.length > 0) {
-          setSelectedCaseId(nextBatchCases[0].case_id);
+          const nextFirstCaseId = nextBatchCases[0].case_id;
+          setSelectedCaseId(nextFirstCaseId);
+          if (activeDoctor) {
+            try {
+              localStorage.setItem(`nktt_active_case_${activeDoctor.id}`, nextFirstCaseId);
+            } catch {}
+          }
         }
       } else {
         alert(`Chúc mừng Bác sĩ ${activeDoctor.name}! Bạn đã hoàn thành toàn bộ 10 gói (100 ca) được phân công.`);

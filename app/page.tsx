@@ -497,6 +497,13 @@ export default function LabelDataPage() {
   // Trạng thái bật chế độ sửa cho từng lượt thoại (nút x mở sửa, nút v bỏ qua/chuẩn rồi)
   const [editingTurnIds, setEditingTurnIds] = useState<Record<string, boolean>>({});
 
+  // Độ rộng và trạng thái mở rộng / ẩn của cột bên trái (danh sách ca bệnh)
+  const [leftWidth, setLeftWidth] = useState<number>(260);
+  const [isLeftExtended, setIsLeftExtended] = useState<boolean>(false);
+  const [isLeftCollapsed, setIsLeftCollapsed] = useState<boolean>(false);
+  const isDraggingLeftRef = useRef(false);
+  const workspaceRef = useRef<HTMLDivElement>(null);
+
   // Độ rộng và trạng thái mở rộng của cột bên phải
   const [rightWidth, setRightWidth] = useState<number>(390);
   const [isRightExtended, setIsRightExtended] = useState<boolean>(false);
@@ -1729,6 +1736,55 @@ export default function LabelDataPage() {
     window.addEventListener("mouseup", handleMouseUp);
   };
 
+  // Mở rộng hoặc đưa về kích thước chuẩn cho cột bên trái
+  const toggleExtendLeft = () => {
+    if (isLeftCollapsed) {
+      setIsLeftCollapsed(false);
+      return;
+    }
+    if (isLeftExtended || leftWidth > 320) {
+      setLeftWidth(260);
+      setIsLeftExtended(false);
+    } else {
+      setLeftWidth(380);
+      setIsLeftExtended(true);
+    }
+  };
+
+  // Ẩn hoặc hiện cột bên trái
+  const toggleHideLeft = () => {
+    setIsLeftCollapsed((prev) => !prev);
+  };
+
+  // Kéo chuột thay đổi kích thước cột bên trái
+  const handleMouseDownLeftResizer = (e: React.MouseEvent) => {
+    e.preventDefault();
+    isDraggingLeftRef.current = true;
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+
+    const workspaceEl = workspaceRef.current;
+    const workspaceLeft = workspaceEl ? workspaceEl.getBoundingClientRect().left : 0;
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      if (!isDraggingLeftRef.current) return;
+      const newWidth = Math.max(180, Math.min(520, moveEvent.clientX - workspaceLeft));
+      setLeftWidth(newWidth);
+      setIsLeftExtended(newWidth > 320);
+    };
+
+    const handleMouseUp = () => {
+      isDraggingLeftRef.current = false;
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+  };
+
   // Handle Factor edit
   const handleFactorChange = (index: number, field: keyof FactorRecord, val: string) => {
     setEditedFactors((prev) => {
@@ -2604,94 +2660,191 @@ export default function LabelDataPage() {
 
           {/* Main Workspace: 3 Columns Focused on Clinical Review */}
           <div
+            ref={workspaceRef}
             className={styles.workspace}
-            style={{ gridTemplateColumns: `260px 1fr ${rightWidth}px` }}
+            style={{
+              gridTemplateColumns: isLeftCollapsed
+                ? `42px 1fr ${rightWidth}px`
+                : `${leftWidth}px 1fr ${rightWidth}px`,
+            }}
           >
             {/* Left Column: Cases of the current batch */}
-            <section className={styles.sidebar} aria-label="Danh sách ca bệnh trong gói">
-              <div className={styles.filterSection}>
-                <input
-                  type="text"
-                  placeholder="Tìm trong 10 ca của gói này..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className={styles.searchInput}
-                />
-              </div>
-
-              <div className={styles.caseList}>
-                {loadingList ? (
-                  <p className={styles.emptyPlaceholder}>Đang tải danh sách ca bệnh...</p>
-                ) : filteredCases.length === 0 ? (
-                  <p className={styles.emptyPlaceholder}>Không tìm thấy ca nào trong gói này</p>
-                ) : (
-                  filteredCases.map((c) => {
-                    const globalIndex = allCases.findIndex((item) => item.case_id === c.case_id) + 1;
-                    const doctorCaseIndex = doctorCases.findIndex((item) => item.case_id === c.case_id) + 1;
-                    const isActive = c.case_id === selectedCaseId;
-                    const friendlyFamily =
-                      FAMILY_FRIENDLY_NAMES[c.category?.primary_family]?.label ||
-                      c.category?.primary_family;
-                    const isConfirmed = confirmedCaseIds.has(c.case_id);
-
-                    // Kiểm tra trạng thái khóa tuần tự: Ca 1 luôn mở, Ca n mở khi Ca n-1 đã xác nhận
-                    const caseIdxInDoctor = doctorCaseIndex - 1;
-                    const isUnlocked =
-                      caseIdxInDoctor === 0 ||
-                      (caseIdxInDoctor > 0 && confirmedCaseIds.has(doctorCases[caseIdxInDoctor - 1]?.case_id));
-
-                    return (
+            <section
+              className={[
+                styles.sidebar,
+                isLeftCollapsed ? styles.sidebarCollapsedWrapper : "",
+              ].filter(Boolean).join(" ")}
+              aria-label="Danh sách ca bệnh trong gói"
+            >
+              {isLeftCollapsed ? (
+                <div className={styles.sidebarRail}>
+                  <button
+                    type="button"
+                    className={styles.railExpandBtn}
+                    onClick={() => setIsLeftCollapsed(false)}
+                    title="Hiện lại danh sách ca bệnh"
+                  >
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <polyline points="9 18 15 12 9 6" />
+                    </svg>
+                  </button>
+                  <div
+                    className={styles.railVerticalTitle}
+                    onClick={() => setIsLeftCollapsed(false)}
+                    title="Nhấp để mở lại danh sách ca bệnh"
+                  >
+                    <span>Danh sách ca ({batchCases.length})</span>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className={styles.sidebarHeader}>
+                    <div className={styles.sidebarHeaderTitle}>
+                      <span className={styles.sidebarBatchTag}>Gói {currentBatchIndex}</span>
+                      <span className={styles.sidebarCaseCount}>({batchCases.length} ca)</span>
+                    </div>
+                    <div className={styles.sidebarHeaderActions}>
                       <button
-                        key={c.case_id}
                         type="button"
-                        className={[
-                          styles.caseCard,
-                          isActive ? styles.caseCardActive : "",
-                          !isUnlocked ? styles.caseCardLocked : "",
-                        ]
-                          .filter(Boolean)
-                          .join(" ")}
-                        onClick={() => handleSelectCase(c.case_id)}
+                        className={styles.sidebarHeaderBtn}
+                        onClick={toggleExtendLeft}
                         title={
-                          !isUnlocked
-                            ? `Ca ${doctorCaseIndex} đang khóa. Cần hoàn thành và xác nhận Ca ${doctorCaseIndex - 1} trước.`
-                            : `Ca ${doctorCaseIndex}: ${c.current_query}`
+                          isLeftExtended || leftWidth > 320
+                            ? "Thu gọn về độ rộng chuẩn (260px)"
+                            : "Mở rộng danh sách ca bệnh"
                         }
                       >
-                        <div className={styles.caseCardHeader}>
-                          <span className={styles.caseId}>
-                            Ca {doctorCaseIndex}/100
-                          </span>
-                          <span className={styles.caseCheckpoint}>
-                            Mã: #{c.user_id.replace("VL500_U", "NH-")}
-                          </span>
-                        </div>
-                        <div className={styles.caseQueryPreview}>{c.current_query}</div>
-                        <div className={styles.caseCardFooter}>
-                          <span className={styles.familyTag} title={c.category?.primary_family}>
-                            {friendlyFamily}
-                          </span>
-                          {isConfirmed ? (
-                            <span className={[styles.verdictBadge, styles.verdictApproved].join(" ")}>
-                              Đã xác nhận
-                            </span>
-                          ) : !isUnlocked ? (
-                            <span className={styles.caseLockedTag}>
-                              Chưa mở
-                            </span>
-                          ) : null}
-                        </div>
+                        {isLeftExtended || leftWidth > 320 ? "Chuẩn" : "Mở rộng"}
                       </button>
-                    );
-                  })
-                )}
-              </div>
+                      <button
+                        type="button"
+                        className={styles.sidebarHeaderBtn}
+                        onClick={toggleHideLeft}
+                        title="Ẩn danh sách ca bệnh để mở rộng vùng đọc hội thoại"
+                      >
+                        Ẩn
+                      </button>
+                    </div>
+                  </div>
 
-              <div className={styles.pagination}>
-                <span>
-                  Gói {currentBatchIndex}/10 ({batchCases.length} ca) - {activeDoctor?.name || "Bác sĩ"}
-                </span>
-              </div>
+                  <div className={styles.filterSection}>
+                    <div className={styles.searchBoxWrapper}>
+                      <svg
+                        className={styles.searchIcon}
+                        width="13"
+                        height="13"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                      </svg>
+                      <input
+                        type="text"
+                        placeholder="Tìm trong 10 ca của gói này..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className={styles.searchInput}
+                      />
+                    </div>
+                  </div>
+
+                  <div className={styles.caseList}>
+                    {loadingList ? (
+                      <p className={styles.emptyPlaceholder}>Đang tải danh sách ca bệnh...</p>
+                    ) : filteredCases.length === 0 ? (
+                      <p className={styles.emptyPlaceholder}>Không tìm thấy ca nào trong gói này</p>
+                    ) : (
+                      filteredCases.map((c) => {
+                        const globalIndex = allCases.findIndex((item) => item.case_id === c.case_id) + 1;
+                        const doctorCaseIndex = doctorCases.findIndex((item) => item.case_id === c.case_id) + 1;
+                        const isActive = c.case_id === selectedCaseId;
+                        const friendlyFamily =
+                          FAMILY_FRIENDLY_NAMES[c.category?.primary_family]?.label ||
+                          c.category?.primary_family;
+                        const isConfirmed = confirmedCaseIds.has(c.case_id);
+
+                        // Kiểm tra trạng thái khóa tuần tự: Ca 1 luôn mở, Ca n mở khi Ca n-1 đã xác nhận
+                        const caseIdxInDoctor = doctorCaseIndex - 1;
+                        const isUnlocked =
+                          caseIdxInDoctor === 0 ||
+                          (caseIdxInDoctor > 0 && confirmedCaseIds.has(doctorCases[caseIdxInDoctor - 1]?.case_id));
+
+                        return (
+                          <button
+                            key={c.case_id}
+                            type="button"
+                            className={[
+                              styles.caseCard,
+                              isActive ? styles.caseCardActive : "",
+                              !isUnlocked ? styles.caseCardLocked : "",
+                            ]
+                              .filter(Boolean)
+                              .join(" ")}
+                            onClick={() => handleSelectCase(c.case_id)}
+                            title={
+                              !isUnlocked
+                                ? `Ca ${doctorCaseIndex} đang khóa. Cần hoàn thành và xác nhận Ca ${doctorCaseIndex - 1} trước.`
+                                : `Ca ${doctorCaseIndex}: ${c.current_query}`
+                            }
+                          >
+                            <div className={styles.caseCardHeader}>
+                              <span className={styles.caseId}>
+                                Ca {doctorCaseIndex}/100
+                              </span>
+                              <span className={styles.caseCheckpoint}>
+                                Mã: #{c.user_id.replace("VL500_U", "NH-")}
+                              </span>
+                            </div>
+                            <div className={styles.caseQueryPreview}>{c.current_query}</div>
+                            <div className={styles.caseCardFooter}>
+                              <span className={styles.familyTag} title={c.category?.primary_family}>
+                                {friendlyFamily}
+                              </span>
+                              {isConfirmed ? (
+                                <span className={[styles.verdictBadge, styles.verdictApproved].join(" ")}>
+                                  Đã xác nhận
+                                </span>
+                              ) : !isUnlocked ? (
+                                <span className={styles.caseLockedTag}>
+                                  Chưa mở
+                                </span>
+                              ) : null}
+                            </div>
+                          </button>
+                        );
+                      })
+                    )}
+                  </div>
+
+                  <div className={styles.pagination}>
+                    <span>
+                      Gói {currentBatchIndex}/10 ({batchCases.length} ca) - {activeDoctor?.name || "Bác sĩ"}
+                    </span>
+                  </div>
+
+                  {/* Thanh phân cách kéo thả thay đổi kích thước cột bên trái */}
+                  <div
+                    className={styles.colResizerLeft}
+                    onMouseDown={handleMouseDownLeftResizer}
+                    onDoubleClick={toggleExtendLeft}
+                    title="Nhấn giữ và kéo sang trái/phải để thay đổi độ rộng, hoặc nhấp đúp để mở rộng/thu gọn"
+                  />
+                </>
+              )}
             </section>
 
             {/* Center Column: Query Editor & Dialogue Timeline */}
@@ -2706,6 +2859,30 @@ export default function LabelDataPage() {
                   <div className={styles.timelineCard}>
                     <div className={styles.timelineHeader}>
                       <div className={styles.timelineTitleGroup}>
+                        {isLeftCollapsed && (
+                          <button
+                            type="button"
+                            className={styles.reopenLeftSidebarBtn}
+                            onClick={() => setIsLeftCollapsed(false)}
+                            title="Hiện lại danh sách ca bệnh"
+                          >
+                            <svg
+                              width="14"
+                              height="14"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                              <line x1="9" y1="3" x2="9" y2="21" />
+                              <polyline points="13 9 16 12 13 15" />
+                            </svg>
+                            <span>Hiện danh sách ca</span>
+                          </button>
+                        )}
                         <h2 className={styles.sectionTitle}>
                           Lịch sử cuộc trò chuyện:
                         </h2>
@@ -2846,9 +3023,20 @@ export default function LabelDataPage() {
                                               !isEditing ? styles.bubbleBtnVActive : "",
                                             ].filter(Boolean).join(" ")}
                                             onClick={() => handleMarkTurnStandard(turn.turn_id)}
-                                            title="v: Chuẩn rồi - Bỏ qua vì đã chuẩn"
+                                            title="v: Chuẩn rồi - Đạt chuẩn lâm sàng"
                                           >
-                                            v
+                                            <svg
+                                              width="13"
+                                              height="13"
+                                              viewBox="0 0 24 24"
+                                              fill="none"
+                                              stroke="currentColor"
+                                              strokeWidth="3"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            >
+                                              <polyline points="20 6 9 17 4 12" />
+                                            </svg>
                                           </button>
                                           <button
                                             type="button"
@@ -2859,7 +3047,19 @@ export default function LabelDataPage() {
                                             onClick={() => handleToggleTurnEdit(turn.turn_id)}
                                             title="x: Sửa - Cho phép chỉnh sửa câu này"
                                           >
-                                            x
+                                            <svg
+                                              width="13"
+                                              height="13"
+                                              viewBox="0 0 24 24"
+                                              fill="none"
+                                              stroke="currentColor"
+                                              strokeWidth="2.8"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            >
+                                              <line x1="18" y1="6" x2="6" y2="18" />
+                                              <line x1="6" y1="6" x2="18" y2="18" />
+                                            </svg>
                                           </button>
                                         </div>
 
@@ -2901,7 +3101,19 @@ export default function LabelDataPage() {
                                             onClick={() => handleMarkTurnStandard(turn.turn_id)}
                                             title="Xác nhận câu này đã chuẩn và đóng ô sửa"
                                           >
-                                            v Chuẩn rồi
+                                            <svg
+                                              width="12"
+                                              height="12"
+                                              viewBox="0 0 24 24"
+                                              fill="none"
+                                              stroke="currentColor"
+                                              strokeWidth="3"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            >
+                                              <polyline points="20 6 9 17 4 12" />
+                                            </svg>
+                                            <span>Chuẩn rồi</span>
                                           </button>
                                         </div>
                                       </div>

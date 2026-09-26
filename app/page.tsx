@@ -2005,6 +2005,38 @@ export default function LabelDataPage() {
     return doctorCases.filter((c) => confirmedCaseIds.has(c.case_id)).length;
   }, [doctorCases, confirmedCaseIds]);
 
+  const handleResetTestingProgress = () => {
+    if (typeof window === "undefined") return;
+    const ok = window.confirm(
+      "Bạn có chắc chắn muốn đặt lại toàn bộ tiến độ kiểm thử về 0/10 gói và bắt đầu lại từ đầu không?"
+    );
+    if (!ok) return;
+
+    try {
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (
+          k &&
+          (k.startsWith("nktt_completed_batches_") ||
+            k.startsWith("nktt_confirmed_cases_") ||
+            k.startsWith("nktt_doctor_annotations_") ||
+            k.startsWith("nktt_draft_") ||
+            k.startsWith("nktt_active_batch_") ||
+            k.startsWith("nktt_active_case_") ||
+            k.startsWith("nktt_shared_turns_"))
+        ) {
+          keysToRemove.push(k);
+        }
+      }
+      keysToRemove.forEach((k) => localStorage.removeItem(k));
+      sessionStorage.removeItem("nktt_active_doctor_session");
+      window.location.reload();
+    } catch (err) {
+      console.error("Lỗi khi đặt lại tiến độ:", err);
+    }
+  };
+
 
   return (
     <div className={styles.container}>
@@ -2019,7 +2051,12 @@ export default function LabelDataPage() {
 
             <div className={styles.topActions}>
               {/* Doctor Profile Badge */}
-              <div className={styles.doctorProfileBadge}>
+              <div
+                className={styles.doctorProfileBadge}
+                onClick={() => setShowDoctorModal(true)}
+                style={{ cursor: "pointer" }}
+                title="Bấm để chuyển đổi Bác sĩ chuyên khoa"
+              >
                 <svg
                   width="14"
                   height="14"
@@ -2041,11 +2078,28 @@ export default function LabelDataPage() {
                 </span>
               </div>
 
-
-
               <span className={styles.statsBadge}>
                 Tiến độ: {totalDoctorConfirmedCount}/100 ca ({completedBatches.length}/10 gói hoàn tất)
               </span>
+
+              {/* Reset Testing Data Button */}
+              <button
+                type="button"
+                onClick={handleResetTestingProgress}
+                style={{
+                  padding: "0.45rem 0.8rem",
+                  fontSize: "0.8rem",
+                  color: "#c53030",
+                  backgroundColor: "#fff5f5",
+                  border: "1px solid #feb2b2",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  fontWeight: 500,
+                }}
+                title="Đặt lại toàn bộ tiến độ kiểm thử về 0 để kiểm tra lại từ đầu"
+              >
+                Đặt lại (Reset 0 ca)
+              </button>
 
               {/* Clinical Rules Button */}
               <button

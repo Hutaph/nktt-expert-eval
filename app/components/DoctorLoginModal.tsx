@@ -191,6 +191,39 @@ export default function DoctorLoginModal({
     setErrorMessage(null);
   };
 
+  const handleResetTestingProgress = () => {
+    if (typeof window === "undefined") return;
+    const ok = window.confirm(
+      "Bạn có chắc chắn muốn đặt lại toàn bộ tiến độ kiểm thử về 0/10 gói cho tất cả Bác sĩ không?"
+    );
+    if (!ok) return;
+
+    try {
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (
+          k &&
+          (k.startsWith("nktt_completed_batches_") ||
+            k.startsWith("nktt_confirmed_cases_") ||
+            k.startsWith("nktt_doctor_annotations_") ||
+            k.startsWith("nktt_draft_") ||
+            k.startsWith("nktt_active_batch_") ||
+            k.startsWith("nktt_active_case_") ||
+            k.startsWith("nktt_shared_turns_"))
+        ) {
+          keysToRemove.push(k);
+        }
+      }
+      keysToRemove.forEach((k) => localStorage.removeItem(k));
+      sessionStorage.removeItem("nktt_active_doctor_session");
+      setProgressMap({});
+      window.location.reload();
+    } catch (err) {
+      console.error("Lỗi khi đặt lại tiến độ:", err);
+    }
+  };
+
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
@@ -281,6 +314,24 @@ export default function DoctorLoginModal({
                   </div>
                 );
               })}
+            </div>
+            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "0.5rem" }}>
+              <button
+                type="button"
+                onClick={handleResetTestingProgress}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "var(--color-text-muted, #718096)",
+                  fontSize: "0.8rem",
+                  textDecoration: "underline",
+                  cursor: "pointer",
+                  padding: "0.2rem 0.5rem",
+                }}
+                title="Đặt lại toàn bộ tiến độ kiểm thử của tất cả bác sĩ về 0"
+              >
+                Đặt lại toàn bộ tiến độ kiểm thử về 0
+              </button>
             </div>
           </div>
 

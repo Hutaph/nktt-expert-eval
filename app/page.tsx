@@ -1144,6 +1144,17 @@ export default function LabelDataPage() {
         if (prev.has(sNum)) return prev;
         const next = new Set(prev);
         next.add(sNum);
+        if (activeDoctor && activeCase) {
+          try {
+            const draftKey = `${DRAFT_PREFIX}${activeDoctor.id}_${activeCase.case_id}`;
+            const rawDraft = localStorage.getItem(draftKey);
+            const draftObj = rawDraft ? JSON.parse(rawDraft) : {};
+            draftObj.inspectedSessions = Array.from(next);
+            draftObj.activeSessionIndex = idx;
+            draftObj.updatedAt = new Date().toISOString();
+            localStorage.setItem(draftKey, JSON.stringify(draftObj));
+          } catch {}
+        }
         return next;
       });
     }
@@ -1153,7 +1164,7 @@ export default function LabelDataPage() {
         chatEl.scrollTo({ top: 0, behavior: "smooth" });
       }
     }, 50);
-  }, [timeline]);
+  }, [timeline, activeDoctor, activeCase]);
 
   // Current case index calculations for seamless navigation
   const currentCaseIndexInBatch = useMemo(() => {
@@ -1373,6 +1384,28 @@ export default function LabelDataPage() {
   const handleConfirmAndNextCase = () => {
     if (!activeCase || !activeDoctor) return;
 
+    // Kiểm tra điều kiện bắt buộc: Bác sĩ phải xem hết các lần khám của ca này
+    if (!hasInspectedAllSessions) {
+      const uninspected = visibleSessions.filter((s) => !inspectedSessions.has(s.session_number));
+      const uninspectedListStr = uninspected.map((s) => `Lần ${s.session_number}`).join(", ");
+      alert(
+        `Điều kiện thẩm định: Bác sĩ cần xem hết tất cả các lần khám của ca này trước khi bấm xác nhận.\n\n` +
+        `Tiến độ hiện tại: Đã xem ${inspectedCount}/${visibleSessions.length} lần khám.\n` +
+        `Các lần chưa xem: ${uninspectedListStr}.\n\n` +
+        `Hệ thống sẽ tự động chuyển đến lần khám chưa xem tiếp theo để Bác sĩ rà soát.`
+      );
+
+      // Tự động chuyển ngay đến lần khám chưa xem đầu tiên
+      if (uninspected.length > 0) {
+        const firstUninspected = uninspected[0];
+        const actualIdx = timeline?.sessions?.findIndex((sess) => sess.session_id === firstUninspected.session_id);
+        if (actualIdx !== undefined && actualIdx >= 0) {
+          handleSelectSession(actualIdx);
+        }
+      }
+      return;
+    }
+
     const success = handleSaveAnnotation();
     if (success) {
       const currentCaseId = activeCase.case_id;
@@ -1546,14 +1579,25 @@ export default function LabelDataPage() {
       setEditedStaleEvents("");
       setEditedForbiddenEvents("");
     }
+    const firstVisNum = visibleSessions[0]?.session_number;
     setActiveSessionIndex(0);
-    setInspectedSessions(new Set());
+    setInspectedSessions(new Set(firstVisNum ? [firstVisNum] : []));
     setIsEditingQuery(false);
   };
 
   // Save current individual case annotation & register confirmation
   const handleSaveAnnotation = (): boolean => {
     if (!activeCase || !activeDoctor) return false;
+
+    // Chặn tuyệt đối nếu chưa xem hết các lần khám trong ca
+    if (!hasInspectedAllSessions) {
+      setSaving(false);
+      setSaveMessage({
+        text: `Cần xem hết tất cả các lần khám trong ca này trước khi xác nhận (Đã xem: ${inspectedCount}/${visibleSessions.length} lần).`,
+        isError: true,
+      });
+      return false;
+    }
 
     setSaving(true);
     setSaveMessage(null);
@@ -1610,6 +1654,10 @@ export default function LabelDataPage() {
     const nextConfirmed = new Set(confirmedCaseIds);
     nextConfirmed.add(record.case_id);
     setConfirmedCaseIds(nextConfirmed);
+    const allSessionNums = visibleSessions.map((s) => s.session_number);
+    if (allSessionNums.length > 0) {
+      setInspectedSessions(new Set(allSessionNums));
+    }
     try {
       localStorage.setItem(`nktt_confirmed_cases_${activeDoctor.id}`, JSON.stringify(Array.from(nextConfirmed)));
     } catch {}
@@ -1675,8 +1723,16 @@ export default function LabelDataPage() {
     if (!activeDoctor || batchCases.length === 0 || saving) return;
 
     // 1. Commit ca hiện tại nếu đang mở
-    if (activeCase) {
-      handleSaveAnnotation();
+    if (activeCase && !confirmedCaseIds.has(activeCase.case_id)) {
+      if (!hasInspectedAllSessions) {
+        alert(
+          `Ca hiện tại (${activeCase.case_id}) chưa được xem hết các lần khám (${inspectedCount}/${visibleSessions.length} lần).\n\n` +
+          `Bác sĩ vui lòng rà soát đầy đủ các lần khám và bấm xác nhận ca trước khi Lưu gói.`
+        );
+        return;
+      }
+      const savedOk = handleSaveAnnotation();
+      if (!savedOk) return;
     }
 
     // 2. Kiểm tra tất cả 10 ca trong gói đã được bác sĩ bấm xác nhận
@@ -2427,6 +2483,7 @@ export default function LabelDataPage() {
                                   styles.sessionPill,
                                   isSelected ? styles.sessionPillActive : "",
                                   isInspected && !isSelected ? styles.sessionPillCompleted : "",
+                                  !isInspected && !isSelected ? styles.sessionPillUnread : "",
                                 ]
                                   .filter(Boolean)
                                   .join(" ")}
@@ -2438,6 +2495,9 @@ export default function LabelDataPage() {
                                 }`}
                               >
                                 <span>Lần {s.session_number}</span>
+                                <span style={{ fontSize: "0.65rem", marginLeft: "2px", opacity: 0.85 }}>
+                                  {isInspected ? "(Đã xem)" : "(Chưa xem)"}
+                                </span>
                               </button>
                             );
                           })
@@ -2453,7 +2513,7 @@ export default function LabelDataPage() {
                               fontSize: "0.7rem",
                               fontWeight: 600,
                               marginLeft: "auto",
-                              padding: "0.15rem 0.45rem",
+                              padding: "0.15rem 0.5rem",
                               borderRadius: "4px",
                               backgroundColor: hasInspectedAllSessions ? "#ecfdf5" : "#fffbeb",
                               color: hasInspectedAllSessions ? "#065f46" : "#b45309",
@@ -2463,7 +2523,7 @@ export default function LabelDataPage() {
                           >
                             {hasInspectedAllSessions
                               ? `Đã xem đủ ${visibleSessions.length}/${visibleSessions.length} lần`
-                              : `Đã xem ${inspectedCount}/${visibleSessions.length} lần (Cần xem hết)`}
+                              : `Đã xem ${inspectedCount}/${visibleSessions.length} lần (Cần xem hết để xác nhận)`}
                           </span>
                         )}
                       </div>
@@ -2585,6 +2645,70 @@ export default function LabelDataPage() {
                           </div>
                         </div>
                       )}
+
+                      {visibleSessions.length > 1 && (
+                        <div className={styles.chatSessionNav}>
+                          <div>
+                            {(() => {
+                              const curVisIdx = visibleSessions.findIndex(
+                                (s) => s.session_id === currentSession?.session_id
+                              );
+                              if (curVisIdx > 0) {
+                                const prevSess = visibleSessions[curVisIdx - 1];
+                                const prevActualIdx = timeline?.sessions?.findIndex(
+                                  (sess) => sess.session_id === prevSess.session_id
+                                ) ?? -1;
+                                return (
+                                  <button
+                                    type="button"
+                                    className={styles.chatSessionNavBtn}
+                                    onClick={() => {
+                                      if (prevActualIdx >= 0) handleSelectSession(prevActualIdx);
+                                    }}
+                                    title={`Chuyển về xem Lần ${prevSess.session_number}`}
+                                  >
+                                    <span>&larr; Xem Lần {prevSess.session_number}</span>
+                                  </button>
+                                );
+                              }
+                              return null;
+                            })()}
+                          </div>
+
+                          <div style={{ fontSize: "0.75rem", fontWeight: 600, color: hasInspectedAllSessions ? "#065f46" : "#b45309" }}>
+                            {hasInspectedAllSessions
+                              ? `Đã xem đủ ${visibleSessions.length}/${visibleSessions.length} lần khám của ca này`
+                              : `Tiến độ: Đã xem ${inspectedCount}/${visibleSessions.length} lần khám (Cần xem hết để xác nhận)`}
+                          </div>
+
+                          <div>
+                            {(() => {
+                              const curVisIdx = visibleSessions.findIndex(
+                                (s) => s.session_id === currentSession?.session_id
+                              );
+                              if (curVisIdx >= 0 && curVisIdx < visibleSessions.length - 1) {
+                                const nextSess = visibleSessions[curVisIdx + 1];
+                                const nextActualIdx = timeline?.sessions?.findIndex(
+                                  (sess) => sess.session_id === nextSess.session_id
+                                ) ?? -1;
+                                return (
+                                  <button
+                                    type="button"
+                                    className={[styles.chatSessionNavBtn, styles.chatSessionNavNext].join(" ")}
+                                    onClick={() => {
+                                      if (nextActualIdx >= 0) handleSelectSession(nextActualIdx);
+                                    }}
+                                    title={`Chuyển sang xem tiếp Lần ${nextSess.session_number}`}
+                                  >
+                                    <span>Tiếp theo: Xem Lần {nextSess.session_number} &rarr;</span>
+                                  </button>
+                                );
+                              }
+                              return null;
+                            })()}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </>
@@ -2676,6 +2800,18 @@ export default function LabelDataPage() {
                     </div>
                   </div>
 
+                  {/* Điều kiện bắt buộc: Phải xem hết các lần khám */}
+                  {!hasInspectedAllSessions && visibleSessions.length > 1 && (
+                    <div className={styles.sessionReqBanner}>
+                      <div className={styles.sessionReqTitle}>
+                        Điều kiện bắt buộc: Chưa xem hết các lần khám
+                      </div>
+                      <div>
+                        Bác sĩ mới xem {inspectedCount}/{visibleSessions.length} lần khám. Vui lòng nhấp xem đầy đủ các lần khám của ca này trước khi xác nhận.
+                      </div>
+                    </div>
+                  )}
+
                   {/* Primary Action Button */}
                   <button
                     type="button"
@@ -2683,13 +2819,19 @@ export default function LabelDataPage() {
                       styles.saveBtn,
                       activeCase && confirmedCaseIds.has(activeCase.case_id)
                         ? styles.saveBtnConfirmed
+                        : !hasInspectedAllSessions && visibleSessions.length > 1
+                        ? styles.saveBtnWarning
                         : "",
                     ]
                       .filter(Boolean)
                       .join(" ")}
                     disabled={saving}
                     onClick={handleConfirmAndNextCase}
-                    title="Xác nhận thẩm định ca này và chuyển sang ca tiếp theo"
+                    title={
+                      !hasInspectedAllSessions && visibleSessions.length > 1
+                        ? `Cần xem hết ${visibleSessions.length} lần khám trước khi xác nhận (Đã xem: ${inspectedCount}/${visibleSessions.length})`
+                        : "Xác nhận thẩm định ca này và chuyển sang ca tiếp theo"
+                    }
                   >
                     <svg
                       width="15"
@@ -2706,6 +2848,8 @@ export default function LabelDataPage() {
                     <span>
                       {saving
                         ? "Đang lưu..."
+                        : !hasInspectedAllSessions && visibleSessions.length > 1
+                        ? `Cần xem hết ${visibleSessions.length} lần khám (${inspectedCount}/${visibleSessions.length})`
                         : currentCaseIndexInBatch < batchCases.length - 1
                         ? `Xác nhận & Sang Ca ${currentCaseIndexInDoctor + 2} >`
                         : `Xác nhận Ca ${currentCaseIndexInDoctor + 1} (Hoàn tất gói)`}

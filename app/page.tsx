@@ -2458,17 +2458,6 @@ export default function LabelDataPage() {
                 Mẫu ví dụ đối chiếu
               </button>
 
-              {/* Drive Sync Button */}
-              <button
-                type="button"
-                className={styles.rulesBtn}
-                onClick={handleManualDriveSync}
-                disabled={isSyncingDrive || saving}
-                title="Kéo và cập nhật dữ liệu các gói đã làm từ Google Drive về trình duyệt"
-              >
-                {isSyncingDrive ? "Đang đồng bộ Drive..." : "Đồng bộ từ Drive"}
-              </button>
-
               {/* Primary "Lưu" Button - Locked until all 10 cases in current batch are confirmed */}
               <button
                 type="button"
@@ -2713,63 +2702,6 @@ export default function LabelDataPage() {
                 <div className={styles.emptyPlaceholder}>Vui lòng chọn một ca bệnh ở cột bên trái để thẩm định</div>
               ) : (
                 <>
-                  {/* Question Audit & Editor Card */}
-                  <div className={styles.queryCard}>
-                    <div className={styles.queryCardHeader}>
-                      <div className={styles.queryTitleRow}>
-                        <h2 className={styles.sectionTitle} style={{ margin: 0 }}>
-                          Ca {doctorCases.findIndex((c) => c.case_id === activeCase.case_id) + 1} / 100: Câu hỏi của Người hỏi
-                        </h2>
-                        {activeCase.user_id && (
-                          <span
-                            style={{
-                              fontSize: "0.75rem",
-                              color: "#0f766e",
-                              backgroundColor: "#f0fdfa",
-                              padding: "0.15rem 0.5rem",
-                              borderRadius: "4px",
-                              border: "1px solid #ccfbf1",
-                              fontWeight: 600,
-                            }}
-                            title={`Mã hồ sơ Người hỏi: ${activeCase.user_id}`}
-                          >
-                            Mã: #{activeCase.user_id.replace("VL500_U", "NH-")}
-                          </span>
-                        )}
-                        {activeCase.category?.primary_family && (
-                          <span
-                            className={styles.familyTag}
-                            style={{ fontSize: "0.72rem", padding: "0.15rem 0.45rem" }}
-                          >
-                            {FAMILY_FRIENDLY_NAMES[activeCase.category.primary_family]?.label || activeCase.category.primary_family}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Topic Box (Fixed Clinical Context) */}
-                    <div className={styles.originalQueryBox}>
-                      <span className={styles.originalQueryLabel}>
-                        <svg
-                          width="12"
-                          height="12"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <circle cx="12" cy="12" r="10" />
-                          <line x1="12" y1="16" x2="12" y2="12" />
-                          <line x1="12" y1="8" x2="12.01" y2="8" />
-                        </svg>
-                        Chủ đề:
-                      </span>
-                      <p className={styles.originalQueryText}>{activeCase.current_query}</p>
-                    </div>
-                  </div>
-
                   {/* Dialogue Timeline */}
                   <div className={styles.timelineCard}>
                     <div className={styles.timelineHeader}>

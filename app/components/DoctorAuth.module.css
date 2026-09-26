@@ -441,8 +441,8 @@
 
 .agreementBox {
   padding: 1rem 1.25rem;
-  background-color: #f0fdf4;
-  border: 1.5px solid #86efac;
+  background-color: #fef2f2;
+  border: 1.5px solid #fca5a5;
   border-radius: var(--radius-md);
 }
 
@@ -457,7 +457,7 @@
   width: 18px;
   height: 18px;
   margin-top: 2px;
-  accent-color: var(--color-primary);
+  accent-color: #dc2626;
   cursor: pointer;
   flex-shrink: 0;
 }
@@ -465,7 +465,7 @@
 .agreementText {
   font-size: 0.825rem;
   font-weight: 600;
-  color: #14532d;
+  color: #dc2626;
   line-height: 1.45;
 }
 

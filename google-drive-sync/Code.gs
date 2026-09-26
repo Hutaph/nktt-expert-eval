@@ -1,27 +1,51 @@
 /**
- * Google Apps Script - Webhook Đồng bộ Dữ liệu Đánh giá Nha khoa Thường thức
+ * Google Apps Script - Webhook Dong bo Du lieu Danh gia Nha khoa Thuong thuc (2 chieu)
  * 
- * Hướng dẫn triển khai:
- * 1. Mở trang https://script.google.com và nhấn nút "Dự án mới" (New project).
- * 2. Dán toàn bộ nội dung tập tin này vào trình soạn thảo Code.gs (thay thế mã mặc định).
- * 3. Đặt tên dự án (ví dụ: "NKTT Drive Sync Webhook").
- * 4. Nhấn nút "Triển khai" (Deploy) -> "Tùy chọn triển khai mới" (New deployment).
- * 5. Chọn loại triển khai: "Ứng dụng web" (Web app).
- *    - Mô tả: "NKTT Sync Service"
- *    - Thực thi dưới dạng (Execute as): "Tôi" (Me)
- *    - Ai có quyền truy cập (Who has access): "Bất kỳ ai" (Anyone)
- * 6. Nhấn "Triển khai" (Deploy) và cấp quyền truy cập Google Drive khi Google yêu cầu.
- * 7. Sao chép URL ứng dụng web (dạng https://script.google.com/macros/s/.../exec) và dán vào ứng dụng web.
+ * Huong dan trien khai:
+ * 1. Mo trang https://script.google.com va mo du an Apps Script hien tai (hoac tao "Du an moi").
+ * 2. Dan toan bo noi dung tap tin nay vao trinh soan thao Code.gs (thay the ma cu).
+ * 3. Nhan nut "Trien khai" (Deploy) -> "Quan ly cac ban trien khai" (Manage deployments).
+ * 4. Chon ban trien khai dang dung, bam bieu tuong Chinh sua (hinh cay but), chon Phien ban: "Phien ban moi" (New version).
+ * 5. Nhan "Trien khai" (Deploy) de luu thay doi.
  */
 
 var DEFAULT_FOLDER_NAME = "NKTT_Expert_Evaluations";
 
 function doGet(e) {
-  return createJsonResponse({
-    status: "online",
-    message: "Dịch vụ đồng bộ Google Drive của ứng dụng NKTT Expert Eval đang hoạt động bình thường.",
-    timestamp: new Date().toISOString()
-  });
+  try {
+    var params = (e && e.parameter) ? e.parameter : {};
+    var action = params.action || "status";
+
+    if (action === "ping" || action === "status") {
+      return createJsonResponse({
+        status: action === "ping" ? "success" : "online",
+        message: "Dich vu dong bo Google Drive cua NKTT Expert Eval dang hoat dong binh thuong.",
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    if (action === "get_doctor_batches") {
+      var folderName = params.folderName || DEFAULT_FOLDER_NAME;
+      var doctorFolder = (params.doctorFolder || params.doctorId || "").toString().trim().toUpperCase();
+      return handleGetDoctorBatches(folderName, doctorFolder);
+    }
+
+    if (action === "get_file") {
+      var folderName = params.folderName || DEFAULT_FOLDER_NAME;
+      var fileName = (params.fileName || "").toString().trim();
+      return handleGetSingleFile(folderName, fileName);
+    }
+
+    return createJsonResponse({
+      status: "error",
+      message: "Hanh dong khong hop le trong doGet: " + action
+    });
+  } catch (err) {
+    return createJsonResponse({
+      status: "error",
+      message: "Loi xu ly doGet: " + err.toString()
+    });
+  }
 }
 
 function doPost(e) {
@@ -29,7 +53,7 @@ function doPost(e) {
     if (!e || !e.postData || !e.postData.contents) {
       return createJsonResponse({
         status: "error",
-        message: "Không tìm thấy dữ liệu nội dung trong yêu cầu gửi lên."
+        message: "Khong tim thay du lieu noi dung trong yeu cau gui len."
       });
     }
 
@@ -39,7 +63,7 @@ function doPost(e) {
     } catch (parseErr) {
       return createJsonResponse({
         status: "error",
-        message: "Dữ liệu gửi lên không đúng định dạng JSON: " + parseErr.toString()
+        message: "Du lieu gui len khong dung dinh dang JSON: " + parseErr.toString()
       });
     }
 
@@ -48,9 +72,21 @@ function doPost(e) {
     if (action === "ping") {
       return createJsonResponse({
         status: "success",
-        message: "Kết nối tới dịch vụ Google Drive thành công.",
+        message: "Ket noi toi dich vu Google Drive thanh cong.",
         timestamp: new Date().toISOString()
       });
+    }
+
+    if (action === "get_doctor_batches") {
+      var folderName = payload.folderName || DEFAULT_FOLDER_NAME;
+      var doctorFolder = (payload.doctorFolder || payload.doctorId || "").toString().trim().toUpperCase();
+      return handleGetDoctorBatches(folderName, doctorFolder);
+    }
+
+    if (action === "get_file") {
+      var folderName = payload.folderName || DEFAULT_FOLDER_NAME;
+      var fileName = (payload.fileName || "").toString().trim();
+      return handleGetSingleFile(folderName, fileName);
     }
 
     if (action === "save_file" || action === "save_bundle") {
@@ -58,13 +94,13 @@ function doPost(e) {
       var targetFolder = getOrCreateFolder(folderName);
       var results = [];
 
-      // Lưu một tập tin đơn lẻ
+      // Luu mot tap tin don le
       if (payload.fileName && payload.content !== undefined) {
         var res = saveSingleFile(targetFolder, payload.fileName, payload.content, payload.mimeType);
         results.push(res);
       }
 
-      // Lưu danh sách nhiều tập tin cùng lúc
+      // Luu danh sach nhieu tap tin cung luc
       if (Array.isArray(payload.files)) {
         for (var i = 0; i < payload.files.length; i++) {
           var item = payload.files[i];
@@ -78,13 +114,13 @@ function doPost(e) {
       if (results.length === 0) {
         return createJsonResponse({
           status: "error",
-          message: "Không tìm thấy nội dung tập tin hợp lệ để lưu trữ."
+          message: "Khong tim thay noi dung tap tin hop le de luu tru."
         });
       }
 
       return createJsonResponse({
         status: "success",
-        message: "Đã lưu dữ liệu thành công lên Google Drive.",
+        message: "Da luu du lieu thanh cong len Google Drive.",
         folderName: folderName,
         folderUrl: targetFolder.getUrl(),
         files: results,
@@ -94,15 +130,93 @@ function doPost(e) {
 
     return createJsonResponse({
       status: "error",
-      message: "Hành động yêu cầu không hợp lệ: " + action
+      message: "Hanh dong yeu cau khong hop le: " + action
     });
 
   } catch (err) {
     return createJsonResponse({
       status: "error",
-      message: "Lỗi xử lý phía Google Apps Script: " + err.toString()
+      message: "Loi xu ly phia Google Apps Script: " + err.toString()
     });
   }
+}
+
+function handleGetDoctorBatches(folderName, doctorFolder) {
+  if (!doctorFolder) {
+    return createJsonResponse({
+      status: "error",
+      message: "Thieu ma bac si (doctorFolder hoac doctorId)."
+    });
+  }
+
+  var targetFolder = getOrCreateFolder(folderName);
+  var filesIterator = targetFolder.getFiles();
+  var batches = [];
+  var regex = new RegExp("^" + doctorFolder + "_batch_(\\d+)\\.json$", "i");
+
+  while (filesIterator.hasNext()) {
+    var file = filesIterator.next();
+    var fname = file.getName();
+    var match = fname.match(regex);
+    if (match) {
+      var batchIndex = parseInt(match[1], 10);
+      try {
+        var contentStr = file.getBlob().getDataAsString("UTF-8");
+        var parsedData = JSON.parse(contentStr);
+        batches.push({
+          batchIndex: batchIndex,
+          fileName: fname,
+          fileId: file.getId(),
+          fileUrl: file.getUrl(),
+          updatedAt: file.getLastUpdated().toISOString(),
+          data: parsedData
+        });
+      } catch (parseError) {
+        // Neu tap tin bi loi parse JSON, bo qua de tranh loi ca danh sach
+      }
+    }
+  }
+
+  // Sap xep tang dan theo chi so goi lam viec
+  batches.sort(function(a, b) {
+    return a.batchIndex - b.batchIndex;
+  });
+
+  return createJsonResponse({
+    status: "success",
+    doctorFolder: doctorFolder,
+    count: batches.length,
+    batches: batches,
+    timestamp: new Date().toISOString()
+  });
+}
+
+function handleGetSingleFile(folderName, fileName) {
+  if (!fileName) {
+    return createJsonResponse({
+      status: "error",
+      message: "Thieu ten tap tin (fileName)."
+    });
+  }
+
+  var targetFolder = getOrCreateFolder(folderName);
+  var files = targetFolder.getFilesByName(fileName);
+  if (!files.hasNext()) {
+    return createJsonResponse({
+      status: "error",
+      message: "Khong tim thay tap tin: " + fileName
+    });
+  }
+
+  var file = files.next();
+  var content = file.getBlob().getDataAsString("UTF-8");
+  return createJsonResponse({
+    status: "success",
+    fileName: fileName,
+    fileId: file.getId(),
+    content: content,
+    updatedAt: file.getLastUpdated().toISOString()
+  });
 }
 
 function getOrCreateFolder(folderName) {

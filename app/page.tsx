@@ -10,7 +10,7 @@ import DoctorLoginModal, {
 import QualityWarningModal from "./components/QualityWarningModal";
 import ClinicalRulesModal from "./components/ClinicalRulesModal";
 import ExampleComparisonModal from "./components/ExampleComparisonModal";
-import { uploadToDrive, syncExpertAnnotationsToDrive } from "./lib/driveSync";
+import { uploadToDrive, syncExpertAnnotationsToDrive, fetchDoctorBatchesFromDrive } from "./lib/driveSync";
 
 interface AutoExpandingTextareaProps {
   value: string;
@@ -426,6 +426,7 @@ export default function LabelDataPage() {
   const [saving, setSaving] = useState<boolean>(false);
   const [saveMessage, setSaveMessage] = useState<{ text: string; isError: boolean } | null>(null);
   const [annotationsMap, setAnnotationsMap] = useState<Record<string, ExpertAnnotationRecord>>({});
+  const [isSyncingDrive, setIsSyncingDrive] = useState<boolean>(false);
 
   // Anti-speedrun & session inspection tracking
   const [readingCountdown, setReadingCountdown] = useState<number>(0);
@@ -553,7 +554,7 @@ export default function LabelDataPage() {
     }
     setAnnotator(activeDoctor.name);
 
-    // 4. Đồng bộ tuyệt đối: Quét và khôi phục các gói đã hoàn tất trên máy chủ / thư mục public/annotations
+    // 4. Đồng bộ tuyệt đối hai chiều: Quét và khôi phục các gói đã hoàn tất từ Google Drive và máy chủ
     let isSubscribed = true;
     async function reconcileServerBatches() {
       if (!activeDoctor) return;
@@ -575,7 +576,52 @@ export default function LabelDataPage() {
       const mergedConfirmed = new Set<string>(initialConfirmed);
       const updatedAnnotations = { ...docAnnotations };
       let hasUpdate = false;
+      let driveCount = 0;
 
+      // Bước 1: Thử kéo dữ liệu từ Google Drive (Đồng bộ 2 chiều)
+      try {
+        const driveRes = await fetchDoctorBatchesFromDrive(docFolder);
+        if (driveRes.ok && Array.isArray(driveRes.batches) && driveRes.batches.length > 0) {
+          for (const bItem of driveRes.batches) {
+            const bIndex = bItem.batchIndex;
+            const cList = bItem.data?.cases;
+            if (bIndex && Array.isArray(cList) && cList.length > 0) {
+              if (!mergedCompleted.has(bIndex)) {
+                mergedCompleted.add(bIndex);
+                hasUpdate = true;
+                driveCount++;
+              }
+              for (const c of cList) {
+                if (c.case_id) {
+                  if (!mergedConfirmed.has(c.case_id)) {
+                    mergedConfirmed.add(c.case_id);
+                    hasUpdate = true;
+                  }
+                  if (!updatedAnnotations[c.case_id]) {
+                    updatedAnnotations[c.case_id] = {
+                      case_id: c.case_id,
+                      user_id: c.user_id,
+                      verdict: c.clinical_appraisal?.verdict || "APPROVED",
+                      clinical_notes: c.clinical_appraisal?.clinical_notes || "",
+                      original_query: c.user_query?.original_text || "",
+                      edited_query: c.user_query?.was_edited ? c.user_query?.final_text : undefined,
+                      factors: c.clinical_factors,
+                      memory_events: c.memory_events,
+                      annotator: activeDoctor.name,
+                      updated_at: c.annotated_at || new Date().toISOString(),
+                    };
+                    hasUpdate = true;
+                  }
+                }
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("Lỗi khi kiểm tra Google Drive:", err);
+      }
+
+      // Bước 2: Quét dự phòng thêm từ thư mục tĩnh public/annotations trên máy chủ web
       for (let b = 1; b <= 10; b++) {
         try {
           const res = await fetch(`${assetBase}/annotations/${docFolder}/${docFolder}_batch_${b}.json?t=${Date.now()}`, {
@@ -636,6 +682,13 @@ export default function LabelDataPage() {
           }
           return prev;
         });
+
+        if (driveCount > 0) {
+          setSaveMessage({
+            text: `Đã tự động đồng bộ ${driveCount} gói từ Google Drive!`,
+            isError: false,
+          });
+        }
       }
     }
 
@@ -1985,6 +2038,98 @@ export default function LabelDataPage() {
     }
   };
 
+  // Đồng bộ thủ công dữ liệu các gói từ Google Drive về trình duyệt
+  const handleManualDriveSync = async () => {
+    if (!activeDoctor) return;
+    setIsSyncingDrive(true);
+    try {
+      const docFolder = (
+        activeDoctor.folderCode ||
+        (activeDoctor.id === "bs_1"
+          ? "BS01"
+          : activeDoctor.id === "bs_2"
+          ? "BS02"
+          : activeDoctor.id === "bs_3"
+          ? "BS03"
+          : activeDoctor.id === "bs_4"
+          ? "BS04"
+          : "BS05")
+      ).toUpperCase();
+
+      const driveRes = await fetchDoctorBatchesFromDrive(docFolder);
+      if (!driveRes.ok) {
+        alert(`Không thể đồng bộ từ Google Drive: ${driveRes.error || "Lỗi kết nối"}`);
+        return;
+      }
+
+      if (!driveRes.batches || driveRes.batches.length === 0) {
+        alert(`Google Drive hiện chưa có gói nào đã lưu của Bác sĩ ${activeDoctor.name}.`);
+        return;
+      }
+
+      const nextCompleted = new Set<number>(completedBatches);
+      const nextConfirmed = new Set<string>(confirmedCaseIds);
+      const nextAnnotations = { ...annotationsMap };
+      let restoredCount = 0;
+
+      for (const bItem of driveRes.batches) {
+        const bIndex = bItem.batchIndex;
+        const cList = bItem.data?.cases;
+        if (bIndex && Array.isArray(cList) && cList.length > 0) {
+          nextCompleted.add(bIndex);
+          for (const c of cList) {
+            if (c.case_id) {
+              nextConfirmed.add(c.case_id);
+              if (!nextAnnotations[c.case_id]) {
+                nextAnnotations[c.case_id] = {
+                  case_id: c.case_id,
+                  user_id: c.user_id,
+                  verdict: c.clinical_appraisal?.verdict || "APPROVED",
+                  clinical_notes: c.clinical_appraisal?.clinical_notes || "",
+                  original_query: c.user_query?.original_text || "",
+                  edited_query: c.user_query?.was_edited ? c.user_query?.final_text : undefined,
+                  factors: c.clinical_factors,
+                  memory_events: c.memory_events,
+                  annotator: activeDoctor.name,
+                  updated_at: c.annotated_at || new Date().toISOString(),
+                };
+                restoredCount++;
+              }
+            }
+          }
+        }
+      }
+
+      const sortedCompleted = Array.from(nextCompleted).sort((a, b) => a - b);
+      const sortedConfirmed = Array.from(nextConfirmed);
+      setCompletedBatches(sortedCompleted);
+      setConfirmedCaseIds(new Set(sortedConfirmed));
+      setAnnotationsMap(nextAnnotations);
+
+      localStorage.setItem(`nktt_completed_batches_${activeDoctor.id}`, JSON.stringify(sortedCompleted));
+      localStorage.setItem(`nktt_confirmed_cases_${activeDoctor.id}`, JSON.stringify(sortedConfirmed));
+      localStorage.setItem(`nktt_doctor_annotations_${activeDoctor.id}`, JSON.stringify(nextAnnotations));
+
+      setCurrentBatchIndex((prev) => {
+        if (sortedCompleted.includes(prev) && prev < 10) {
+          return prev + 1;
+        }
+        return prev;
+      });
+
+      alert(
+        `Đồng bộ thành công từ Google Drive!\n\n` +
+        `- Số gói đã hoàn thành: ${sortedCompleted.length}/10 gói\n` +
+        `- Tổng số ca đã xác nhận: ${sortedConfirmed.length}/100 ca`
+      );
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      alert(`Lỗi khi đồng bộ Google Drive: ${errMsg}`);
+    } finally {
+      setIsSyncingDrive(false);
+    }
+  };
+
   // Doctor selection handler from login modal -> triggers Rules Modal
   const handleDoctorSelected = (doc: DoctorProfile) => {
     setPendingDoctor(doc);
@@ -2158,6 +2303,17 @@ export default function LabelDataPage() {
                 title="Xem bảng mẫu đối chiếu hồ sơ trước và sau khi thẩm định"
               >
                 Mẫu ví dụ đối chiếu
+              </button>
+
+              {/* Drive Sync Button */}
+              <button
+                type="button"
+                className={styles.rulesBtn}
+                onClick={handleManualDriveSync}
+                disabled={isSyncingDrive || saving}
+                title="Kéo và cập nhật dữ liệu các gói đã làm từ Google Drive về trình duyệt"
+              >
+                {isSyncingDrive ? "Đang đồng bộ Drive..." : "Đồng bộ từ Drive"}
               </button>
 
               {/* Primary "Lưu" Button - Locked until all 10 cases in current batch are confirmed */}

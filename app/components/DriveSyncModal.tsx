@@ -13,11 +13,34 @@ interface DriveSyncModalProps {
 const GOOGLE_APPS_SCRIPT_TEMPLATE = `var DEFAULT_FOLDER_NAME = "NKTT_Expert_Evaluations";
 
 function doGet(e) {
-  return createJsonResponse({
-    status: "online",
-    message: "Dich vu dong bo Google Drive cua NKTT Expert Eval dang hoat dong binh thuong.",
-    timestamp: new Date().toISOString()
-  });
+  try {
+    var params = (e && e.parameter) ? e.parameter : {};
+    var action = params.action || "status";
+
+    if (action === "ping" || action === "status") {
+      return createJsonResponse({
+        status: action === "ping" ? "success" : "online",
+        message: "Dich vu dong bo Google Drive cua NKTT Expert Eval dang hoat dong binh thuong.",
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    if (action === "get_doctor_batches") {
+      var folderName = params.folderName || DEFAULT_FOLDER_NAME;
+      var doctorFolder = (params.doctorFolder || params.doctorId || "").toString().trim().toUpperCase();
+      return handleGetDoctorBatches(folderName, doctorFolder);
+    }
+
+    if (action === "get_file") {
+      var folderName = params.folderName || DEFAULT_FOLDER_NAME;
+      var fileName = (params.fileName || "").toString().trim();
+      return handleGetSingleFile(folderName, fileName);
+    }
+
+    return createJsonResponse({ status: "error", message: "Hanh dong khong hop le trong doGet: " + action });
+  } catch (err) {
+    return createJsonResponse({ status: "error", message: "Loi xu ly doGet: " + err.toString() });
+  }
 }
 
 function doPost(e) {
@@ -30,6 +53,18 @@ function doPost(e) {
 
     if (action === "ping") {
       return createJsonResponse({ status: "success", message: "Ket noi Google Drive thanh cong." });
+    }
+
+    if (action === "get_doctor_batches") {
+      var folderName = payload.folderName || DEFAULT_FOLDER_NAME;
+      var doctorFolder = (payload.doctorFolder || payload.doctorId || "").toString().trim().toUpperCase();
+      return handleGetDoctorBatches(folderName, doctorFolder);
+    }
+
+    if (action === "get_file") {
+      var folderName = payload.folderName || DEFAULT_FOLDER_NAME;
+      var fileName = (payload.fileName || "").toString().trim();
+      return handleGetSingleFile(folderName, fileName);
     }
 
     if (action === "save_file" || action === "save_bundle") {
@@ -63,6 +98,60 @@ function doPost(e) {
   } catch (err) {
     return createJsonResponse({ status: "error", message: "Loi: " + err.toString() });
   }
+}
+
+function handleGetDoctorBatches(folderName, doctorFolder) {
+  if (!doctorFolder) {
+    return createJsonResponse({ status: "error", message: "Thieu ma bac si." });
+  }
+  var targetFolder = getOrCreateFolder(folderName);
+  var filesIterator = targetFolder.getFiles();
+  var batches = [];
+  var regex = new RegExp("^" + doctorFolder + "_batch_(\\\\d+)\\\\.json$", "i");
+
+  while (filesIterator.hasNext()) {
+    var file = filesIterator.next();
+    var fname = file.getName();
+    var match = fname.match(regex);
+    if (match) {
+      var batchIndex = parseInt(match[1], 10);
+      try {
+        var contentStr = file.getBlob().getDataAsString("UTF-8");
+        batches.push({
+          batchIndex: batchIndex,
+          fileName: fname,
+          fileId: file.getId(),
+          fileUrl: file.getUrl(),
+          updatedAt: file.getLastUpdated().toISOString(),
+          data: JSON.parse(contentStr)
+        });
+      } catch (err) {}
+    }
+  }
+
+  batches.sort(function(a, b) { return a.batchIndex - b.batchIndex; });
+  return createJsonResponse({
+    status: "success",
+    doctorFolder: doctorFolder,
+    count: batches.length,
+    batches: batches,
+    timestamp: new Date().toISOString()
+  });
+}
+
+function handleGetSingleFile(folderName, fileName) {
+  if (!fileName) return createJsonResponse({ status: "error", message: "Thieu fileName." });
+  var targetFolder = getOrCreateFolder(folderName);
+  var files = targetFolder.getFilesByName(fileName);
+  if (!files.hasNext()) return createJsonResponse({ status: "error", message: "Khong tim thay tap tin." });
+  var file = files.next();
+  return createJsonResponse({
+    status: "success",
+    fileName: fileName,
+    fileId: file.getId(),
+    content: file.getBlob().getDataAsString("UTF-8"),
+    updatedAt: file.getLastUpdated().toISOString()
+  });
 }
 
 function getOrCreateFolder(folderName) {

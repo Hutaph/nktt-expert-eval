@@ -293,3 +293,121 @@ export async function syncExpertAnnotationsToDrive(
     },
   });
 }
+
+export interface DoctorBatchRemote {
+  batchIndex: number;
+  fileName: string;
+  fileId?: string;
+  fileUrl?: string;
+  updatedAt?: string;
+  data: {
+    batch_meta?: Record<string, unknown>;
+    cases: any[];
+  };
+}
+
+/**
+ * Tải toàn bộ danh sách các gói đã hoàn tất của một bác sĩ từ Google Drive (Đồng bộ 2 chiều)
+ */
+export async function fetchDoctorBatchesFromDrive(
+  doctorFolder: string,
+  options?: { webhookUrl?: string; folderName?: string; timeoutMs?: number }
+): Promise<{
+  ok: boolean;
+  batches: DoctorBatchRemote[];
+  error?: string;
+}> {
+  const config = getDriveConfig();
+  const url = (options?.webhookUrl || config.webhookUrl).trim();
+  const folderName = (options?.folderName || config.folderName).trim() || DEFAULT_FOLDER;
+  const timeoutMs = options?.timeoutMs || 8000;
+
+  if (!url) {
+    return {
+      ok: false,
+      batches: [],
+      error: "Chưa cấu hình URL Web App Google Apps Script.",
+    };
+  }
+
+  // Phương thức 1: Gọi GET có tham số query và timeout
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+    const getUrl = `${url}?action=get_doctor_batches&doctorFolder=${encodeURIComponent(
+      doctorFolder
+    )}&folderName=${encodeURIComponent(folderName)}&t=${Date.now()}`;
+
+    const res = await fetch(getUrl, {
+      method: "GET",
+      signal: controller.signal,
+      redirect: "follow",
+    });
+
+    clearTimeout(timer);
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.status === "success" && Array.isArray(data.batches)) {
+        return {
+          ok: true,
+          batches: data.batches,
+        };
+      }
+    }
+  } catch {
+    // Nếu GET gặp trục trặc, tiếp tục chuyển sang thử bằng POST
+  }
+
+  // Phương thức 2: Dự phòng bằng POST dạng text/plain để vượt CORS
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8",
+      },
+      body: JSON.stringify({
+        action: "get_doctor_batches",
+        doctorFolder: doctorFolder,
+        folderName: folderName,
+      }),
+      signal: controller.signal,
+      redirect: "follow",
+    });
+
+    clearTimeout(timer);
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.status === "success" && Array.isArray(data.batches)) {
+        return {
+          ok: true,
+          batches: data.batches,
+        };
+      }
+      return {
+        ok: false,
+        batches: [],
+        error: data?.message || "Dữ liệu trả về từ Google Drive không hợp lệ.",
+      };
+    }
+  } catch (err: unknown) {
+    const errMsg = err instanceof Error ? err.message : String(err);
+    return {
+      ok: false,
+      batches: [],
+      error: `Không thể kết nối tới Google Drive: ${errMsg}`,
+    };
+  }
+
+  return {
+    ok: false,
+    batches: [],
+    error: "Không thể lấy dữ liệu từ Google Drive.",
+  };
+}
+

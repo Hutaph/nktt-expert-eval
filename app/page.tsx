@@ -482,22 +482,25 @@ export default function LabelDataPage() {
   useEffect(() => {
     if (!activeDoctor) return;
 
-    // Purge legacy polluted keys from localStorage
+    // Purge only ancient legacy global keys
     if (typeof window !== "undefined") {
       try {
         localStorage.removeItem("nktt_expert_annotations_v5");
         localStorage.removeItem("nktt_expert_annotations_v4");
         localStorage.removeItem("nktt_expert_annotations_v3");
+        localStorage.removeItem("nktt_expert_annotations");
       } catch {}
     }
 
-    // Load confirmed cases for this specific doctor
+    // 1. Load confirmed cases for this specific doctor from localStorage
+    let initialConfirmed = new Set<string>();
     try {
       const savedConfirmed = localStorage.getItem(`nktt_confirmed_cases_${activeDoctor.id}`);
       if (savedConfirmed) {
         const list = JSON.parse(savedConfirmed);
         if (Array.isArray(list)) {
-          setConfirmedCaseIds(new Set(list));
+          initialConfirmed = new Set(list);
+          setConfirmedCaseIds(initialConfirmed);
         }
       } else {
         setConfirmedCaseIds(new Set());
@@ -506,14 +509,14 @@ export default function LabelDataPage() {
       setConfirmedCaseIds(new Set());
     }
 
-    // Load annotations strictly saved by this active doctor
+    // 2. Load annotations strictly saved by this active doctor from localStorage
     const docAnnotations = getDoctorAnnotations(activeDoctor.id);
     setAnnotationsMap(docAnnotations);
 
-    // Load completed batches for this doctor
+    // 3. Load completed batches for this doctor from localStorage
+    let completedList: number[] = [];
     try {
       const saved = localStorage.getItem(`nktt_completed_batches_${activeDoctor.id}`);
-      let completedList: number[] = [];
       if (saved) {
         const list = JSON.parse(saved);
         if (Array.isArray(list)) {
@@ -548,75 +551,107 @@ export default function LabelDataPage() {
       setCurrentBatchIndex(1);
     }
     setAnnotator(activeDoctor.name);
+
+    // 4. Đồng bộ tuyệt đối: Quét và khôi phục các gói đã hoàn tất trên máy chủ / thư mục public/annotations
+    let isSubscribed = true;
+    async function reconcileServerBatches() {
+      if (!activeDoctor) return;
+      const docFolder = (
+        activeDoctor.folderCode ||
+        (activeDoctor.id === "bs_1"
+          ? "BS01"
+          : activeDoctor.id === "bs_2"
+          ? "BS02"
+          : activeDoctor.id === "bs_3"
+          ? "BS03"
+          : activeDoctor.id === "bs_4"
+          ? "BS04"
+          : "BS05")
+      ).toUpperCase();
+
+      const assetBase = getAssetBase();
+      const mergedCompleted = new Set<number>(completedList);
+      const mergedConfirmed = new Set<string>(initialConfirmed);
+      const updatedAnnotations = { ...docAnnotations };
+      let hasUpdate = false;
+
+      for (let b = 1; b <= 10; b++) {
+        try {
+          const res = await fetch(`${assetBase}/annotations/${docFolder}/${docFolder}_batch_${b}.json?t=${Date.now()}`, {
+            cache: "no-store",
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data?.cases && Array.isArray(data.cases) && data.cases.length > 0) {
+              if (!mergedCompleted.has(b)) {
+                mergedCompleted.add(b);
+                hasUpdate = true;
+              }
+              for (const c of data.cases) {
+                if (c.case_id) {
+                  if (!mergedConfirmed.has(c.case_id)) {
+                    mergedConfirmed.add(c.case_id);
+                    hasUpdate = true;
+                  }
+                  if (!updatedAnnotations[c.case_id]) {
+                    updatedAnnotations[c.case_id] = {
+                      case_id: c.case_id,
+                      user_id: c.user_id,
+                      verdict: c.clinical_appraisal?.verdict || "APPROVED",
+                      clinical_notes: c.clinical_appraisal?.clinical_notes || "",
+                      original_query: c.user_query?.original_text || "",
+                      edited_query: c.user_query?.was_edited ? c.user_query?.final_text : undefined,
+                      factors: c.clinical_factors,
+                      memory_events: c.memory_events,
+                      annotator: activeDoctor.name,
+                      updated_at: c.annotated_at || new Date().toISOString(),
+                    };
+                    hasUpdate = true;
+                  }
+                }
+              }
+            }
+          }
+        } catch {}
+      }
+
+      if (hasUpdate && isSubscribed) {
+        const sortedCompleted = Array.from(mergedCompleted).sort((a, b) => a - b);
+        const sortedConfirmed = Array.from(mergedConfirmed);
+        setCompletedBatches(sortedCompleted);
+        setConfirmedCaseIds(new Set(sortedConfirmed));
+        setAnnotationsMap(updatedAnnotations);
+
+        try {
+          localStorage.setItem(`nktt_completed_batches_${activeDoctor.id}`, JSON.stringify(sortedCompleted));
+          localStorage.setItem(`nktt_confirmed_cases_${activeDoctor.id}`, JSON.stringify(sortedConfirmed));
+          localStorage.setItem(`nktt_doctor_annotations_${activeDoctor.id}`, JSON.stringify(updatedAnnotations));
+        } catch {}
+
+        // Tự động mở khóa gói tiếp theo nếu gói hiện tại đã hoàn tất
+        setCurrentBatchIndex((prev) => {
+          if (sortedCompleted.includes(prev) && prev < 10) {
+            return prev + 1;
+          }
+          return prev;
+        });
+      }
+    }
+
+    reconcileServerBatches();
+    return () => {
+      isSubscribed = false;
+    };
   }, [activeDoctor]);
 
-  // Clean up legacy fake drafts and old caches from localStorage on mount
+  // Xóa các khóa bộ nhớ cũ đã lỗi thời (chỉ xóa khóa v3, v4 không còn sử dụng, tuyệt đối không xóa tiến trình của bác sĩ)
   useEffect(() => {
     if (typeof window !== "undefined") {
       try {
-        const DATA_SYNC_TAG = "20260926_production_launch";
-        const keysToRemove: string[] = [
-          "nktt_expert_annotations_v5",
-          "nktt_expert_annotations_v4",
-          "nktt_expert_annotations_v3",
-          "nktt_expert_annotations",
-        ];
-
-        const currentSync = localStorage.getItem("nktt_data_sync_tag");
-        if (currentSync !== DATA_SYNC_TAG) {
-          for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (
-              key &&
-              (key.startsWith("nktt_completed_batches_") ||
-                key.startsWith("nktt_confirmed_cases_") ||
-                key.startsWith("nktt_doctor_annotations_") ||
-                key.startsWith("nktt_draft_") ||
-                key.startsWith("nktt_expert_annotations") ||
-                key.startsWith("nktt_active_batch_"))
-            ) {
-              keysToRemove.push(key);
-            }
-          }
-          sessionStorage.removeItem("nktt_active_doctor_session");
-          localStorage.setItem("nktt_data_sync_tag", DATA_SYNC_TAG);
-        }
-
-        for (let i = 0; i < localStorage.length; i++) {
-          const k = localStorage.key(i);
-          if (!k) continue;
-          if (k.startsWith("nktt_draft_")) {
-            try {
-              const val = localStorage.getItem(k);
-              if (val) {
-                const parsed = JSON.parse(val);
-                if (isFakeDefaultNote(parsed?.clinicalNotes)) {
-                  keysToRemove.push(k);
-                }
-              }
-            } catch {
-              keysToRemove.push(k);
-            }
-          } else if (k.startsWith("nktt_doctor_annotations_")) {
-            try {
-              const val = localStorage.getItem(k);
-              if (val) {
-                const parsed = JSON.parse(val);
-                let changed = false;
-                for (const cId of Object.keys(parsed)) {
-                  if (isFakeDefaultNote(parsed[cId]?.clinical_notes)) {
-                    delete parsed[cId];
-                    changed = true;
-                  }
-                }
-                if (changed) {
-                  localStorage.setItem(k, JSON.stringify(parsed));
-                }
-              }
-            } catch {}
-          }
-        }
-        keysToRemove.forEach((k) => localStorage.removeItem(k));
+        localStorage.removeItem("nktt_expert_annotations_v5");
+        localStorage.removeItem("nktt_expert_annotations_v4");
+        localStorage.removeItem("nktt_expert_annotations_v3");
+        localStorage.removeItem("nktt_expert_annotations");
       } catch {}
     }
   }, []);

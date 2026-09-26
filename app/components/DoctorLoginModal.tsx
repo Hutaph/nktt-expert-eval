@@ -94,34 +94,9 @@ export default function DoctorLoginModal({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [progressMap, setProgressMap] = useState<Record<string, number>>({});
 
-  // Làm mới và đồng bộ dữ liệu tiến độ từ bộ nhớ lưu trữ
+  // Làm mới và đồng bộ dữ liệu tiến độ từ bộ nhớ lưu trữ và các gói đã hoàn tất
   useEffect(() => {
     if (typeof window === "undefined") return;
-
-    const DATA_SYNC_TAG = "20260925_refresh_current";
-    try {
-      const currentSync = localStorage.getItem("nktt_data_sync_tag");
-      if (currentSync !== DATA_SYNC_TAG) {
-        const keysToRemove: string[] = [];
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (
-            key &&
-            (key.startsWith("nktt_completed_batches_") ||
-              key.startsWith("nktt_confirmed_cases_") ||
-              key.startsWith("nktt_doctor_annotations_") ||
-              key.startsWith("nktt_draft_") ||
-              key.startsWith("nktt_expert_annotations") ||
-              key.startsWith("nktt_active_batch_"))
-          ) {
-            keysToRemove.push(key);
-          }
-        }
-        keysToRemove.forEach((k) => localStorage.removeItem(k));
-        sessionStorage.removeItem("nktt_active_doctor_session");
-        localStorage.setItem("nktt_data_sync_tag", DATA_SYNC_TAG);
-      }
-    } catch {}
 
     const progress: Record<string, number> = {};
     DOCTORS_LIST.forEach((doc) => {
@@ -138,6 +113,64 @@ export default function DoctorLoginModal({
       }
     });
     setProgressMap(progress);
+
+    // Đồng bộ kiểm tra thêm từ các gói tĩnh trên máy chủ/thư mục annotations
+    let isSubscribed = true;
+    async function syncProgressWithFiles() {
+      const assetBase =
+        typeof window !== "undefined" && window.location.pathname.startsWith("/nktt-expert-eval")
+          ? "/nktt-expert-eval"
+          : "";
+      const updatedProgress: Record<string, number> = { ...progress };
+      let changed = false;
+
+      for (const doc of DOCTORS_LIST) {
+        const folder = doc.folderCode.toUpperCase();
+        const docCompleted = new Set<number>();
+        try {
+          const saved = localStorage.getItem(`nktt_completed_batches_${doc.id}`);
+          if (saved) {
+            const list = JSON.parse(saved);
+            if (Array.isArray(list)) list.forEach((n) => docCompleted.add(n));
+          }
+        } catch {}
+
+        for (let b = 1; b <= 10; b++) {
+          try {
+            const res = await fetch(`${assetBase}/annotations/${folder}/${folder}_batch_${b}.json?t=${Date.now()}`, {
+              cache: "no-store",
+            });
+            if (res.ok) {
+              const data = await res.json();
+              if (data?.cases && Array.isArray(data.cases) && data.cases.length > 0) {
+                docCompleted.add(b);
+              }
+            }
+          } catch {}
+        }
+
+        const count = docCompleted.size;
+        if (count > (updatedProgress[doc.id] || 0)) {
+          updatedProgress[doc.id] = count;
+          changed = true;
+          try {
+            localStorage.setItem(
+              `nktt_completed_batches_${doc.id}`,
+              JSON.stringify(Array.from(docCompleted).sort((a, b) => a - b))
+            );
+          } catch {}
+        }
+      }
+
+      if (changed && isSubscribed) {
+        setProgressMap(updatedProgress);
+      }
+    }
+
+    syncProgressWithFiles();
+    return () => {
+      isSubscribed = false;
+    };
   }, [isOpen]);
 
   useEffect(() => {

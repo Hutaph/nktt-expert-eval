@@ -1771,37 +1771,6 @@ export default function LabelDataPage() {
     });
   };
 
-  // Reset active case to pristine v5 benchmark state (purging local draft)
-  const handleResetCurrentCaseToV5 = () => {
-    if (!activeCase) return;
-    if (activeDoctor) {
-      try {
-        localStorage.removeItem(`${DRAFT_PREFIX}${activeDoctor.id}_${activeCase.case_id}`);
-      } catch {}
-    }
-    setEditedQuery(activeCase.current_query || "");
-    setClinicalNotes("");
-    setEditedTurns({});
-    if (activeCase.targets?.factors) {
-      setEditedFactors(JSON.parse(JSON.stringify(activeCase.targets.factors)));
-    } else {
-      setEditedFactors([]);
-    }
-    if (activeCase.targets?.memory_events) {
-      setEditedRelevantEvents((activeCase.targets.memory_events.relevant_event_ids || []).join(", "));
-      setEditedStaleEvents((activeCase.targets.memory_events.stale_event_ids || []).join(", "));
-      setEditedForbiddenEvents((activeCase.targets.memory_events.forbidden_event_ids || []).join(", "));
-    } else {
-      setEditedRelevantEvents("");
-      setEditedStaleEvents("");
-      setEditedForbiddenEvents("");
-    }
-    const firstVisNum = visibleSessions[0]?.session_number;
-    setActiveSessionIndex(0);
-    setInspectedSessions(new Set(firstVisNum ? [firstVisNum] : []));
-    setIsEditingQuery(false);
-  };
-
   // Save current individual case annotation & register confirmation
   const handleSaveAnnotation = (): boolean => {
     if (!activeCase || !activeDoctor) return false;
@@ -3244,21 +3213,6 @@ export default function LabelDataPage() {
                       rows={3}
                       spellCheck={false}
                     />
-                    <div className={styles.charCountRow}>
-                      <span className={styles.charCountValid}>
-                        {clinicalNotes.trim().length > 0
-                          ? `Ghi chú: ${clinicalNotes.trim().length} ký tự`
-                          : "Không bắt buộc"}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={handleResetCurrentCaseToV5}
-                        className={styles.resetCaseBtn}
-                        title="Xóa trắng bản nháp để tự nhập nhận xét mới từ đầu"
-                      >
-                        Làm mới ca này
-                      </button>
-                    </div>
                   </div>
 
                   {/* Điều kiện bắt buộc: Phải xem hết các lần khám */}

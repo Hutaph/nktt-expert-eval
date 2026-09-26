@@ -325,6 +325,60 @@ function saveStoredAnnotation(record: ExpertAnnotationRecord, doctorId?: string)
   if (doctorId) saveDoctorAnnotation(doctorId, record);
 }
 
+function extractCaseAnnotationFromBatchData(c: any, doctorName: string): {
+  record: ExpertAnnotationRecord;
+  turnsMap: Record<string, string>;
+} {
+  const editedTurnsList: TurnRecord[] = [];
+  const turnsMap: Record<string, string> = {};
+
+  if (c.dialogue_history && Array.isArray(c.dialogue_history)) {
+    for (const sess of c.dialogue_history) {
+      if (sess.turns && Array.isArray(sess.turns)) {
+        for (const t of sess.turns) {
+          const isEdited = Boolean(
+            t.was_edited ||
+            (t.final_text && t.original_text && t.final_text !== t.original_text)
+          );
+          if (isEdited && t.final_text) {
+            editedTurnsList.push({
+              turn_id: t.turn_id,
+              speaker: t.speaker || "Người hỏi",
+              text: t.final_text,
+              turn_timestamp: t.turn_timestamp,
+            });
+            turnsMap[t.turn_id] = t.final_text;
+          }
+        }
+      }
+    }
+  }
+
+  const queryWasEdited = Boolean(
+    c.user_query?.was_edited ||
+    (c.user_query?.final_text && c.user_query?.original_text && c.user_query.final_text !== c.user_query.original_text)
+  );
+
+  const finalQueryText = c.user_query?.final_text || c.user_query?.original_text;
+
+  const record: ExpertAnnotationRecord = {
+    case_id: c.case_id,
+    user_id: c.user_id,
+    verdict: (c.clinical_appraisal?.verdict || "APPROVED") as "APPROVED" | "EDITED" | "FLAGGED",
+    clinical_notes: c.clinical_appraisal?.clinical_notes || "",
+    original_query: c.user_query?.original_text || "",
+    edited_query: queryWasEdited ? finalQueryText : undefined,
+    query_change_percent: c.user_query?.change_percent,
+    edited_turns: editedTurnsList.length > 0 ? editedTurnsList : undefined,
+    factors: c.clinical_factors,
+    memory_events: c.memory_events,
+    annotator: doctorName,
+    updated_at: c.annotated_at || new Date().toISOString(),
+  };
+
+  return { record, turnsMap };
+}
+
 const FAMILY_FRIENDLY_NAMES: Record<string, { label: string; desc: string }> = {
   NO_PERSONALIZATION_NEEDED: {
     label: "Kiến thức nha khoa đại cương",
@@ -575,6 +629,12 @@ export default function LabelDataPage() {
       const mergedCompleted = new Set<number>(completedList);
       const mergedConfirmed = new Set<string>(initialConfirmed);
       const updatedAnnotations = { ...docAnnotations };
+      let sharedTurnsObj: Record<string, string> = {};
+      try {
+        const rawShared = localStorage.getItem(`nktt_shared_turns_v5_${activeDoctor.id}`);
+        if (rawShared) sharedTurnsObj = JSON.parse(rawShared);
+      } catch {}
+
       let hasUpdate = false;
       let driveCount = 0;
 
@@ -597,21 +657,10 @@ export default function LabelDataPage() {
                     mergedConfirmed.add(c.case_id);
                     hasUpdate = true;
                   }
-                  if (!updatedAnnotations[c.case_id]) {
-                    updatedAnnotations[c.case_id] = {
-                      case_id: c.case_id,
-                      user_id: c.user_id,
-                      verdict: c.clinical_appraisal?.verdict || "APPROVED",
-                      clinical_notes: c.clinical_appraisal?.clinical_notes || "",
-                      original_query: c.user_query?.original_text || "",
-                      edited_query: c.user_query?.was_edited ? c.user_query?.final_text : undefined,
-                      factors: c.clinical_factors,
-                      memory_events: c.memory_events,
-                      annotator: activeDoctor.name,
-                      updated_at: c.annotated_at || new Date().toISOString(),
-                    };
-                    hasUpdate = true;
-                  }
+                  const { record, turnsMap } = extractCaseAnnotationFromBatchData(c, activeDoctor.name);
+                  updatedAnnotations[c.case_id] = record;
+                  Object.assign(sharedTurnsObj, turnsMap);
+                  hasUpdate = true;
                 }
               }
             }
@@ -640,21 +689,10 @@ export default function LabelDataPage() {
                     mergedConfirmed.add(c.case_id);
                     hasUpdate = true;
                   }
-                  if (!updatedAnnotations[c.case_id]) {
-                    updatedAnnotations[c.case_id] = {
-                      case_id: c.case_id,
-                      user_id: c.user_id,
-                      verdict: c.clinical_appraisal?.verdict || "APPROVED",
-                      clinical_notes: c.clinical_appraisal?.clinical_notes || "",
-                      original_query: c.user_query?.original_text || "",
-                      edited_query: c.user_query?.was_edited ? c.user_query?.final_text : undefined,
-                      factors: c.clinical_factors,
-                      memory_events: c.memory_events,
-                      annotator: activeDoctor.name,
-                      updated_at: c.annotated_at || new Date().toISOString(),
-                    };
-                    hasUpdate = true;
-                  }
+                  const { record, turnsMap } = extractCaseAnnotationFromBatchData(c, activeDoctor.name);
+                  updatedAnnotations[c.case_id] = record;
+                  Object.assign(sharedTurnsObj, turnsMap);
+                  hasUpdate = true;
                 }
               }
             }
@@ -673,7 +711,10 @@ export default function LabelDataPage() {
           localStorage.setItem(`nktt_completed_batches_${activeDoctor.id}`, JSON.stringify(sortedCompleted));
           localStorage.setItem(`nktt_confirmed_cases_${activeDoctor.id}`, JSON.stringify(sortedConfirmed));
           localStorage.setItem(`nktt_doctor_annotations_${activeDoctor.id}`, JSON.stringify(updatedAnnotations));
+          localStorage.setItem(`nktt_shared_turns_v5_${activeDoctor.id}`, JSON.stringify(sharedTurnsObj));
         } catch {}
+
+        setEditedTurns((prev) => ({ ...prev, ...sharedTurnsObj }));
 
         // Tự động mở khóa gói tiếp theo nếu gói hiện tại đã hoàn tất
         setCurrentBatchIndex((prev) => {
@@ -2070,6 +2111,12 @@ export default function LabelDataPage() {
       const nextCompleted = new Set<number>(completedBatches);
       const nextConfirmed = new Set<string>(confirmedCaseIds);
       const nextAnnotations = { ...annotationsMap };
+      let sharedTurnsObj: Record<string, string> = {};
+      try {
+        const rawShared = localStorage.getItem(`nktt_shared_turns_v5_${activeDoctor.id}`);
+        if (rawShared) sharedTurnsObj = JSON.parse(rawShared);
+      } catch {}
+
       let restoredCount = 0;
 
       for (const bItem of driveRes.batches) {
@@ -2080,21 +2127,10 @@ export default function LabelDataPage() {
           for (const c of cList) {
             if (c.case_id) {
               nextConfirmed.add(c.case_id);
-              if (!nextAnnotations[c.case_id]) {
-                nextAnnotations[c.case_id] = {
-                  case_id: c.case_id,
-                  user_id: c.user_id,
-                  verdict: c.clinical_appraisal?.verdict || "APPROVED",
-                  clinical_notes: c.clinical_appraisal?.clinical_notes || "",
-                  original_query: c.user_query?.original_text || "",
-                  edited_query: c.user_query?.was_edited ? c.user_query?.final_text : undefined,
-                  factors: c.clinical_factors,
-                  memory_events: c.memory_events,
-                  annotator: activeDoctor.name,
-                  updated_at: c.annotated_at || new Date().toISOString(),
-                };
-                restoredCount++;
-              }
+              const { record, turnsMap } = extractCaseAnnotationFromBatchData(c, activeDoctor.name);
+              nextAnnotations[c.case_id] = record;
+              Object.assign(sharedTurnsObj, turnsMap);
+              restoredCount++;
             }
           }
         }
@@ -2109,6 +2145,15 @@ export default function LabelDataPage() {
       localStorage.setItem(`nktt_completed_batches_${activeDoctor.id}`, JSON.stringify(sortedCompleted));
       localStorage.setItem(`nktt_confirmed_cases_${activeDoctor.id}`, JSON.stringify(sortedConfirmed));
       localStorage.setItem(`nktt_doctor_annotations_${activeDoctor.id}`, JSON.stringify(nextAnnotations));
+      localStorage.setItem(`nktt_shared_turns_v5_${activeDoctor.id}`, JSON.stringify(sharedTurnsObj));
+
+      setEditedTurns((prev) => ({ ...prev, ...sharedTurnsObj }));
+      if (selectedCaseId && nextAnnotations[selectedCaseId]) {
+        const cur = nextAnnotations[selectedCaseId];
+        setEditedQuery(cur.edited_query || "");
+        setClinicalNotes(cur.clinical_notes || "");
+        setCurrentVerdict(cur.verdict || "APPROVED");
+      }
 
       setCurrentBatchIndex((prev) => {
         if (sortedCompleted.includes(prev) && prev < 10) {

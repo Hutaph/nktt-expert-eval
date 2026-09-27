@@ -1,0 +1,27 @@
+{
+  "dataset_name": "ViDent-LongMem-500",
+  "version": "5.0-expert-validation-ready",
+  "annotation_revision": "paper_aligned_v5_expert_validation_ready",
+  "updated_at": "2026-09-24T12:30:00+07:00",
+  "created_at": "2026-09-20T01:10:55.572786",
+  "description": "Unified and naturalized longitudinal dental memory benchmark with 125 patients and 500 clinical queries, fully aligned with expert validation taxonomy.",
+  "statistics": {
+    "total_patients": 125,
+    "total_benchmark_cases": 500,
+    "personalization_needed_cases": 375,
+    "negative_control_cases": 125,
+    "total_source_events": 1230,
+    "total_evidence_groups": 10
+  },
+  "files_checksum_sha256": {
+    "timelines.jsonl": "285cc817e6b0231ed1d585abf1fbe0a705738dca84c927fbd26b21767971c73c",
+    "benchmark_cases.jsonl": "dbe936eff346694d21ad8917ded145f3b8922b44dba1cf1879916189420d34c4",
+    "source_events.jsonl": "57f40cfb5866b03814e8157f1d46f4cf54ef859bb1872a2fbd8cee88b899985c",
+    "evidence_catalog.json": "451c0c31764823acd5932cf8edb7d18274d5f230218a94fc7f51ce8664840414"
+  },
+  "adjudication_reliability": {
+    "annotator_pairs": 50,
+    "cohens_kappa": 0.8762,
+    "icc": 0.8767
+  }
+}

@@ -52,8 +52,14 @@ function AutoExpandingTextarea({
   const adjustHeight = useCallback(() => {
     const el = ref.current;
     if (!el) return;
-    el.style.height = "auto";
-    el.style.height = `${Math.max(el.scrollHeight, 22)}px`;
+    requestAnimationFrame(() => {
+      if (!el) return;
+      el.style.height = "auto";
+      const targetHeight = Math.max(el.scrollHeight, 22);
+      if (Math.abs(el.clientHeight - targetHeight) > 2) {
+        el.style.height = `${targetHeight}px`;
+      }
+    });
   }, []);
 
   useEffect(() => {
@@ -452,6 +458,7 @@ const STATUS_FRIENDLY_NAMES: Record<string, string> = {
 let cachedAllCases: CaseDetail[] | null = null;
 let cachedTimelinesMap: Map<string, TimelineRecord> | null = null;
 let cachedEventsMap: Map<string, SourceEventRecord[]> | null = null;
+let cachedSamplesList: SampleItem[] | null = null;
 
 export default function LabelDataPage() {
   // Navigation: permanently locked to label-data
@@ -487,6 +494,9 @@ export default function LabelDataPage() {
   const lastRegistryJsonRef = useRef<string>("");
   const isClaimingRef = useRef<boolean>(false);
   const loadedSampleIndexRef = useRef<number | null>(null);
+  const isSyncingRegistryRef = useRef<boolean>(false);
+  const lastSyncTimestampRef = useRef<number>(0);
+  const draftSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Tu dong tat man hinh loading sau 20 giay phong truong hop mang cham de tranh treo UI
   useEffect(() => {
@@ -611,7 +621,9 @@ export default function LabelDataPage() {
   // Tự động nhận mẫu trống chưa có ai làm (chống trùng lặp tuyệt đối giữa các bác sĩ, tự động phân công)
   const handleClaimEmptySample = useCallback(async (
     attemptOrEvent?: number | React.MouseEvent,
-    isSilentAuto: boolean = false
+    isSilentAuto: boolean = false,
+    preferFromStart: boolean = false,
+    excludeIndex?: number
   ) => {
     if (isClaimingRef.current) return;
     isClaimingRef.current = true;
@@ -654,7 +666,7 @@ export default function LabelDataPage() {
           (c.doctorId === curDoc.id || c.doctorFolder?.toUpperCase() === myFolder)
       );
 
-      // Nếu đang tự động khôi phục khi mới đăng nhập thì mở ca dở dang
+      // Nếu đang tự động khôi phục khi mới đăng nhập thì mở ca dở dang của chính bác sĩ nếu có
       if (isSilentAuto && myInProgress && myInProgress.sampleIndex) {
         setCurrentSampleIndex(myInProgress.sampleIndex);
         setActiveSessionIndex(0);
@@ -663,8 +675,8 @@ export default function LabelDataPage() {
 
       try {
         // Tìm mẫu trống trong 125 mẫu mà CHƯA CÓ BẤT KỲ AI NHẬN (hoặc đã hết hạn TTL)
-        // Ưu tiên tìm từ mẫu kế tiếp của mẫu hiện tại để chắc chắn chuyển sang mẫu mới
         const isAvailable = (idx: number) => {
+          if (excludeIndex && idx === excludeIndex) return false;
           if (confirmedSampleIds.has(idx)) return false;
           if (driveCompletedMap[idx]) return false;
           const claim = latestRegistry[idx];
@@ -678,25 +690,33 @@ export default function LabelDataPage() {
         let targetIndex = -1;
         const curIdx = currentSampleIndexRef.current || 1;
 
-        // Vòng 1: Tìm từ curIdx + 1 đến total
-        for (let i = curIdx + 1; i <= total; i++) {
-          if (isAvailable(i)) {
-            targetIndex = i;
-            break;
-          }
-        }
-        // Vòng 2: Tìm từ 1 đến curIdx - 1
-        if (targetIndex === -1) {
-          for (let i = 1; i < curIdx; i++) {
+        // Khi đăng nhập lần đầu (isSilentAuto), hoặc yêu cầu tìm từ đầu (preferFromStart),
+        // hoặc khi curIdx <= 1: LUÔN ưu tiên kiểm tra tuần tự từ Mẫu 1 đến Mẫu total
+        if (isSilentAuto || preferFromStart || curIdx <= 1) {
+          for (let i = 1; i <= total; i++) {
             if (isAvailable(i)) {
               targetIndex = i;
               break;
             }
           }
-        }
-        // Vòng 3: Nếu không còn mẫu nào khác nhưng mẫu hiện tại khả dụng
-        if (targetIndex === -1 && isAvailable(curIdx)) {
-          targetIndex = curIdx;
+        } else {
+          // Bác sĩ vừa hoàn tất mẫu hiện tại (curIdx) và muốn chuyển sang mẫu tiếp theo:
+          // Vòng 1: Tìm từ curIdx + 1 đến total
+          for (let i = curIdx + 1; i <= total; i++) {
+            if (isAvailable(i)) {
+              targetIndex = i;
+              break;
+            }
+          }
+          // Vòng 2: Vòng lại tìm từ 1 đến curIdx
+          if (targetIndex === -1) {
+            for (let i = 1; i <= curIdx; i++) {
+              if (isAvailable(i)) {
+                targetIndex = i;
+                break;
+              }
+            }
+          }
         }
 
         if (targetIndex !== -1) {
@@ -721,8 +741,7 @@ export default function LabelDataPage() {
             // Bật màn hình loading chuyển mẫu do đụng độ với Bác sĩ khác
             setDriveSyncLoading(true);
             setDriveSyncLoadingText(`Đụng độ Mẫu ${targetIndex} - Đang tìm mẫu trống khác...`);
-            await new Promise((r) => setTimeout(r, 1500));
-            await handleClaimEmptySample(attempt + 1, false);
+            await handleClaimEmptySample(attempt + 1, false, false, targetIndex);
             return;
           }
 
@@ -749,10 +768,6 @@ export default function LabelDataPage() {
             text: `Đã tự động nhận độc quyền Mẫu ${targetIndex} cho bạn.`,
             isError: false,
           });
-          if (!isSilentAuto) {
-            setDriveSyncLoadingText(`Đã nhận Mẫu ${targetIndex}. Đang mở...`);
-            await new Promise((r) => setTimeout(r, 1400));
-          }
           return;
         }
 
@@ -1005,17 +1020,25 @@ export default function LabelDataPage() {
   useEffect(() => {
     let isMounted = true;
     async function fetchTimelines() {
+      // Nếu đã có trong bộ nhớ cache, nạp ngay lập tức tránh parse lại file lớn
+      if (cachedSamplesList && cachedSamplesList.length > 0) {
+        setAllSamples(cachedSamplesList);
+        setLoadingList(false);
+        return;
+      }
+
       setLoadingList(true);
       try {
         const assetBase = getAssetBase();
+        // Cho phép trình duyệt lưu HTTP cache theo DATASET_VERSION_TAG để tải tức thì
         const res = await fetch(
-          `${assetBase}/dataset/vident_longmem_500/timelines.jsonl?v=${DATASET_VERSION_TAG}&t=${Date.now()}`,
-          { cache: "no-store" }
+          `${assetBase}/dataset/vident_longmem_500/timelines.jsonl?v=${DATASET_VERSION_TAG}`
         );
         const text = await res.text();
         const list: SampleItem[] = [];
         const lines = text.split("\n");
         let idx = 1;
+        const tMap = new Map<string, TimelineRecord>();
         for (const line of lines) {
           const trimmed = line.trim();
           if (!trimmed) continue;
@@ -1028,8 +1051,13 @@ export default function LabelDataPage() {
               totalTurns: parsed.total_turns || parsed.sessions?.reduce((acc, s) => acc + (s.turns?.length || 0), 0) || 0,
               timeline: parsed,
             });
+            tMap.set(parsed.user_id, parsed);
             idx++;
           } catch {}
+        }
+        cachedSamplesList = list;
+        if (!cachedTimelinesMap) {
+          cachedTimelinesMap = tMap;
         }
         if (isMounted) {
           setAllSamples(list);
@@ -1047,10 +1075,14 @@ export default function LabelDataPage() {
     };
   }, []);
 
-  // Đồng bộ claims registry từ Google Drive định kỳ mỗi 15 giây (chống vòng lặp vô hạn và chống lag)
+  // Đồng bộ claims registry từ Google Drive định kỳ mỗi 35 giây (chống nghẽn mạng và chống giật lag)
   useEffect(() => {
     let timer: NodeJS.Timeout;
     const syncRegistry = async () => {
+      if (isSyncingRegistryRef.current) return;
+      isSyncingRegistryRef.current = true;
+      lastSyncTimestampRef.current = Date.now();
+
       try {
         const res = await fetchClaimsRegistry({ timeoutMs: 5000 });
         if (res.ok && res.registry) {
@@ -1065,7 +1097,17 @@ export default function LabelDataPage() {
                 completedMap[Number(idxStr)] = rec.doctorFolder;
               }
             });
-            setDriveCompletedMap(completedMap);
+
+            // Chỉ cập nhật state completedMap nếu có sự khác biệt để tránh re-render thừa
+            setDriveCompletedMap((prevMap) => {
+              const prevKeys = Object.keys(prevMap);
+              const newKeys = Object.keys(completedMap);
+              if (prevKeys.length !== newKeys.length) return completedMap;
+              for (const k of newKeys) {
+                if (prevMap[Number(k)] !== completedMap[Number(k)]) return completedMap;
+              }
+              return prevMap;
+            });
 
             // Kiểm tra nếu mẫu hiện tại bác sĩ đang xem bị người khác nhận mất trên Google Drive
             const curDoc = activeDoctorRef.current;
@@ -1077,14 +1119,13 @@ export default function LabelDataPage() {
                 curClaim &&
                 curClaim.doctorFolder &&
                 curClaim.doctorFolder.toUpperCase() !== myF &&
-                !isClaimExpired(curClaim)
+                !isClaimExpired(curClaim) &&
+                curClaim.status !== "COMPLETED"
               );
               if (isTakenByOther) {
                 setDriveSyncLoading(true);
                 setDriveSyncLoadingText(`Mẫu ${curIdx} vừa bị nhận bởi ${curClaim?.doctorName || curClaim?.doctorFolder}. Đang tìm mẫu trống...`);
-                setTimeout(() => {
-                  handleClaimEmptySample(1, false);
-                }, 800);
+                handleClaimEmptySample(1, false, false, curIdx);
               }
             }
           }
@@ -1092,16 +1133,20 @@ export default function LabelDataPage() {
       } catch (err) {
         console.warn("Lỗi khi tải sổ đăng ký claims từ Drive:", err);
       } finally {
+        isSyncingRegistryRef.current = false;
         setIsRegistryLoaded(true);
       }
     };
 
     syncRegistry();
-    timer = setInterval(syncRegistry, 15000);
+    timer = setInterval(syncRegistry, 35000);
 
     const handleVisibilityChange = () => {
       if (typeof document !== "undefined" && !document.hidden) {
-        syncRegistry();
+        // Chỉ kích hoạt lại nếu đã hơn 15 giây kể từ lần đồng bộ trước
+        if (Date.now() - lastSyncTimestampRef.current >= 15000) {
+          syncRegistry();
+        }
       }
     };
     if (typeof document !== "undefined") {
@@ -2221,7 +2266,7 @@ export default function LabelDataPage() {
     activeDoctor,
   ]);
 
-  // Handle Turn edit & cross-case auto sync
+  // Handle Turn edit & cross-case auto sync (Đã tối ưu hóa debounce chống giật lag khi gõ phím)
   const handleTurnChange = (turnId: string, text: string) => {
     // Chặn sửa đổi nếu xem mẫu của bác sĩ khác
     const curClaim = claimsRegistry[currentSampleIndex];
@@ -2232,71 +2277,73 @@ export default function LabelDataPage() {
     );
     if (isOther) return;
 
-    // 1. Cập nhật ngay trên giao diện ca hiện tại và lưu ngay vào nháp cục bộ
-    setEditedTurns((prev) => {
-      const next = { ...prev, [turnId]: text };
+    // 1. Cập nhật phản hồi ngay trên giao diện mượt mà 60fps
+    const nextEditedTurns = { ...editedTurns, [turnId]: text };
+    setEditedTurns(nextEditedTurns);
+
+    // 2. Debounce lưu trữ localStorage sau 400ms khi ngừng gõ để không block giao diện
+    if (draftSaveTimerRef.current) {
+      clearTimeout(draftSaveTimerRef.current);
+    }
+    draftSaveTimerRef.current = setTimeout(() => {
       if (activeDoctor && currentSample) {
         try {
           const draftKey = `nktt_sample_draft_${activeDoctor.id}_${currentSample.sampleIndex}`;
           const raw = localStorage.getItem(draftKey);
           const d = raw ? JSON.parse(raw) : {};
-          d.editedTurns = next;
+          d.editedTurns = nextEditedTurns;
           d.updatedAt = new Date().toISOString();
           localStorage.setItem(draftKey, JSON.stringify(d));
         } catch {}
       }
-      return next;
-    });
 
-    // 2. Tự động đồng bộ ngầm ở backend (kho dùng chung cho toàn bộ các ca của bác sĩ)
-    if (activeDoctor) {
-      try {
-        const storageKey = `nktt_shared_turns_v5_${activeDoctor.id}`;
-        const raw = localStorage.getItem(storageKey);
-        const shared = raw ? JSON.parse(raw) : {};
-        shared[turnId] = text;
-        localStorage.setItem(storageKey, JSON.stringify(shared));
+      if (activeDoctor) {
+        try {
+          const storageKey = `nktt_shared_turns_v5_${activeDoctor.id}`;
+          const raw = localStorage.getItem(storageKey);
+          const shared = raw ? JSON.parse(raw) : {};
+          shared[turnId] = text;
+          localStorage.setItem(storageKey, JSON.stringify(shared));
 
-        // 3. Tự động đồng bộ vào bản nháp của các ca khác cùng người bệnh
-        if (patientCases.length > 0) {
-          for (const pc of patientCases) {
-            const pcDraftKey = `${DRAFT_PREFIX}${activeDoctor.id}_${pc.case_id}`;
-            const pcRaw = localStorage.getItem(pcDraftKey);
-            if (pcRaw) {
-              try {
-                const pcDraft = JSON.parse(pcRaw);
-                pcDraft.editedTurns = {
-                  ...(pcDraft.editedTurns || {}),
-                  [turnId]: text,
-                };
-                localStorage.setItem(pcDraftKey, JSON.stringify(pcDraft));
-              } catch {}
-            }
-          }
-        }
-
-        // 4. Tự động đồng bộ vào các ca đã lưu trữ nếu chứa lượt thoại này
-        setAnnotationsMap((prev) => {
-          let hasChange = false;
-          const nextMap = { ...prev };
-          for (const [cId, rec] of Object.entries(nextMap)) {
-            if (rec.user_id === activeCase?.user_id && rec.edited_turns) {
-              const turnIdx = rec.edited_turns.findIndex((t) => t.turn_id === turnId);
-              if (turnIdx >= 0) {
-                const updatedTurns = [...rec.edited_turns];
-                updatedTurns[turnIdx] = { ...updatedTurns[turnIdx], text };
-                nextMap[cId] = { ...rec, edited_turns: updatedTurns };
-                saveDoctorAnnotation(activeDoctor.id, nextMap[cId]);
-                hasChange = true;
+          if (patientCases.length > 0) {
+            for (const pc of patientCases) {
+              const pcDraftKey = `${DRAFT_PREFIX}${activeDoctor.id}_${pc.case_id}`;
+              const pcRaw = localStorage.getItem(pcDraftKey);
+              if (pcRaw) {
+                try {
+                  const pcDraft = JSON.parse(pcRaw);
+                  pcDraft.editedTurns = {
+                    ...(pcDraft.editedTurns || {}),
+                    [turnId]: text,
+                  };
+                  localStorage.setItem(pcDraftKey, JSON.stringify(pcDraft));
+                } catch {}
               }
             }
           }
-          return hasChange ? nextMap : prev;
-        });
-      } catch (err) {
-        console.error("Lỗi đồng bộ lượt thoại:", err);
+
+          setAnnotationsMap((prev) => {
+            let hasChange = false;
+            const nextMap = { ...prev };
+            for (const [cId, rec] of Object.entries(nextMap)) {
+              if (rec.user_id === activeCase?.user_id && rec.edited_turns) {
+                const turnIdx = rec.edited_turns.findIndex((t) => t.turn_id === turnId);
+                if (turnIdx >= 0) {
+                  const updatedTurns = [...rec.edited_turns];
+                  updatedTurns[turnIdx] = { ...updatedTurns[turnIdx], text };
+                  nextMap[cId] = { ...rec, edited_turns: updatedTurns };
+                  saveDoctorAnnotation(activeDoctor.id, nextMap[cId]);
+                  hasChange = true;
+                }
+              }
+            }
+            return hasChange ? nextMap : prev;
+          });
+        } catch (err) {
+          console.error("Lỗi đồng bộ lượt thoại:", err);
+        }
       }
-    }
+    }, 400);
   };
 
   // Thao tác đánh giá từng lượt thoại (nút v hoặc x)
@@ -2757,7 +2804,7 @@ export default function LabelDataPage() {
     }
   };
 
-  // Chuyển mẫu có hiển thị màn hình loading mượt mà và tự động xử lý đụng độ với Bác sĩ khác
+  // Chuyển mẫu nhanh chóng, linh hoạt và tự động xử lý đụng độ với Bác sĩ khác
   const handleSwitchToSample = async (targetIdx: number) => {
     if (targetIdx === currentSampleIndex) return;
     if (!activeDoctor || allSamples.length === 0) {
@@ -2768,7 +2815,6 @@ export default function LabelDataPage() {
 
     const myFolder = (activeDoctor.folderCode || activeDoctor.id || "").toUpperCase();
 
-    // Quy chuẩn thẩm định lâm sàng: Bác sĩ phải hoàn tất mẫu của mình mới được chuyển sang mẫu khác
     const isCurrentCompleted =
       confirmedSampleIds.has(currentSampleIndex) ||
       Boolean(driveCompletedMap[currentSampleIndex]) ||
@@ -2777,25 +2823,22 @@ export default function LabelDataPage() {
     const isMyCurrentClaim =
       claimsRegistry[currentSampleIndex]?.doctorFolder?.toUpperCase() === myFolder;
 
-    if (isMyCurrentClaim && !isCurrentCompleted) {
-      alert(
-        `Theo quy chuẩn thẩm định: Bác sĩ cần hoàn tất đánh giá đủ tất cả các lượt thoại và bấm "Lưu Mẫu ${currentSampleIndex}" trước khi chuyển sang mẫu khác, tránh ảnh hưởng đến các mẫu của các bác sĩ khác.`
+    // Kiểm tra nếu bác sĩ đang có đánh giá dở dang trên mẫu hiện tại
+    const hasEdits =
+      Object.keys(turnEvaluations).length > 0 ||
+      Object.keys(editedTurns).length > 0;
+
+    if (isMyCurrentClaim && !isCurrentCompleted && hasEdits) {
+      const confirmSwitch = window.confirm(
+        `Bạn đang có đánh giá dở dang ở Mẫu ${currentSampleIndex}.\n` +
+        `Bạn có muốn lưu nháp Mẫu ${currentSampleIndex} để chuyển sang Mẫu ${targetIdx} không?`
       );
-      return;
-    }
+      if (!confirmSwitch) return;
 
-    const curClaim = claimsRegistry[targetIdx];
-
-    const isOther = Boolean(
-      (curClaim && curClaim.doctorFolder && curClaim.doctorFolder.toUpperCase() !== myFolder && !isClaimExpired(curClaim)) ||
-      (driveCompletedMap[targetIdx] && driveCompletedMap[targetIdx].toUpperCase() !== myFolder)
-    );
-
-    // Lưu nháp mẫu hiện tại trước khi chuyển để bác sĩ không bao giờ bị mất đánh giá
-    if (currentSample && activeDoctor && loadedSampleIndexRef.current === currentSample.sampleIndex) {
+      // Lưu nháp mẫu hiện tại trước khi chuyển để bác sĩ không bao giờ bị mất đánh giá
       try {
         localStorage.setItem(
-          `nktt_sample_draft_${activeDoctor.id}_${currentSample.sampleIndex}`,
+          `nktt_sample_draft_${activeDoctor.id}_${currentSampleIndex}`,
           JSON.stringify({
             turnEvaluations,
             editedTurns,
@@ -2804,27 +2847,38 @@ export default function LabelDataPage() {
           })
         );
       } catch {}
+    } else if (isMyCurrentClaim && !isCurrentCompleted && !hasEdits) {
+      // Nếu chưa chỉnh sửa gì trên mẫu hiện tại, tự động nhả quyền giữ chỗ để bác sĩ khác có thể nhận
+      releaseClaimOnDrive(currentSampleIndex, myFolder).catch(() => {});
+      setClaimsRegistry((prev) => {
+        const next = { ...prev };
+        delete next[currentSampleIndex];
+        return next;
+      });
     }
 
-    // Bật màn hình loading chuyển mẫu với thời gian hiển thị rõ ràng, êm dịu
-    setDriveSyncLoading(true);
-    setDriveSyncLoadingText(`Đang mở Mẫu ${targetIdx}...`);
+    // Xóa đánh giá hiển thị của mẫu cũ trước khi nạp mẫu mới
+    setTurnEvaluations({});
+    setEditedTurns({});
+    setInspectedSessions(new Set());
 
     // Thực hiện chuyển mẫu ngay trong state
     setCurrentSampleIndex(targetIdx);
     setActiveSessionIndex(0);
 
+    const curClaim = claimsRegistry[targetIdx];
     const isCompleted =
       confirmedSampleIds.has(targetIdx) ||
       Boolean(driveCompletedMap[targetIdx]) ||
       curClaim?.status === "COMPLETED";
 
-    // Kịch bản 1: Mẫu đã thuộc về Bác sĩ khác hoặc đã hoàn tất -> Cho phép mở xem ở chế độ chỉ đọc kèm thông báo
+    const isOther = Boolean(
+      (curClaim && curClaim.doctorFolder && curClaim.doctorFolder.toUpperCase() !== myFolder && !isClaimExpired(curClaim)) ||
+      (driveCompletedMap[targetIdx] && driveCompletedMap[targetIdx].toUpperCase() !== myFolder)
+    );
+
+    // Kịch bản 1: Mẫu đã thuộc về Bác sĩ khác hoặc đã hoàn tất -> Cho phép mở xem ở chế độ chỉ đọc
     if (isCompleted || isOther) {
-      const otherName = curClaim?.doctorName || curClaim?.doctorFolder || driveCompletedMap[targetIdx] || (isCompleted ? "Đã hoàn tất" : "Bác sĩ khác");
-      setDriveSyncLoadingText(`Đang mở Mẫu ${targetIdx} (${otherName})...`);
-      await new Promise((r) => setTimeout(r, 1400));
-      setDriveSyncLoading(false);
       return;
     }
 
@@ -2850,10 +2904,11 @@ export default function LabelDataPage() {
         try {
           const claimRes = await claimSampleOnDrive(targetIdx, sampleItem.userId, activeDoctor);
           if (!claimRes.ok) {
-            // Đụng độ thời gian thực trên hệ thống: Bác sĩ khác vừa nhận mẫu này
-            setDriveSyncLoadingText(`Đụng độ Mẫu ${targetIdx} - Đang tìm mẫu trống khác...`);
-            await new Promise((r) => setTimeout(r, 1500));
-            await handleClaimEmptySample(1, false);
+            setSaveMessage({
+              text: claimRes.error || "Mẫu này vừa được Bác sĩ khác nhận.",
+              isError: true,
+            });
+            await handleClaimEmptySample(1, false, false, targetIdx);
             return;
           }
         } catch (err) {
@@ -2861,10 +2916,6 @@ export default function LabelDataPage() {
         }
       }
     }
-
-    // Giữ loading trong 1400ms để người dùng cảm nhận rõ thao tác chuyển mẫu mượt mà và nội dung đã sẵn sàng
-    await new Promise((r) => setTimeout(r, 1400));
-    setDriveSyncLoading(false);
   };
 
   // Bác sĩ làm lại mẫu từ đầu (xóa sạch toàn bộ đánh giá dở dang của mẫu chưa lưu)
@@ -2929,7 +2980,7 @@ export default function LabelDataPage() {
         text: `Đã nhả Mẫu ${currentSample.sampleIndex} thành công. Mẫu này hiện đã trở về trạng thái trống.`,
         isError: false,
       });
-      await handleClaimEmptySample();
+      await handleClaimEmptySample(1, false, false, currentSample.sampleIndex);
     } finally {
       setDriveSyncLoading(false);
     }
@@ -3116,8 +3167,7 @@ export default function LabelDataPage() {
 
       // Tự động nhận mẫu trống tiếp theo
       setDriveSyncLoadingText(`Đã lưu Mẫu ${currentSample.sampleIndex} thành công. Đang chuyển sang mẫu tiếp theo...`);
-      await new Promise((r) => setTimeout(r, 1400));
-      await handleClaimEmptySample(1, false);
+      await handleClaimEmptySample(1, false, false, currentSample.sampleIndex);
     } catch (err: unknown) {
       const errMsg = err instanceof Error ? err.message : String(err);
       setSaveMessage({

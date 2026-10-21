@@ -32,9 +32,9 @@ export function generateDoctorProfileFromName(rawName: string): DoctorProfile {
       name: "Bác sĩ Thẩm định",
       folderCode: "BS_ANONYM",
       role: "Bác sĩ Chuyên khoa Răng Hàm Mặt",
-      caseRangeLabel: "Kho 125 Mẫu",
+      caseRangeLabel: "Kho 100 Mẫu",
       startIndex: 0,
-      endIndex: 124,
+      endIndex: 99,
     };
   }
 
@@ -55,9 +55,9 @@ export function generateDoctorProfileFromName(rawName: string): DoctorProfile {
       name: trimmed.toUpperCase().startsWith("BS") ? trimmed : `Bác sĩ ${trimmed}`,
       folderCode: code,
       role: "Bác sĩ Chuyên khoa Răng Hàm Mặt",
-      caseRangeLabel: "Kho 125 Mẫu",
+      caseRangeLabel: "Kho 100 Mẫu",
       startIndex: 0,
-      endIndex: 124,
+      endIndex: 99,
     };
   }
 
@@ -96,9 +96,9 @@ export function generateDoctorProfileFromName(rawName: string): DoctorProfile {
     name: trimmed,
     folderCode: folderCode,
     role: "Bác sĩ Chuyên khoa Răng Hàm Mặt",
-    caseRangeLabel: "Kho 125 Mẫu",
+    caseRangeLabel: "Kho 100 Mẫu",
     startIndex: 0,
-    endIndex: 124,
+    endIndex: 99,
   };
 }
 
@@ -188,7 +188,7 @@ export default function DoctorLoginModal({
                 Hệ thống Thẩm định Lâm sàng Chuyên khoa
               </h2>
               <p className={styles.portalSubtitle} style={{ color: "#bbf7d0", fontSize: "0.85rem", marginTop: "4px" }}>
-                Kho 125 hồ sơ bệnh nhân
+                Kho 100 hồ sơ bệnh nhân
               </p>
             </div>
           </div>

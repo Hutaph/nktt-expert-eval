@@ -316,7 +316,11 @@ function checkClinicalNotesQuality(
 
 const STORAGE_KEY = "nktt_expert_annotations_v5";
 const DRAFT_PREFIX = "nktt_draft_v5_";
-const DATASET_VERSION_TAG = "v5_20260925_refresh_current";
+const TOTAL_PROFILES = 100;
+const TOTAL_CASES = 300;
+const CASES_PER_BATCH = 10;
+const TOTAL_BATCHES = Math.ceil(TOTAL_CASES / CASES_PER_BATCH);
+const DATASET_VERSION_TAG = "v5_9_52_100_people_3_cases_20261021";
 
 function getAssetBase(): string {
   if (typeof window === "undefined") return "";
@@ -474,7 +478,7 @@ export default function LabelDataPage() {
   // Track explicit case confirmations made by the doctor
   const [confirmedCaseIds, setConfirmedCaseIds] = useState<Set<string>>(new Set());
 
-  // 125 Samples State (Mỗi mẫu là 1 người bệnh với đầy đủ tất cả các lần khám)
+  // Danh sách hồ sơ bệnh nhân với đầy đủ các lần khám
   const [allSamples, setAllSamples] = useState<SampleItem[]>([]);
   const [currentSampleIndex, setCurrentSampleIndex] = useState<number>(1);
   const [confirmedSampleIds, setConfirmedSampleIds] = useState<Set<number>>(new Set());
@@ -674,7 +678,7 @@ export default function LabelDataPage() {
       }
 
       try {
-        // Tìm mẫu trống trong 125 mẫu mà CHƯA CÓ BẤT KỲ AI NHẬN (hoặc đã hết hạn TTL)
+        // Tìm mẫu trống trong danh sách hồ sơ mà CHƯA CÓ BẤT KỲ AI NHẬN (hoặc đã hết hạn TTL)
         const isAvailable = (idx: number) => {
           if (excludeIndex && idx === excludeIndex) return false;
           if (confirmedSampleIds.has(idx)) return false;
@@ -686,7 +690,7 @@ export default function LabelDataPage() {
           return false;
         };
 
-        const total = allSamples.length || 125;
+        const total = allSamples.length || TOTAL_PROFILES;
         let targetIndex = -1;
         const curIdx = currentSampleIndexRef.current || 1;
 
@@ -772,7 +776,7 @@ export default function LabelDataPage() {
         }
 
         if (!isSilentAuto) {
-          alert("Toàn bộ 125 mẫu hồ sơ đã được các bác sĩ nhận hoặc hoàn tất thẩm định!");
+          alert(`Toàn bộ ${allSamples.length || TOTAL_PROFILES} hồ sơ đã được các bác sĩ nhận hoặc hoàn tất thẩm định!`);
         }
       } finally {
         if (!isSilentAuto) {
@@ -864,12 +868,12 @@ export default function LabelDataPage() {
       const savedActiveBatch = localStorage.getItem(`nktt_active_batch_${activeDoctor.id}`);
       if (savedActiveBatch) {
         const parsed = parseInt(savedActiveBatch, 10);
-        if (parsed >= 1 && parsed <= 50) {
+        if (parsed >= 1 && parsed <= TOTAL_BATCHES) {
           preferredBatch = parsed;
         }
       } else {
         // Auto select first incomplete batch
-        for (let b = 1; b <= 50; b++) {
+        for (let b = 1; b <= TOTAL_BATCHES; b++) {
           if (!completedList.includes(b)) {
             preferredBatch = b;
             break;
@@ -934,7 +938,7 @@ export default function LabelDataPage() {
         }
 
         // Dọn dẹp nháp của các gói không tồn tại trên Google Drive
-        for (let b = 1; b <= 50; b++) {
+        for (let b = 1; b <= TOTAL_BATCHES; b++) {
           if (!globalCompletedSet.has(b)) {
             try {
               localStorage.removeItem(`nktt_batch_draft_${activeDoctor.id}_${b}`);
@@ -953,9 +957,9 @@ export default function LabelDataPage() {
             } catch {}
           }
 
-          // Phát gói tự động không trùng lặp: Tìm gói đầu tiên từ 1 đến 50 CHƯA có bác sĩ nào hoàn thành
+          // Phát gói tự động không trùng lặp: Tìm gói đầu tiên chưa có bác sĩ nào hoàn thành
           let nextBatch = 1;
-          for (let b = 1; b <= 50; b++) {
+          for (let b = 1; b <= TOTAL_BATCHES; b++) {
             if (!globalCompletedSet.has(b)) {
               nextBatch = b;
               break;
@@ -972,7 +976,7 @@ export default function LabelDataPage() {
 
           if (globalCompletedSet.size > 0) {
             setSaveMessage({
-              text: `Đã kết nối Google Drive: ${globalCompletedSet.size}/50 gói đã được thẩm định trên toàn hệ thống.`,
+              text: `Đã kết nối Google Drive: ${globalCompletedSet.size}/${TOTAL_BATCHES} gói đã được thẩm định trên toàn hệ thống.`,
               isError: false,
             });
           } else if (completedList.length > 0 || initialConfirmed.size > 0) {
@@ -1016,7 +1020,7 @@ export default function LabelDataPage() {
     }
   }, []);
 
-  // Load all 125 samples from public/dataset/vident_longmem_500/timelines.jsonl
+  // Load profiles from public/dataset/vident_longmem_500/timelines.jsonl
   useEffect(() => {
     let isMounted = true;
     async function fetchTimelines() {
@@ -1063,7 +1067,7 @@ export default function LabelDataPage() {
           setAllSamples(list);
         }
       } catch (err) {
-        console.error("Lỗi khi tải danh sách 125 mẫu:", err);
+        console.error("Lỗi khi tải danh sách hồ sơ:", err);
       } finally {
         if (isMounted) setLoadingList(false);
       }
@@ -1396,22 +1400,22 @@ export default function LabelDataPage() {
   }, [currentSample?.sampleIndex, activeDoctor, turnEvaluations, editedTurns, inspectedSessions]);
 
 
-  // Toàn bộ 500 ca bệnh dùng chung
+  // Toàn bộ ca bệnh dùng chung
   const doctorCases = useMemo(() => {
     return allCases;
   }, [allCases]);
 
-  // 10 ca của gói đang chọn (Gói 1 đến Gói 50)
+  // Các ca của gói đang chọn
   const batchCases = useMemo(() => {
     if (allCases.length === 0) return [];
-    const start = (currentBatchIndex - 1) * 10;
-    return allCases.slice(start, start + 10);
+    const start = (currentBatchIndex - 1) * CASES_PER_BATCH;
+    return allCases.slice(start, start + CASES_PER_BATCH);
   }, [allCases, currentBatchIndex]);
 
-  // Tổng số 50 gói cho 500 ca bệnh
+  // Tổng số gói theo số ca hiện có
   const totalDoctorBatches = useMemo(() => {
-    if (allCases.length === 0) return 50;
-    return Math.max(1, Math.ceil(allCases.length / 10));
+    if (allCases.length === 0) return TOTAL_BATCHES;
+    return Math.max(1, Math.ceil(allCases.length / CASES_PER_BATCH));
   }, [allCases]);
 
   // Tự động chọn ca phù hợp trong gói hiện tại:
@@ -2197,7 +2201,7 @@ export default function LabelDataPage() {
         const nextCase = batchCases[currentIdxInBatch + 1];
         handleSelectCase(nextCase.case_id, true);
         setSaveMessage({
-          text: `Đã xác nhận Ca ${doctorCaseIndex + 1}/500 (Ca ${currentIdxInBatch + 1}/10 trong Gói ${currentBatchIndex}) thành công. Đã chuyển ngay sang Ca ${doctorCaseIndex + 2}/500.`,
+          text: `Đã xác nhận Ca ${doctorCaseIndex + 1}/${doctorCases.length || TOTAL_CASES} (Ca ${currentIdxInBatch + 1}/${CASES_PER_BATCH} trong Gói ${currentBatchIndex}) thành công. Đã chuyển ngay sang Ca ${doctorCaseIndex + 2}/${doctorCases.length || TOTAL_CASES}.`,
           isError: false,
         });
       } else {
@@ -3378,7 +3382,7 @@ export default function LabelDataPage() {
         localStorage.setItem(`nktt_completed_batches_${activeDoctor.id}`, JSON.stringify(nextCompleted));
       } catch {}
 
-      // Tự động tìm gói tiếp theo chưa có ai làm (1 đến 50)
+      // Tự động tìm gói tiếp theo chưa có ai làm
       let nextBatch = -1;
       for (let b = 1; b <= totalDoctorBatches; b++) {
         if (!driveCompletedBatches.has(b) && !nextCompleted.includes(b) && b !== currentBatchIndex) {
@@ -3396,12 +3400,12 @@ export default function LabelDataPage() {
         if (nextBatch !== -1) {
           alert(
             `Đã lưu thành công toàn bộ Gói ${currentBatchIndex} lên Google Drive!\n\n` +
-            `Hệ thống tự động phát Gói ${nextBatch} (Ca ${(nextBatch - 1) * 10 + 1} - ${nextBatch * 10}/500) để Bác sĩ tiếp tục thẩm định không trùng lặp.`
+            `Hệ thống tự động phát Gói ${nextBatch} (Ca ${(nextBatch - 1) * CASES_PER_BATCH + 1} - ${Math.min(nextBatch * CASES_PER_BATCH, doctorCases.length || TOTAL_CASES)}/${doctorCases.length || TOTAL_CASES}) để Bác sĩ tiếp tục thẩm định không trùng lặp.`
           );
         } else {
           alert(
             `Chúc mừng Bác sĩ ${activeDoctor.name}!\n\n` +
-            `Toàn bộ 50 gói (500 ca bệnh) đã được các Bác sĩ hoàn tất và lưu an toàn trên Google Drive.`
+            `Toàn bộ ${totalDoctorBatches} gói (${doctorCases.length || TOTAL_CASES} ca bệnh) đã được các Bác sĩ hoàn tất và lưu an toàn trên Google Drive.`
           );
         }
       } else {
@@ -3497,7 +3501,7 @@ export default function LabelDataPage() {
       }
 
       // Xóa nháp của các gói không tồn tại trên Drive
-      for (let b = 1; b <= 50; b++) {
+      for (let b = 1; b <= TOTAL_BATCHES; b++) {
         if (!driveCompletedIndices.has(b)) {
           try {
             localStorage.removeItem(`nktt_batch_draft_${activeDoctor.id}_${b}`);
@@ -3536,7 +3540,7 @@ export default function LabelDataPage() {
       }
 
       let nextBatch = 1;
-      for (let b = 1; b <= 50; b++) {
+      for (let b = 1; b <= TOTAL_BATCHES; b++) {
         if (!globalCompleted.has(b)) {
           nextBatch = b;
           break;
@@ -3546,7 +3550,7 @@ export default function LabelDataPage() {
 
       alert(
         `Đồng bộ thành công từ Google Drive!\n\n` +
-        `- Toàn hệ thống: ${globalCompleted.size}/50 gói đã hoàn tất trên Google Drive\n` +
+        `- Toàn hệ thống: ${globalCompleted.size}/${TOTAL_BATCHES} gói đã hoàn tất trên Google Drive\n` +
         `- Gói bác sĩ này đã lưu: ${sortedCompleted.length} gói (${sortedConfirmed.length} ca)`
       );
     } catch (err: unknown) {
@@ -3840,7 +3844,7 @@ export default function LabelDataPage() {
 
           <div className={styles.batchDivider} />
 
-          {/* Điều hướng 125 Mẫu: Tối giản CHỈ CÒN 1 BOX, không có text riêng */}
+          {/* Điều hướng hồ sơ: chỉ giữ một hộp chọn */}
           <div className={styles.batchControlsMinimal}>
 
             {/* 1 BOX DUY NHẤT */}
@@ -3848,7 +3852,7 @@ export default function LabelDataPage() {
               className={styles.sampleSelectMinimal}
               value={currentSampleIndex}
               onChange={(e) => handleSwitchToSample(Number(e.target.value))}
-              title="Chọn mẫu bệnh nhân (1 - 125)"
+              title={`Chọn mẫu bệnh nhân (1 - ${allSamples.length || TOTAL_PROFILES})`}
             >
               {allSamples.map((s) => {
                 const claim = claimsRegistry[s.sampleIndex];
@@ -3874,7 +3878,7 @@ export default function LabelDataPage() {
 
                 return (
                   <option key={s.sampleIndex} value={s.sampleIndex}>
-                    Mẫu {s.sampleIndex}/125 {tag}
+                    Mẫu {s.sampleIndex}/{allSamples.length || TOTAL_PROFILES} {tag}
                   </option>
                 );
               })}
@@ -4115,7 +4119,7 @@ export default function LabelDataPage() {
             {/* Center Column: Query Editor & Dialogue Timeline */}
             <section className={styles.mainContent} aria-label="Nội dung hội thoại">
               {loadingList ? (
-                <div className={styles.emptyPlaceholder}>Đang nạp dữ liệu 125 mẫu hồ sơ...</div>
+                <div className={styles.emptyPlaceholder}>Đang nạp dữ liệu {TOTAL_PROFILES} hồ sơ...</div>
               ) : !currentSample ? (
                 <div className={styles.emptyPlaceholder}>Vui lòng chọn một mẫu bệnh nhân ở thanh trên để thẩm định</div>
               ) : (

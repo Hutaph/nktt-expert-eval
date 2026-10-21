@@ -1,6 +1,6 @@
 {
   "dataset_name": "ViDent-LongMem-500",
-  "version": "5.9.52-round62-100-people-3-cases-preview",
+  "version": "5.9.52-round62-s01-reviewed-100-people-3-cases-preview",
   "source_revision": "v5_9_52_round62_question_naturalization_candidate",
   "updated_at": "2026-10-21",
   "description": "Bản xem thử dành cho chuyên gia: giữ hồ sơ 26–125, bỏ 25 hồ sơ đầu; mỗi hồ sơ có 3 câu.",
@@ -271,7 +271,7 @@
     "negative_control_cases": 100,
     "total_source_events": 1261,
     "total_sessions": 1449,
-    "total_history_turns": 3946,
+    "total_history_turns": 4134,
     "primary_question_families": {
       "CONFLICT_UNCERTAINTY": 9,
       "CROSS_SESSION_PERSONALIZATION": 27,
@@ -286,9 +286,20 @@
   "review_status": "Chưa được chuyên gia nha khoa và biên tập viên tiếng Việt duyệt độc lập; dùng cho bản xem thử trước lượt rà soát cuối.",
   "reliability_note": "Các số liệu đồng thuận từ bản trước chưa có dữ liệu gán nhãn độc lập để xác minh.",
   "files_checksum_sha256": {
-    "timelines.jsonl": "82c6963f299735e8511e076e3e1a7e767a951e200ea733875e265f7c8d4d7592",
+    "timelines.jsonl": "850cf5f52c840ea3c68e1a5ac4f6f68d8096011d49ceb44e779f0ec450f28204",
     "benchmark_cases.jsonl": "373d8b5a906b018c2ec259dd5831bb0ce5454192ae58fae964887fcd24be78ec",
     "source_events.jsonl": "c359e70eae6d8d17af16fb31679be4644680c006c07145a161683d8e55c47feb",
     "evidence_catalog.json": "d071c247c650d008be577c5a4c65e123d50ec05bd4612b9a6b31e4cb142cc704"
+  },
+  "preview_revision": {
+    "date": "2026-10-21",
+    "scope": "Rà soát 100 cặp thứ hai của lần hỏi 1 trong toàn bộ 4 lượt của mỗi phiên.",
+    "reviewed_first_sessions": 100,
+    "first_session_pairs": 2,
+    "followup_pairs_revised": 96,
+    "preceding_answers_revised": 13,
+    "restored_evidence_bindings": 3,
+    "review_method": "AI đọc từng phiên, đối chiếu hướng dẫn ADA/NHS/BOS và kiểm tra tự động tính nhất quán dữ liệu.",
+    "independent_clinical_review": "Chưa thực hiện; chờ chuyên gia nha khoa duyệt."
   }
 }

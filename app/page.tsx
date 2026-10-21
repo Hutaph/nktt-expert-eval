@@ -320,6 +320,7 @@ const TOTAL_PROFILES = 100;
 const TOTAL_CASES = 300;
 const CASES_PER_BATCH = 10;
 const TOTAL_BATCHES = Math.ceil(TOTAL_CASES / CASES_PER_BATCH);
+const VISIBLE_SESSIONS_PER_PROFILE = 3;
 const DATASET_VERSION_TAG = "v5_9_52_100_people_3_cases_20261021";
 
 function getAssetBase(): string {
@@ -1509,9 +1510,9 @@ export default function LabelDataPage() {
     return { start: startNum, end: endNum, previousEnd: prevEnd };
   }, [activeCase, timeline, patientCases]);
 
-  // Các lần khám hiển thị trên thanh tab: Toàn bộ tất cả các lần khám của người bệnh (đủ tất cả các lần luôn)
+  // Chỉ hiển thị ba lần hỏi đầu tiên trong hồ sơ
   const visibleSessions = useMemo(() => {
-    return currentSample?.timeline?.sessions || timeline?.sessions || [];
+    return (currentSample?.timeline?.sessions || timeline?.sessions || []).slice(0, VISIBLE_SESSIONS_PER_PROFILE);
   }, [currentSample, timeline]);
 
   // Kiểm tra bác sĩ đã xem qua toàn bộ các lần khám thuộc ca này chưa

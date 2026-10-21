@@ -1,5 +1,5 @@
 {
-  "catalog_version": "vident_evidence_catalog_v1.0",
+  "catalog_version": "round55-partial-fulltext-screened-candidate",
   "corpus_source": "index_prepared_records.jsonl",
   "total_corpus_records": 234,
   "total_clinical_groups": 10,
@@ -9,17 +9,13 @@
       "topic": "Khí cụ chỉnh nha và vệ sinh mắc cài/máng trong suốt",
       "information_need": "Hướng dẫn chăm sóc và vệ sinh khí cụ chỉnh nha theo từng giai đoạn",
       "acceptable_chunk_ids": [
-        "chunk_hanh_trinh_nieng_rang_ch08_sec25_001",
         "chunk_4_2_phan_3_chuong_2_noi_chuyen_voi_tre_ch01_sec01_010",
-        "chunk_hanh_trinh_nieng_rang_ch08_sec18_002",
         "chunk_hanh_trinh_nieng_rang_ch08_sec24_001",
         "chunk_hanh_trinh_nieng_rang_ch10_sec03_001",
         "chunk_hanh_trinh_nieng_rang_ch08_sec24_002",
         "chunk_hanh_trinh_nieng_rang_ch08_sec36_001",
         "chunk_3_4_phan_2_chuong_3_4_quy_trinh_ieu_tri_rang_mieng_nieng_rang_som_va_quy_trinh_ieu_tri_ch01_sec01_030",
         "chunk_hanh_trinh_nieng_rang_ch08_sec10_001",
-        "chunk_hanh_trinh_nieng_rang_ch08_sec18_001",
-        "chunk_hanh_trinh_nieng_rang_ch08_sec18_003",
         "chunk_hanh_trinh_nieng_rang_ch08_sec27_001",
         "chunk_hanh_trinh_nieng_rang_ch08_sec30_001",
         "chunk_hanh_trinh_nieng_rang_ch08_sec34_001",
@@ -28,25 +24,11 @@
       "total_matching_chunks": 112,
       "top_chunks": [
         {
-          "chunk_id": "chunk_hanh_trinh_nieng_rang_ch08_sec25_001",
-          "document_id": "hanh_trinh_nieng_rang",
-          "title": "NIỀNG RĂNG KHÔNG MANG MẮC CÀI - NIỀNG RĂNG TRONG SUỐT LÀ SAO?",
-          "score": 12,
-          "excerpt": "Có thể đây là một thông tin mà lần ĐẦU TIÊN bạn nghe đến, mà cũng có thể nghe rồi mà không để lại ấn tượng cho bạn lắm. Bạn có biết Henry Ford không? Ông được mệnh danh là vua xe hơi, sáng lập hãng xe"
-        },
-        {
           "chunk_id": "chunk_4_2_phan_3_chuong_2_noi_chuyen_voi_tre_ch01_sec01_010",
           "document_id": "4_2_phan_3_chuong_2_noi_chuyen_voi_tre",
           "title": "Nghe lời hợp tác mang khí cụ niềng răng",
           "score": 9,
           "excerpt": "Trích sách : “Nói sao cho trẻ chịu nghe\" Khi con nói: Con không đeo niềng răng nữa đâu. Nó làm con đau lắm. Con mặc kệ bác sĩ chỉnh răng nói gì thì nói! Thông thường và theo khảo sát của cuốn sách,bạn"
-        },
-        {
-          "chunk_id": "chunk_hanh_trinh_nieng_rang_ch08_sec18_002",
-          "document_id": "hanh_trinh_nieng_rang",
-          "title": "10 TIÊU CHUẨN CHỌN NHA KHOA ĐỂ NIỀNG RĂNG?",
-          "score": 7,
-          "excerpt": "Hầu hết các chuyên gia niềng răng đều dành cho Bạn lần thăm khám đầu tiên hoàn toàn miễn phí, để Bạn và gia đình có thể có những lời khuyên đúng đắn về nhu cầu và thời gian điều trị, cũng như các loại"
         },
         {
           "chunk_id": "chunk_hanh_trinh_nieng_rang_ch08_sec24_001",
@@ -76,7 +58,9 @@
           "factor_id": "F_BRUSHING_HABIT",
           "desc": "Công cụ vệ sinh chuyên dụng (bàn chải kẽ, chỉ nha khoa chỉnh nha)"
         }
-      ]
+      ],
+      "curation_status": "PARTIAL_FULLTEXT_SCREEN; RETAINED_CHUNKS_NOT_CLAIM_VERIFIED",
+      "retained_acceptable_count": 11
     },
     {
       "group_id": "EV_G02_RETAINER_POST_ORTHO",
@@ -143,7 +127,9 @@
           "factor_id": "F_RETAINER_FIT",
           "desc": "Độ khít sát hoặc biến dạng của khí cụ"
         }
-      ]
+      ],
+      "curation_status": "PARTIAL_FULLTEXT_SCREEN; RETAINED_CHUNKS_NOT_CLAIM_VERIFIED",
+      "retained_acceptable_count": 8
     },
     {
       "group_id": "EV_G03_CARIES_PREVENTION_FLUORIDE",
@@ -151,16 +137,12 @@
       "information_need": "Lời khuyên phòng ngừa sâu răng và lượng kem đánh răng phù hợp",
       "acceptable_chunk_ids": [
         "chunk_3_2_phan_2_chuong_1_benh_ly_ve_rang_ch01_sec01_003",
-        "chunk_2_phan_1_ch01_sec01_007",
         "chunk_3_2_phan_2_chuong_1_benh_ly_ve_rang_ch01_sec01_001",
         "chunk_3_4_phan_2_chuong_3_4_quy_trinh_ieu_tri_rang_mieng_nieng_rang_som_va_quy_trinh_ieu_tri_ch01_sec01_010",
         "chunk_2_phan_1_ch01_sec01_020",
         "chunk_3_2_phan_2_chuong_1_benh_ly_ve_rang_ch01_sec01_004",
-        "chunk_tu_khoa_ch01_sec01_001",
         "chunk_3_2_phan_2_chuong_1_benh_ly_ve_rang_ch01_sec01_019",
         "chunk_hanh_trinh_nieng_rang_ch08_sec28_001",
-        "chunk_2_phan_1_ch01_sec01_004",
-        "chunk_2_phan_1_ch01_sec01_009",
         "chunk_2_phan_1_ch01_sec01_016",
         "chunk_3_2_phan_2_chuong_1_benh_ly_ve_rang_ch01_sec01_002",
         "chunk_4_1_phan_3_chuong_1_nan_rang_con_ch01_sec01_002",
@@ -174,13 +156,6 @@
           "title": "Men răng yếu là do đâu?? 1. Tình trạng kém khoáng hoá ở các răng cửa và răng cối vĩnh viễn 1 (MIH) 2. Nhiễm fluor 3. Thiểu sản men răng",
           "score": 13,
           "excerpt": "Các vấn đề này xảy ra trong quá trình hình thành men răng nên chỉ có thể can thiệp sau khi răng đã mọc trên miệng. 1. Kém khoáng hoá (Molar-incisor hypomineralisation- MIH) là tình trạng trên răng cửa"
-        },
-        {
-          "chunk_id": "chunk_2_phan_1_ch01_sec01_007",
-          "document_id": "2_phan_1",
-          "title": "Thư 4: BÀN CHẢI VÀ KEM ĐÁNH RĂNG CÓ QUAN TRỌNG KHÔNG?",
-          "score": 5,
-          "excerpt": "Dear ba mẹ, Nhiều ba mẹ hỏi bàn chải nào tốt, điều các mẹ mong mỏi là chỉ rõ thương hiệu nào, mua ở đâu. Tôi hiểu, tôi sẽ chỉ ngay: Vào siêu thị mua bàn chải trẻ em, có đề theo tuổi, tên có thương hiệ"
         },
         {
           "chunk_id": "chunk_3_2_phan_2_chuong_1_benh_ly_ve_rang_ch01_sec01_001",
@@ -217,7 +192,9 @@
           "factor_id": "F_CARIES_RISK",
           "desc": "Mức độ nguy cơ sâu răng hiện tại"
         }
-      ]
+      ],
+      "curation_status": "PARTIAL_FULLTEXT_SCREEN; RETAINED_CHUNKS_NOT_CLAIM_VERIFIED",
+      "retained_acceptable_count": 11
     },
     {
       "group_id": "EV_G04_PERIODONTAL_GINGIVITIS",
@@ -225,16 +202,10 @@
       "information_need": "Hướng dẫn kiểm soát mảng bám và xử trí chảy máu nướu tại nhà",
       "acceptable_chunk_ids": [
         "chunk_3_2_phan_2_chuong_1_benh_ly_ve_rang_ch01_sec01_020",
-        "chunk_3_1_phan_2_so_o_cac_benh_rang_mieng_thuong_gap_ch01_sec01_004",
-        "chunk_3_1_phan_2_so_o_cac_benh_rang_mieng_thuong_gap_ch01_sec01_005",
-        "chunk_3_1_phan_2_so_o_cac_benh_rang_mieng_thuong_gap_ch01_sec01_006",
-        "chunk_3_1_phan_2_so_o_cac_benh_rang_mieng_thuong_gap_ch01_sec01_007",
-        "chunk_3_1_phan_2_so_o_cac_benh_rang_mieng_thuong_gap_ch01_sec01_003",
         "chunk_hanh_trinh_nieng_rang_ch08_sec08_001",
         "chunk_hanh_trinh_nieng_rang_ch11_sec03_001",
         "chunk_hanh_trinh_nieng_rang_ch15_sec01_002",
         "chunk_3_4_phan_2_chuong_3_4_quy_trinh_ieu_tri_rang_mieng_nieng_rang_som_va_quy_trinh_ieu_tri_ch01_sec01_017",
-        "chunk_tu_khoa_ch01_sec01_001",
         "chunk_hanh_trinh_nieng_rang_ch08_sec15_001",
         "chunk_hanh_trinh_nieng_rang_ch08_sec17_001",
         "chunk_hanh_trinh_nieng_rang_ch08_sec21_001",
@@ -248,34 +219,6 @@
           "title": "Vôi răng- viêm nướu",
           "score": 9,
           "excerpt": "Mảng bám thức ăn bám lâu ngày trên bề mặt sẽ dần khoáng hoá tạo thành vôi răng cứng bám quanh răng, nếu lớp vôi này không được làm sạch sẽ làm cho vùng nướu quanh răng bị viêm gây sưng, đau và dễ chảy"
-        },
-        {
-          "chunk_id": "chunk_3_1_phan_2_so_o_cac_benh_rang_mieng_thuong_gap_ch01_sec01_004",
-          "document_id": "3_1_phan_2_so_o_cac_benh_rang_mieng_thuong_gap",
-          "title": "- Mảng bám - Vôi răng - Vết dính màu đen trên răng",
-          "score": 6,
-          "excerpt": "Giai đoạn 3- 6 tuổi"
-        },
-        {
-          "chunk_id": "chunk_3_1_phan_2_so_o_cac_benh_rang_mieng_thuong_gap_ch01_sec01_005",
-          "document_id": "3_1_phan_2_so_o_cac_benh_rang_mieng_thuong_gap",
-          "title": "Mảng bám Vôi răng Vết dính màu",
-          "score": 6,
-          "excerpt": "Giai đoạn 6- 9 tuổi"
-        },
-        {
-          "chunk_id": "chunk_3_1_phan_2_so_o_cac_benh_rang_mieng_thuong_gap_ch01_sec01_006",
-          "document_id": "3_1_phan_2_so_o_cac_benh_rang_mieng_thuong_gap",
-          "title": "• Vôi răng, mảng bám, vết dính màu trên răng",
-          "score": 6,
-          "excerpt": "Giai đoạn 9-12 tuổi"
-        },
-        {
-          "chunk_id": "chunk_3_1_phan_2_so_o_cac_benh_rang_mieng_thuong_gap_ch01_sec01_007",
-          "document_id": "3_1_phan_2_so_o_cac_benh_rang_mieng_thuong_gap",
-          "title": "• Vôi răng, mảng bám, vết dính màu",
-          "score": 6,
-          "excerpt": "Giai đoạn trên 12 tuổi"
         }
       ],
       "candidate_material_factors": [
@@ -291,62 +234,21 @@
           "factor_id": "F_SYSTEMIC_FACTOR",
           "desc": "Yếu tố toàn thân liên quan (mang thai, thuốc đang uống)"
         }
-      ]
+      ],
+      "curation_status": "PARTIAL_FULLTEXT_SCREEN; RETAINED_CHUNKS_NOT_CLAIM_VERIFIED",
+      "retained_acceptable_count": 9
     },
     {
       "group_id": "EV_G05_PREGNANCY_DENTAL_CARE",
       "topic": "Chăm sóc răng miệng ở phụ nữ mang thai",
       "information_need": "Lưu ý an toàn chăm sóc răng miệng và xử trí ê buốt do ợ chua thai kỳ",
       "acceptable_chunk_ids": [
-        "chunk_4_1_phan_3_chuong_1_nan_rang_con_ch01_sec01_001",
-        "chunk_3_4_phan_2_chuong_3_4_quy_trinh_ieu_tri_rang_mieng_nieng_rang_som_va_quy_trinh_ieu_tri_ch01_sec01_002",
-        "chunk_1_mo_au_ch01_sec01_006",
-        "chunk_1_mo_au_ch01_sec01_008",
-        "chunk_2_phan_1_ch01_sec01_016",
-        "chunk_2_phan_1_ch01_sec01_017",
-        "chunk_2_phan_1_ch01_sec01_019",
         "chunk_3_2_phan_2_chuong_1_benh_ly_ve_rang_ch01_sec01_003",
         "chunk_3_2_phan_2_chuong_1_benh_ly_ve_rang_ch01_sec01_004",
         "chunk_3_3_phan_2_chuong_2_benh_ve_mieng_ch01_sec01_003"
       ],
       "total_matching_chunks": 10,
-      "top_chunks": [
-        {
-          "chunk_id": "chunk_4_1_phan_3_chuong_1_nan_rang_con_ch01_sec01_001",
-          "document_id": "4_1_phan_3_chuong_1_nan_rang_con",
-          "title": "Mẹ bầu cần làm gì để con có hàm răng đẹp",
-          "score": 5,
-          "excerpt": "Yếu tố quyết định vẻ đẹp và trí thông minh của con luôn là mối bận tâm chính của ba mẹ. Gen di truyền không phải là và yếu tố quyết định duy nhất mà còn cả dinh dưỡng và thói quen của bà bầu cũng có ả"
-        },
-        {
-          "chunk_id": "chunk_3_4_phan_2_chuong_3_4_quy_trinh_ieu_tri_rang_mieng_nieng_rang_som_va_quy_trinh_ieu_tri_ch01_sec01_002",
-          "document_id": "3_4_phan_2_chuong_3_4_quy_trinh_ieu_tri_rang_mieng_nieng_rang_som_va_quy_trinh_ieu_tri",
-          "title": "Các vấn đề gặp phải từ mang thai đến thay răng xong",
-          "score": 3,
-          "excerpt": "Sơ đồ tổng quan các bệnh lý theo độ tuổi"
-        },
-        {
-          "chunk_id": "chunk_1_mo_au_ch01_sec01_006",
-          "document_id": "1_mo_au",
-          "title": "Cuốn sách chứa kho tàng gì?",
-          "score": 1,
-          "excerpt": "Thật may mắn khi tổng hợp lại 1001 câu hỏi thắc mắc băn khoăn của ba mẹ, chúng tôi thấy rõ ràng các nội dung chính ba mẹ quan tâm. Và thật tình cờ, các nội dung đó đúng như tiến trình của một hành trì"
-        },
-        {
-          "chunk_id": "chunk_1_mo_au_ch01_sec01_008",
-          "document_id": "1_mo_au",
-          "title": "Nha sĩ thứ 2 nhờ nha sĩ đầu tiên - Nha sĩ gia đình 5.0.",
-          "score": 1,
-          "excerpt": "Trang bị cuốn sách ngay từ khi con chưa ra đời, lúc mang thai con và cùng con lớn lên. Bạn không chỉ là nha sĩ của riêng con mình, mà là nha sĩ của cả gia đình, trao đi kiến thức đúng đắn và đủ đầy tr"
-        },
-        {
-          "chunk_id": "chunk_2_phan_1_ch01_sec01_016",
-          "document_id": "2_phan_1",
-          "title": "Thư 13: ĂN ÍT ĐỂ RĂNG ĐẸP",
-          "score": 1,
-          "excerpt": "Dear ba mẹ, Bên cạnh các thực phẩm tốt cho răng cũng có các thực phẩm không tốt cho răng, các ba mẹ cùng tìm hiểu để hạn chế sử dụng nhé. 1. Đồ ngọt: Chắc hẳn truyền thuyết về ăn nhiều kẹo sẽ sâu răng"
-        }
-      ],
+      "top_chunks": [],
       "candidate_material_factors": [
         {
           "factor_id": "F_PREGNANCY_STATUS",
@@ -360,7 +262,9 @@
           "factor_id": "F_MEDICATION_ALLERGY",
           "desc": "Tiền sử dị ứng thuốc cần tránh trong thai kỳ"
         }
-      ]
+      ],
+      "curation_status": "PARTIAL_FULLTEXT_SCREEN; RETAINED_CHUNKS_NOT_CLAIM_VERIFIED",
+      "retained_acceptable_count": 3
     },
     {
       "group_id": "EV_G06_CHILD_PRIMARY_TEETH",
@@ -434,7 +338,9 @@
           "factor_id": "F_TOOTH_MOBILITY",
           "desc": "Độ lung lay và vị trí răng sữa đang thay"
         }
-      ]
+      ],
+      "curation_status": "PARTIAL_FULLTEXT_SCREEN; RETAINED_CHUNKS_NOT_CLAIM_VERIFIED",
+      "retained_acceptable_count": 15
     },
     {
       "group_id": "EV_G07_DENTAL_HYGIENE_TOOLS",
@@ -443,19 +349,14 @@
       "acceptable_chunk_ids": [
         "chunk_hanh_trinh_nieng_rang_ch11_sec03_001",
         "chunk_2_phan_1_ch01_sec01_011",
-        "chunk_2_phan_1_ch01_sec01_007",
         "chunk_2_phan_1_ch01_sec01_013",
         "chunk_hanh_trinh_nieng_rang_ch11_sec02_001",
         "chunk_hanh_trinh_nieng_rang_ch27_sec01_001",
-        "chunk_tu_khoa_ch01_sec01_001",
-        "chunk_2_phan_1_ch01_sec01_003",
         "chunk_4_1_phan_3_chuong_1_nan_rang_con_ch01_sec01_002",
         "chunk_hanh_trinh_nieng_rang_ch08_sec30_001",
         "chunk_hanh_trinh_nieng_rang_ch09_sec02_001",
         "chunk_hanh_trinh_nieng_rang_ch15_sec01_001",
-        "chunk_hanh_trinh_nieng_rang_ch16_sec01_001",
-        "chunk_1_mo_au_ch01_sec01_010",
-        "chunk_2_phan_1_ch01_sec01_004"
+        "chunk_hanh_trinh_nieng_rang_ch16_sec01_001"
       ],
       "total_matching_chunks": 24,
       "top_chunks": [
@@ -472,13 +373,6 @@
           "title": "Thư 8: CẠO LƯỠI HAY CHẢI LƯỠI",
           "score": 6,
           "excerpt": "Dear ba mẹ Chải răng thôi đã đủ chưa? Chúng ta còn cần làm thêm các bước nào nữa để chăm sóc răng miệng không? Có một vị trí rất hay bị bỏ sót trong việc chăm sóc răng miệng: đó chính là lưỡi, lưỡi là"
-        },
-        {
-          "chunk_id": "chunk_2_phan_1_ch01_sec01_007",
-          "document_id": "2_phan_1",
-          "title": "Thư 4: BÀN CHẢI VÀ KEM ĐÁNH RĂNG CÓ QUAN TRỌNG KHÔNG?",
-          "score": 5,
-          "excerpt": "Dear ba mẹ, Nhiều ba mẹ hỏi bàn chải nào tốt, điều các mẹ mong mỏi là chỉ rõ thương hiệu nào, mua ở đâu. Tôi hiểu, tôi sẽ chỉ ngay: Vào siêu thị mua bàn chải trẻ em, có đề theo tuổi, tên có thương hiệ"
         },
         {
           "chunk_id": "chunk_2_phan_1_ch01_sec01_013",
@@ -508,7 +402,9 @@
           "factor_id": "F_SENSITIVITY",
           "desc": "Mức độ nhạy cảm ê buốt cổ răng"
         }
-      ]
+      ],
+      "curation_status": "PARTIAL_FULLTEXT_SCREEN; RETAINED_CHUNKS_NOT_CLAIM_VERIFIED",
+      "retained_acceptable_count": 10
     },
     {
       "group_id": "EV_G08_APHTHOUS_ULCER_MOUTH_SORES",
@@ -519,7 +415,6 @@
         "chunk_3_3_phan_2_chuong_2_benh_ve_mieng_ch01_sec01_002",
         "chunk_3_3_phan_2_chuong_2_benh_ve_mieng_ch01_sec01_003",
         "chunk_3_3_phan_2_chuong_2_benh_ve_mieng_ch01_sec01_004",
-        "chunk_tu_khoa_ch01_sec01_001",
         "chunk_2_phan_1_ch01_sec01_030"
       ],
       "total_matching_chunks": 6,
@@ -551,13 +446,6 @@
           "title": "Vậy bệnh lưỡi bản đồ có nguy hiểm không và điều trị như thế nào?",
           "score": 4,
           "excerpt": "Hẳn là ba mẹ nào cũng thắc mắc nếu con mình hay cháu mình có tình trạng này thì cần xử trí như thế nào? Mình xin chia sẻ là bệnh lưỡi bản đồ là lành tính, mặc dù biểu hiện bệnh nhìn khá \"đáng sợ\" Bệnh"
-        },
-        {
-          "chunk_id": "chunk_tu_khoa_ch01_sec01_001",
-          "document_id": "tu_khoa",
-          "title": "TỪ KHÓA",
-          "score": 2,
-          "excerpt": "Chải răng đánh răng bàn chải đánh răng bàn chải chữ U kem đánh răng cạo lưỡi chải lưỡi chỉ nha khoa vùng kẽ răng rơ lưỡi canxi vitamin D đồ ngọt dinh dưỡng vôi răng vết dính mảng bám cạo vôi răng đánh"
         }
       ],
       "candidate_material_factors": [
@@ -573,7 +461,9 @@
           "factor_id": "F_PAIN_LEVEL",
           "desc": "Mức độ đau rát khi ăn uống"
         }
-      ]
+      ],
+      "curation_status": "PARTIAL_FULLTEXT_SCREEN; RETAINED_CHUNKS_NOT_CLAIM_VERIFIED",
+      "retained_acceptable_count": 5
     },
     {
       "group_id": "EV_G09_WISDOM_TEETH",
@@ -587,7 +477,6 @@
         "chunk_hanh_trinh_nieng_rang_ch08_sec23_001",
         "chunk_hanh_trinh_nieng_rang_ch02_sec99_001",
         "chunk_3_4_phan_2_chuong_3_4_quy_trinh_ieu_tri_rang_mieng_nieng_rang_som_va_quy_trinh_ieu_tri_ch01_sec01_024",
-        "chunk_tu_khoa_ch01_sec01_001",
         "chunk_hanh_trinh_nieng_rang_ch08_sec04_001",
         "chunk_hanh_trinh_nieng_rang_ch08_sec08_001",
         "chunk_hanh_trinh_nieng_rang_ch08_sec13_001",
@@ -647,7 +536,9 @@
           "factor_id": "F_PRIOR_EXTRACTION",
           "desc": "Tiền sử đã nhổ răng khôn ở các phần hàm khác"
         }
-      ]
+      ],
+      "curation_status": "PARTIAL_FULLTEXT_SCREEN; RETAINED_CHUNKS_NOT_CLAIM_VERIFIED",
+      "retained_acceptable_count": 14
     },
     {
       "group_id": "EV_G10_TOOTH_SENSITIVITY",
@@ -655,11 +546,9 @@
       "information_need": "Cách xử lý ban đầu khi răng bị ê buốt với kích thích nhiệt",
       "acceptable_chunk_ids": [
         "chunk_3_4_phan_2_chuong_3_4_quy_trinh_ieu_tri_rang_mieng_nieng_rang_som_va_quy_trinh_ieu_tri_ch01_sec01_008",
-        "chunk_3_2_phan_2_chuong_1_benh_ly_ve_rang_ch01_sec01_005",
         "chunk_hanh_trinh_nieng_rang_ch08_sec12_001",
         "chunk_3_2_phan_2_chuong_1_benh_ly_ve_rang_ch01_sec01_001",
-        "chunk_3_4_phan_2_chuong_3_4_quy_trinh_ieu_tri_rang_mieng_nieng_rang_som_va_quy_trinh_ieu_tri_ch01_sec01_014",
-        "chunk_tu_khoa_ch01_sec01_001"
+        "chunk_3_4_phan_2_chuong_3_4_quy_trinh_ieu_tri_rang_mieng_nieng_rang_som_va_quy_trinh_ieu_tri_ch01_sec01_014"
       ],
       "total_matching_chunks": 6,
       "top_chunks": [
@@ -669,13 +558,6 @@
           "title": "Trám răng",
           "score": 4,
           "excerpt": "QUY TRÌNH TRÁM MỘT RĂNG CỦA BÉ ĐÃ BỊ SÂU RĂNG 1: Khám răng: - Bác sĩ sẽ khám kĩ răng bé, xem những răng nào có lỗ sâu cần trám lại, tránh để lỗ sâu bị lớn hơn và có thể làm hư tuỷ răng bé. - Bác sĩ có"
-        },
-        {
-          "chunk_id": "chunk_3_2_phan_2_chuong_1_benh_ly_ve_rang_ch01_sec01_005",
-          "document_id": "3_2_phan_2_chuong_1_benh_ly_ve_rang",
-          "title": "Tủy răng là gì? Bệnh tủy răng có biểu hiện như thế nào?",
-          "score": 2,
-          "excerpt": "Ngày này rất nhiều bé có tình trạng răng sâu lớn vào tới tận tủy răng. Đây là nỗi lo của rất nhiều ba mẹ vì con sẽ có triệu chứng đau nhức nhiều dẫn tới con không ăn uống được hoặc bị sưng có mủ ở vùn"
         },
         {
           "chunk_id": "chunk_hanh_trinh_nieng_rang_ch08_sec12_001",
@@ -712,7 +594,11 @@
           "factor_id": "F_PAIN_PERSISTENCE",
           "desc": "Cơn đau thoáng qua hay kéo dài âm ỉ sau kích thích"
         }
-      ]
+      ],
+      "curation_status": "PARTIAL_FULLTEXT_SCREEN; RETAINED_CHUNKS_NOT_CLAIM_VERIFIED",
+      "retained_acceptable_count": 4
     }
-  ]
+  ],
+  "provenance_registry": "review/round55_source_chunk_registry.jsonl",
+  "curation_limit": "Removed enumerated non-support/clinical-conflict candidates; retaining a chunk is not approval of every claim. Full claim mapping and permissions remain blocked."
 }

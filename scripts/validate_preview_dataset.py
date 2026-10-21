@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import re
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
@@ -24,6 +25,8 @@ def validate():
             errors.append(message)
 
     metadata = json.loads((DATA / "metadata.json").read_text(encoding="utf-8"))
+    version = re.search(r'const DATASET_VERSION_TAG = "([^"]+)";', (ROOT / "app/page.tsx").read_text(encoding="utf-8"))
+    check(version is not None and version.group(1) == metadata["version"], "Web cache version does not match the dataset version")
     names = ["timelines.jsonl", "benchmark_cases.jsonl", "source_events.jsonl", "evidence_catalog.json", "metadata.json", "README.md"]
     for name in names:
         check((DATA / name).read_bytes() == (PUBLIC / name).read_bytes(), f"Mirrors differ: {name}")
@@ -51,6 +54,7 @@ def validate():
         # Retain gaps left by removed historical sessions; evidence IDs stay stable.
         check(numbers == sorted(set(numbers)), f"Session number order: {row['user_id']}")
         check(numbers[:3] == [1, 2, 3], f"Missing displayed session: {row['user_id']}")
+        previous_session_end = None
         for session in row["sessions"]:
             sid = session["session_id"]
             check(sid not in sessions, f"Duplicate session ID: {sid}")
@@ -63,6 +67,8 @@ def validate():
             check(sid == f"{row['user_id']}_S{session['session_number']:02}", f"Session ID does not match profile or number: {sid}")
             check(len(session["turns"]) % 2 == 0, f"Incomplete pair: {sid}")
             previous = datetime.fromisoformat(session["session_timestamp"])
+            if previous_session_end is not None:
+                check(previous > previous_session_end, f"Session overlaps the previous session: {sid}")
             previous_number = 0
             for index, turn in enumerate(session["turns"]):
                 tid = turn["turn_id"]
@@ -87,6 +93,7 @@ def validate():
                 check(current >= previous, f"Turn time moved backwards: {tid}")
                 previous = current
                 turns[tid] = turn
+            previous_session_end = previous
 
     event_lookup = {event["event_id"]: event for event in events}
     check(len(event_lookup) == len(events), "Duplicate event IDs")
@@ -128,6 +135,24 @@ def validate():
         if tid in turns:
             check(datetime.fromisoformat(case["query_time"]) >= datetime.fromisoformat(turns[tid]["turn_timestamp"]), f"Query precedes history: {cid}")
         targets = case["targets"]
+        snapshots = {snapshot["factor_id"]: snapshot for snapshot in targets["state_snapshots"]}
+        check(len(snapshots) == len(targets["state_snapshots"]), f"Duplicate snapshot factors: {cid}")
+        factors = targets["factors"]
+        check(len({factor["factor_id"] for factor in factors}) == len(factors), f"Duplicate target factors: {cid}")
+        if case["personalization_needed"]:
+            check(bool(factors), f"Personalized case has no target factors: {cid}")
+        else:
+            check(not factors and not snapshots, f"Control case has personalized targets: {cid}")
+        for factor in factors:
+            snapshot = snapshots.get(factor["factor_id"])
+            check(snapshot is not None, f"Target factor has no snapshot: {cid}/{factor['factor_id']}")
+            if snapshot is not None:
+                check(factor["expected_status"] == snapshot["status"] and factor["expected_value"] == snapshot["value"], f"Expected factor and snapshot disagree: {cid}/{factor['factor_id']}")
+        memory = targets["memory_events"]
+        relevant = set(memory["relevant_event_ids"])
+        check(not relevant.intersection(memory["stale_event_ids"]), f"Event is both relevant and stale: {cid}")
+        check(not relevant.intersection(memory["forbidden_event_ids"]), f"Event is both relevant and forbidden: {cid}")
+        check(bool(case["current_query"].strip()), f"Empty benchmark query: {cid}")
         for kind, event_ids in targets["memory_events"].items():
             for eid in event_ids:
                 check(eid in event_lookup, f"Missing memory event: {cid}/{eid}")
@@ -142,9 +167,31 @@ def validate():
             chunks = {chunk for gid in route["target_groups"] if gid in groups for chunk in groups[gid]["acceptable_chunk_ids"]}
             check(set(route["acceptable_chunks"]) <= chunks, f"Evidence chunks are outside the target groups: {cid}/{route_name}")
         for snapshot in targets["state_snapshots"]:
+            status = snapshot["status"]
+            supporting = snapshot["supporting_event_ids"]
+            conflicts = snapshot["conflict_event_ids"]
+            check(status in {"KNOWN", "UNKNOWN", "UNCERTAIN"}, f"Unknown snapshot status: {cid}")
+            if status == "KNOWN":
+                check(snapshot["value"] is not None and bool(supporting), f"Known value has no source: {cid}/{snapshot['factor_id']}")
+            elif status == "UNKNOWN":
+                check(snapshot["value"] is None and not supporting and not conflicts, f"Unknown value has a claim or source: {cid}/{snapshot['factor_id']}")
+            elif status == "UNCERTAIN":
+                check(snapshot["value"] is None and bool(conflicts), f"Uncertain value lacks conflicting evidence: {cid}/{snapshot['factor_id']}")
+            check(set(supporting) <= relevant, f"Snapshot support is outside relevant memory: {cid}/{snapshot['factor_id']}")
+            for eid in supporting + conflicts:
+                event = event_lookup.get(eid)
+                check(event is not None and event["user_id"] == uid, f"Unknown or foreign snapshot event: {cid}/{eid}")
+                if event is not None and tid in turns:
+                    source = turns.get(event["turn_id"])
+                    if source:
+                        check(datetime.fromisoformat(source["turn_timestamp"]) <= datetime.fromisoformat(turns[tid]["turn_timestamp"]), f"Snapshot uses a future event: {cid}/{eid}")
             for binding in snapshot.get("source_bindings", []):
                 event = event_lookup.get(binding["event_id"])
                 check(event is not None and event["turn_id"] == binding["turn_id"], f"Source binding mismatch: {cid}")
+                check(binding["event_id"] in supporting + conflicts, f"Binding is outside snapshot evidence: {cid}")
+                if event is not None and event["turn_id"] in turns:
+                    check(binding["reported_at"] == turns[event["turn_id"]]["turn_timestamp"], f"Source binding time mismatch: {cid}")
+                    check(binding["source_role"] == event["source_role"], f"Source binding role mismatch: {cid}")
 
     statistics = metadata["statistics"]
     expected = {

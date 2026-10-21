@@ -1,6 +1,6 @@
 {
   "dataset_name": "ViDent-LongMem-500",
-  "version": "5.9.52-round62-linked-three-sessions-preview",
+  "version": "5.9.52-round62-final-review-preview",
   "source_revision": "v5_9_52_round62_question_naturalization_candidate",
   "updated_at": "2026-10-21",
   "description": "Bản xem thử cho chuyên gia: 100 hồ sơ từ 26–125, mỗi hồ sơ hiển thị 3 lần hỏi; mỗi lần có ít nhất 2 cặp hỏi–đáp. Mỗi hồ sơ giữ 3 câu đánh giá.",
@@ -286,8 +286,8 @@
   "review_status": "Chưa được chuyên gia nha khoa và biên tập viên tiếng Việt duyệt độc lập; dùng cho bản xem thử trước lượt rà soát cuối.",
   "reliability_note": "Các số liệu đồng thuận từ bản trước chưa có dữ liệu gán nhãn độc lập để xác minh.",
   "files_checksum_sha256": {
-    "timelines.jsonl": "555779156f7c1dfe02024e2a2dd0611d54a43a8bd7e4c97648929afad17a6849",
-    "benchmark_cases.jsonl": "a756932b76f4eb5e99385f4a68f3e33666866b2bcf9a325724086961fa2e247a",
+    "timelines.jsonl": "573c6df084ce8dd8e7d4dae5b19a06ec2a6e11d4b5e6c6dfd262802e0661080d",
+    "benchmark_cases.jsonl": "6bbda0306a46f5e2326c95335ba7348289c254203c4505f6ce1adf1015fe76f1",
     "source_events.jsonl": "c359e70eae6d8d17af16fb31679be4644680c006c07145a161683d8e55c47feb",
     "evidence_catalog.json": "d071c247c650d008be577c5a4c65e123d50ec05bd4612b9a6b31e4cb142cc704"
   },
@@ -313,6 +313,13 @@
       "limitation": "Kiểm tra tự động không xác nhận hoàn toàn tính tự nhiên hoặc độ chính xác lâm sàng; cần chuyên gia duyệt độc lập.",
       "benchmark_queries_rephrased": 3,
       "benchmark_targets_changed": 0
+    },
+    "final_review": {
+      "date": "2026-10-21",
+      "existing_turns_changed": 7,
+      "reference_values_corrected": 5,
+      "scope": "Kiểm tra toàn bộ tệp, sự kiện nguồn, đáp án tham chiếu và cách tải dữ liệu lên giao diện; đọc lại các đoạn được phát hiện cần xem xét.",
+      "independent_clinical_review": "Chưa thực hiện; chuyên gia nha khoa duyệt cuối."
     }
   }
 }

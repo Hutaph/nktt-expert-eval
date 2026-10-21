@@ -286,7 +286,7 @@
   "review_status": "Chưa được chuyên gia nha khoa và biên tập viên tiếng Việt duyệt độc lập; dùng cho bản xem thử trước lượt rà soát cuối.",
   "reliability_note": "Các số liệu đồng thuận từ bản trước chưa có dữ liệu gán nhãn độc lập để xác minh.",
   "files_checksum_sha256": {
-    "timelines.jsonl": "850cf5f52c840ea3c68e1a5ac4f6f68d8096011d49ceb44e779f0ec450f28204",
+    "timelines.jsonl": "85678dba4a6d68e7f4730b1ba6f63d44df64c5568acd2a10be921e284112a7e8",
     "benchmark_cases.jsonl": "373d8b5a906b018c2ec259dd5831bb0ce5454192ae58fae964887fcd24be78ec",
     "source_events.jsonl": "c359e70eae6d8d17af16fb31679be4644680c006c07145a161683d8e55c47feb",
     "evidence_catalog.json": "d071c247c650d008be577c5a4c65e123d50ec05bd4612b9a6b31e4cb142cc704"
@@ -297,9 +297,10 @@
     "reviewed_first_sessions": 100,
     "first_session_pairs": 2,
     "followup_pairs_revised": 96,
-    "preceding_answers_revised": 13,
+    "preceding_answers_revised": 14,
     "restored_evidence_bindings": 3,
     "review_method": "AI đọc từng phiên, đối chiếu hướng dẫn ADA/NHS/BOS và kiểm tra tự động tính nhất quán dữ liệu.",
-    "independent_clinical_review": "Chưa thực hiện; chờ chuyên gia nha khoa duyệt."
+    "independent_clinical_review": "Chưa thực hiện; chờ chuyên gia nha khoa duyệt.",
+    "first_questions_rephrased": 1
   }
 }

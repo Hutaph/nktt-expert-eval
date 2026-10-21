@@ -8,10 +8,10 @@ Phạm vi: đọc đủ 4 lượt của từng lần hỏi 1 ở 100 hồ sơ U0
 - Câu trả lời ở một số mẫu lặp lại, chưa trả lời trực tiếp, suy diễn thời điểm khởi phát hoặc nhắc một lịch hẹn chưa được người dùng nêu.
 - Khôi phục đúng câu dẫn và vị trí trích dẫn ở U0044, U0101, U0104. Các câu này được nối với vấn đề đầu phiên, không gán chung nguyên nhân khi chưa có căn cứ.
 - Bổ sung cách phân biệt chăm sóc implant mới phẫu thuật với implant đã lành, khám nướu trong thai kỳ và dấu hiệu cần cấp cứu.
-- Sửa câu khuyết ở U0118, lời dặn không sát bối cảnh sau sinh ở U0072 và cách diễn đạt dễ gây hiểu nhầm.
+- Sửa câu hỏi tư thế tự mâu thuẫn ở U0031, câu khuyết ở U0118, lời dặn không sát bối cảnh sau sinh ở U0072 và cách diễn đạt dễ gây hiểu nhầm.
 - Cập nhật tổng lượt và mã SHA-256 của dữ liệu; hai bản lưu và phục vụ web giống nhau.
 
-Đã đọc 100/100 phiên; sửa 96 cặp nối tiếp và 13 câu trả lời ngay trước chúng. Lần hỏi 1 vẫn gồm 2 cặp ở mỗi hồ sơ. Không coi số cặp hay kiểm tra kỹ thuật là bằng chứng nội dung đã được chuyên gia duyệt.
+Đã đọc 100/100 phiên; sửa 96 cặp nối tiếp, 14 câu trả lời ngay trước chúng và phần hỏi về tư thế trong câu đầu phiên U0031. Lần hỏi 1 vẫn gồm 2 cặp ở mỗi hồ sơ. Không coi số cặp hay kiểm tra kỹ thuật là bằng chứng nội dung đã được chuyên gia duyệt.
 
 ## Cách đánh giá nội dung
 
@@ -152,7 +152,7 @@ Các nguồn hỗ trợ khuyến nghị chung; lời thoại tiếng Việt là 
 ## Kiểm tra tính nhất quán
 
 Lệnh chạy: `python scripts/validate_preview_dataset.py`. Trước sửa, phát hiện 3 trích dẫn không khớp lời thoại, tổng lượt cũ và mã SHA-256 cũ. Sau sửa, toàn bộ kiểm tra của lệnh này hoàn thành không báo lỗi: 100 hồ sơ, 300 câu đánh giá, 1.449 phiên, 4.134 lượt, 1.261 sự kiện dẫn chứng. Các tệp bản lưu và bản web giống nhau; 100 phiên đầu đều có hai cặp đầy đủ.
-Đối chiếu thêm với commit fab9c1f: câu hỏi đầu mỗi phiên, mã lượt, thời gian, các phiên còn lại, câu đánh giá và tệp dẫn chứng được bảo toàn. 100 câu hỏi nối tiếp khác nhau về nguyên văn; điều này chỉ giúp bắt trùng lặp, không thay cho việc đọc ngữ cảnh.
+Đối chiếu thêm với commit fab9c1f: mã lượt, thời gian, các phiên còn lại, câu đánh giá và tệp dẫn chứng được bảo toàn. Chỉ sửa phần hỏi về tư thế ở câu đầu phiên U0031; câu báo khó nhổ bọt khi nằm được giữ nguyên văn và đúng vị trí trích dẫn. Các câu hỏi đầu phiên khác được bảo toàn. 100 câu hỏi nối tiếp khác nhau về nguyên văn; điều này chỉ giúp bắt trùng lặp, không thay cho việc đọc ngữ cảnh.
 
 ## Giới hạn
 

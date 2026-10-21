@@ -4215,7 +4215,7 @@ export default function LabelDataPage() {
                                 ` - Ngày: ${new Date(currentSession.session_timestamp).toLocaleDateString("vi-VN")}`}
                             </span>
                             <span style={{ fontWeight: "normal", color: "var(--color-text-muted)" }}>
-                              (Gồm {currentSession.turns.length} lượt trao đổi)
+                              (Gồm {currentSession.turns.length / 2} cặp hỏi–đáp)
                             </span>
                           </div>
 

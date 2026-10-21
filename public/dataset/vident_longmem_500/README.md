@@ -6,6 +6,7 @@ Bản dữ liệu mới nhất từ `v5_9_52_round62_question_naturalization_can
 - 300 câu hỏi: đúng 3 câu cho mỗi hồ sơ.
 - Mỗi hồ sơ giữ một câu đối chứng và hai câu cần cá nhân hóa.
 - Nội dung chưa được chuyên gia duyệt độc lập.
-- Lần hỏi 1 của cả 100 hồ sơ có 2 cặp hỏi–đáp. Các cặp bổ sung đã được đọc lại cùng ngữ cảnh, sửa câu lặp hoặc gượng và khôi phục đầy đủ câu dẫn chứng; vẫn chờ chuyên gia duyệt độc lập.
+- Giao diện hiển thị 3 lần hỏi cho mỗi hồ sơ, mỗi lần có ít nhất 2 cặp hỏi–đáp. Đã bổ sung 66 cặp tiếp nối ở lần hỏi 3, sửa diễn đạt và hướng dẫn chưa phù hợp trong lịch sử.
+- Giữ nguyên nội dung và vị trí của 1.261 dẫn chứng. Ba câu đánh giá được viết lại cho dễ hiểu, giữ nguyên mục đích và đáp án tham chiếu. Nhật ký sửa nằm trong `docs/reviews/2026-10-21-full-data-fixes.json`.
 
 Các tệp: `timelines.jsonl`, `benchmark_cases.jsonl`, `source_events.jsonl`, `evidence_catalog.json`, `metadata.json`.

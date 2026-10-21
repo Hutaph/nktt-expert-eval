@@ -34,14 +34,23 @@ def validate():
     timelines = read_jsonl(DATA / "timelines.jsonl")
     cases = read_jsonl(DATA / "benchmark_cases.jsonl")
     events = read_jsonl(DATA / "source_events.jsonl")
+    catalog = json.loads((DATA / "evidence_catalog.json").read_text(encoding="utf-8"))
+    groups = {group["group_id"]: group for group in catalog["groups"]}
+    check(len(groups) == len(catalog["groups"]), "Duplicate evidence group IDs")
     profiles = {row["user_id"]: row for row in timelines}
     check(len(profiles) == len(timelines), "Duplicate profile IDs")
+    check(set(profiles) == {f"VL500_U{n:04}" for n in range(26, 126)}, "Preview must contain profiles 26–125")
     turns = {}
     sessions = {}
+    seen_text = {"user": {}, "assistant": {}}
     session_count = 0
     for row in timelines:
         check(row["total_sessions"] == len(row["sessions"]), f"Session count: {row['user_id']}")
         check(row["total_turns"] == sum(len(s["turns"]) for s in row["sessions"]), f"Turn count: {row['user_id']}")
+        numbers = [s["session_number"] for s in row["sessions"]]
+        # Retain gaps left by removed historical sessions; evidence IDs stay stable.
+        check(numbers == sorted(set(numbers)), f"Session number order: {row['user_id']}")
+        check(numbers[:3] == [1, 2, 3], f"Missing displayed session: {row['user_id']}")
         for session in row["sessions"]:
             sid = session["session_id"]
             check(sid not in sessions, f"Duplicate session ID: {sid}")
@@ -49,6 +58,9 @@ def validate():
             session_count += 1
             if session["session_number"] == 1:
                 check(len(session["turns"]) == 4, f"Session 1 must contain two complete pairs: {sid}")
+            if session["session_number"] <= 3:
+                check(len(session["turns"]) >= 4, f"Displayed session needs at least two complete pairs: {sid}")
+            check(sid == f"{row['user_id']}_S{session['session_number']:02}", f"Session ID does not match profile or number: {sid}")
             check(len(session["turns"]) % 2 == 0, f"Incomplete pair: {sid}")
             previous = datetime.fromisoformat(session["session_timestamp"])
             previous_number = 0
@@ -66,6 +78,11 @@ def validate():
                 check(turn["speaker"] == ("user" if index % 2 == 0 else "assistant"), f"Speaker order: {tid}")
                 check(bool(turn["text"].strip()), f"Empty message: {tid}")
                 check(turn["text"] == turn["text"].strip(), f"Whitespace around message: {tid}")
+                check(not turn["text"] or not turn["text"][0].islower(), f"Lowercase start of message: {tid}")
+                if turn["speaker"] in seen_text:
+                    previous_id = seen_text[turn["speaker"]].get(turn["text"])
+                    check(previous_id is None, f"Duplicate message: {tid} and {previous_id}")
+                    seen_text[turn["speaker"]][turn["text"]] = tid
                 current = datetime.fromisoformat(turn["turn_timestamp"])
                 check(current >= previous, f"Turn time moved backwards: {tid}")
                 previous = current
@@ -78,8 +95,11 @@ def validate():
         check(event["user_id"] in profiles, f"Unknown event profile: {eid}")
         check(event["session_id"] in sessions, f"Unknown event session: {eid}")
         check(event["turn_id"] in turns, f"Unknown event turn: {eid}")
+        check(event["session_id"].startswith(event["user_id"] + "_"), f"Event session belongs to another profile: {eid}")
+        check(event["turn_id"].startswith(event["session_id"] + "_"), f"Event turn belongs to another session: {eid}")
         for evidence in event.get("evidence", []):
             source = turns.get(evidence["turn_id"])
+            check(evidence["turn_id"].startswith(event["user_id"] + "_"), f"Evidence belongs to another profile: {eid}")
             check(source is not None, f"Missing evidence turn: {eid}")
             if source is None:
                 continue
@@ -108,11 +128,19 @@ def validate():
         if tid in turns:
             check(datetime.fromisoformat(case["query_time"]) >= datetime.fromisoformat(turns[tid]["turn_timestamp"]), f"Query precedes history: {cid}")
         targets = case["targets"]
-        for event_ids in targets["memory_events"].values():
+        for kind, event_ids in targets["memory_events"].items():
             for eid in event_ids:
                 check(eid in event_lookup, f"Missing memory event: {cid}/{eid}")
                 if eid in event_lookup:
                     check(event_lookup[eid]["user_id"] == uid, f"Memory event belongs to another profile: {cid}/{eid}")
+                    source = turns.get(event_lookup[eid]["turn_id"])
+                    if kind != "forbidden_event_ids" and source and tid in turns:
+                        check(datetime.fromisoformat(source["turn_timestamp"]) <= datetime.fromisoformat(turns[tid]["turn_timestamp"]), f"Memory event is beyond the visible history: {cid}/{eid}")
+        for route_name in ("evidence_pass1", "evidence_pass2"):
+            route = targets[route_name]
+            check(set(route["target_groups"]) <= groups.keys(), f"Unknown evidence group: {cid}/{route_name}")
+            chunks = {chunk for gid in route["target_groups"] if gid in groups for chunk in groups[gid]["acceptable_chunk_ids"]}
+            check(set(route["acceptable_chunks"]) <= chunks, f"Evidence chunks are outside the target groups: {cid}/{route_name}")
         for snapshot in targets["state_snapshots"]:
             for binding in snapshot.get("source_bindings", []):
                 event = event_lookup.get(binding["event_id"])
@@ -132,6 +160,8 @@ def validate():
         check(statistics[name] == actual, f"Metadata count is stale: {name}={statistics[name]}, actual={actual}")
     for uid in profiles:
         check(per_profile[uid] == statistics["cases_per_patient"], f"Cases per profile: {uid}")
+        selected = [case for case in cases if case["user_id"] == uid]
+        check(len(selected) == 3 and sum(bool(case["personalization_needed"]) for case in selected) == 2, f"Expected one control and two personalized cases: {uid}")
     families = Counter(case["category"]["primary_family"] for case in cases)
     check(dict(families) == statistics["primary_question_families"], "Question family counts are stale")
 

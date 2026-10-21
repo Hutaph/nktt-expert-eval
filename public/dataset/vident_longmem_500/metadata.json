@@ -1,9 +1,9 @@
 {
   "dataset_name": "ViDent-LongMem-500",
-  "version": "5.9.52-round62-s01-reviewed-100-people-3-cases-preview",
+  "version": "5.9.52-round62-linked-three-sessions-preview",
   "source_revision": "v5_9_52_round62_question_naturalization_candidate",
   "updated_at": "2026-10-21",
-  "description": "Bản xem thử dành cho chuyên gia: giữ hồ sơ 26–125, bỏ 25 hồ sơ đầu; mỗi hồ sơ có 3 câu.",
+  "description": "Bản xem thử cho chuyên gia: 100 hồ sơ từ 26–125, mỗi hồ sơ hiển thị 3 lần hỏi; mỗi lần có ít nhất 2 cặp hỏi–đáp. Mỗi hồ sơ giữ 3 câu đánh giá.",
   "selection": {
     "source_profiles": 125,
     "retained_profiles": 100,
@@ -271,7 +271,7 @@
     "negative_control_cases": 100,
     "total_source_events": 1261,
     "total_sessions": 1449,
-    "total_history_turns": 4134,
+    "total_history_turns": 4266,
     "primary_question_families": {
       "CONFLICT_UNCERTAINTY": 9,
       "CROSS_SESSION_PERSONALIZATION": 27,
@@ -286,8 +286,8 @@
   "review_status": "Chưa được chuyên gia nha khoa và biên tập viên tiếng Việt duyệt độc lập; dùng cho bản xem thử trước lượt rà soát cuối.",
   "reliability_note": "Các số liệu đồng thuận từ bản trước chưa có dữ liệu gán nhãn độc lập để xác minh.",
   "files_checksum_sha256": {
-    "timelines.jsonl": "85678dba4a6d68e7f4730b1ba6f63d44df64c5568acd2a10be921e284112a7e8",
-    "benchmark_cases.jsonl": "373d8b5a906b018c2ec259dd5831bb0ce5454192ae58fae964887fcd24be78ec",
+    "timelines.jsonl": "555779156f7c1dfe02024e2a2dd0611d54a43a8bd7e4c97648929afad17a6849",
+    "benchmark_cases.jsonl": "a756932b76f4eb5e99385f4a68f3e33666866b2bcf9a325724086961fa2e247a",
     "source_events.jsonl": "c359e70eae6d8d17af16fb31679be4644680c006c07145a161683d8e55c47feb",
     "evidence_catalog.json": "d071c247c650d008be577c5a4c65e123d50ec05bd4612b9a6b31e4cb142cc704"
   },
@@ -301,6 +301,18 @@
     "restored_evidence_bindings": 3,
     "review_method": "AI đọc từng phiên, đối chiếu hướng dẫn ADA/NHS/BOS và kiểm tra tự động tính nhất quán dữ liệu.",
     "independent_clinical_review": "Chưa thực hiện; chờ chuyên gia nha khoa duyệt.",
-    "first_questions_rephrased": 1
+    "first_questions_rephrased": 1,
+    "additional_review": {
+      "date": "2026-10-21",
+      "scope": "Quét toàn bộ lời thoại; sửa các trường hợp được xác định và bổ sung phần tiếp nối còn thiếu ở lần hỏi 3.",
+      "third_session_followups_added": 66,
+      "existing_turns_changed": 90,
+      "evidence_quotes_changed": 0,
+      "benchmark_cases_changed": 3,
+      "minimum_pairs_per_displayed_session": 2,
+      "limitation": "Kiểm tra tự động không xác nhận hoàn toàn tính tự nhiên hoặc độ chính xác lâm sàng; cần chuyên gia duyệt độc lập.",
+      "benchmark_queries_rephrased": 3,
+      "benchmark_targets_changed": 0
+    }
   }
 }

@@ -87,6 +87,8 @@ def validate():
                 check(not turn["text"] or not turn["text"][0].islower(), f"Lowercase start of message: {tid}")
                 malformed = re.search(r"^(?:Hãy súc(?: miệng)?(?: ngay)? có thể|Bạn hãy dùng[^,.!?]+ (?:có thể|là phù hợp|là bước chăm sóc))", turn["text"])
                 check(malformed is None, f"Malformed instruction mixed with explanation: {tid}")
+                if turn["speaker"] == "assistant" and re.search(r"khó (?:thở|nuốt)", turn["text"]) and re.search(r"sưng|sốt|implant", turn["text"]):
+                    check("cấp cứu" in turn["text"], f"Swelling advice mentions airway/swallowing difficulty without explicit emergency action: {tid}")
                 if turn["speaker"] in seen_text:
                     previous_id = seen_text[turn["speaker"]].get(turn["text"])
                     check(previous_id is None, f"Duplicate message: {tid} and {previous_id}")

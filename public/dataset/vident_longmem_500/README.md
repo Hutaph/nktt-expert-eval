@@ -17,4 +17,4 @@ Ngày 24/10/2026: rà lại 705 câu hỏi trong 300 phiên hiển thị, sửa 
 
 Vòng 64 ngày 24/10/2026: sửa thêm 39 lượt thoại về ngữ pháp, câu hỏi vòng vo và lời đáp chưa khớp; giữ nguyên số người, số cặp và dẫn chứng nguồn. Bản tổng hiện tại là .54.
 
-Vòng 65 ngày 24/10/2026: sửa thêm 12 lượt thoại để diễn đạt và hướng dẫn rõ hơn; giữ nguyên số người, số cặp và dẫn chứng nguồn. Bản tổng hiện tại là 5.9.55.
+Vòng 65 ngày 24/10/2026: sửa thêm 27 lượt thoại để diễn đạt và hướng dẫn rõ hơn; giữ nguyên số người, số cặp và dẫn chứng nguồn. Bản tổng hiện tại là 5.9.55.

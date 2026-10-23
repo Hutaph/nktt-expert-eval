@@ -1,0 +1,74 @@
+[
+  {
+    "turn_id": "VL500_U0032_S09_T03",
+    "before": "Tuần rồi nha sĩ bôi véc-ni fluoride cho tôi, còn con tôi sắp có buổi khám riêng. Tôi có cần báo buổi bôi của mình để nha sĩ tính lượng fluoride cho con không?",
+    "after": "Tuần rồi nha sĩ bôi véc-ni fluoride cho tôi, còn con tôi sắp có buổi khám riêng. Tôi nên chuẩn bị thông tin gì về việc chăm sóc răng của con để nha sĩ cân nhắc bôi vecni cho bé?",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0032_S09_T04",
+    "before": "Hãy nói rõ véc-ni được bôi cho bạn, để phòng khám không ghi nhầm sang hồ sơ của con. Việc dùng fluoride cho trẻ cần dựa trên tuổi và tình trạng răng của chính trẻ. Mang theo thông tin sản phẩm của bạn chỉ khi được hỏi.",
+    "after": "Chuẩn bị tuổi của bé, sản phẩm và lượng kem đánh răng đang dùng, khả năng nhổ bọt, tiền sử sâu răng và những lần bé được bôi fluoride nếu biết. Nha sĩ sẽ khám và cân nhắc theo nguy cơ sâu răng của chính bé; lần bôi cho bạn không thay thông tin điều trị của con.",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0037_S02_T02",
+    "before": "Tránh lay thử và liên hệ nha sĩ sớm. Nếu răng lung lay cùng nướu đau, hãy đặt lịch khám với nha sĩ. Báo nếu có sưng, mủ, sốt hoặc khó nhai.",
+    "after": "Đừng lay thử chiếc răng đang lung lay. Liên hệ nha sĩ sớm và mô tả thời điểm bắt đầu lung lay, đau nướu, việc có sưng, mủ, sốt hay khó nhai để họ hướng dẫn thời điểm khám.",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0063_S02_T04",
+    "before": "Bạn hãy gọi nha sĩ sớm và mô tả mức sưng, lượng máu, thời điểm bắt đầu cùng các triệu chứng khác. Nếu sưng tăng nhanh hoặc bạn thấy không khỏe, hãy gọi phòng khám ngay để hỏi cần làm gì.",
+    "after": "Hãy liên hệ nha sĩ trong ngày, báo nướu sưng rõ và chảy máu nhiều dù chải nhẹ, cùng thời điểm bắt đầu và thuốc đang dùng. Nếu sưng gây khó thở, khó nuốt hoặc lan quanh mắt, cần cấp cứu ngay; đừng chờ phòng khám phản hồi.",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0065_S03_T04",
+    "before": "Hãy cho biết mức đau, lúc khởi phát, điều làm đau tăng, thuốc đã dùng và có hay không sốt, vị lạ, sưng hoặc khó nuốt. Nhân viên có thể phân loại lịch dựa trên triệu chứng thay vì bạn phải tự đoán mức độ.",
+    "after": "Nếu đau răng kèm sưng gây khó thở, khó nuốt hoặc lan quanh mắt, hãy đến cấp cứu ngay thay vì chờ gọi đặt hẹn. Trong các trường hợp khác, khi gọi phòng khám hãy báo mức đau, lúc bắt đầu, vị trí sưng nếu có, sốt, vị lạ và thuốc đã dùng để họ hướng dẫn thời điểm khám.",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0080_S23_T04",
+    "before": "Hãy cho biết răng hoặc vùng đau, lúc bắt đầu, mức độ, điều gì làm đau tăng và có sưng, sốt hay khó nuốt không. Thông tin cụ thể giúp phòng khám hướng dẫn thời điểm khám phù hợp hơn.",
+    "after": "Cho biết răng hoặc vùng đau, lúc bắt đầu, mức đau, điều làm đau tăng, thuốc đã dùng và có sưng hay sốt không. Nếu sưng gây khó thở, khó nuốt hoặc lan quanh mắt, hãy đến cấp cứu ngay; đừng chờ hoàn tất việc đặt hẹn.",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0095_S20_T04",
+    "before": "Bàn chải mềm và chải nhẹ có thể giảm kích ứng, nhưng nếu chảy máu lặp lại, hãy liên hệ nha sĩ để kiểm tra. Tiếp tục làm sạch nhẹ nhàng và đặt lịch khám nếu tình trạng không giảm hoặc kèm sưng đau.",
+    "after": "Chỉ đổi sang bàn chải mềm chưa đủ để biết nguyên nhân chảy máu. Vì tình trạng lặp lại vài lần mỗi tuần, hãy đặt lịch nha sĩ kiểm tra và hướng dẫn làm sạch. Trong lúc chờ, tiếp tục vệ sinh nhẹ nhàng; báo sớm nếu sưng hoặc đau tăng.",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0100_S01_T02",
+    "before": "Hãy súc nước sau bữa rồi đợi khoảng một giờ trước khi chải nhẹ. Nếu không thể chờ, đừng chải ngay. Duy trì lần chải tiếp theo theo lịch thường ngày.",
+    "after": "Súc miệng bằng nước sau bữa và chờ khoảng một giờ kể từ lần uống nước ép cuối cùng rồi chải nhẹ. Nếu không thể chờ, hãy sắp xếp lần chải vào thời điểm khác, vẫn duy trì hai lần mỗi ngày với kem fluoride; đừng chải mạnh để bù.",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0101_S10_T02",
+    "before": "Nếu sưng đang giảm và không có dấu hiệu nặng lên, hãy gọi phòng khám để hỏi thời điểm phù hợp. Đừng chỉ dựa vào nước súc để kết luận. Liên hệ sớm hơn nếu sưng tăng, đau nhiều, sốt hoặc khó nuốt hoặc thở.",
+    "after": "Sưng giảm sau súc nước muối chưa xác định được nguyên nhân đã hết. Hãy liên hệ nha sĩ để kiểm tra vùng còn sưng; nếu đau hoặc sưng tăng, có sốt hay mủ, xin khám khẩn trong ngày. Nếu vùng sưng gây khó nuốt hoặc khó thở, cần đến cấp cứu ngay.",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0104_S14_T02",
+    "before": "Hãy đặt lịch với nha sĩ hoặc bác sĩ để họ nhìn trực tiếp vết loét. Nhiều vết loét thông thường tự lành, nhưng nếu vết kéo dài quá ba tuần, hãy liên hệ nha sĩ để kiểm tra. Thời gian tồn tại chưa đủ để tự kết luận nguyên nhân.",
+    "after": "Vết loét đã gần một tháng chưa lành cần được nha sĩ hoặc bác sĩ kiểm tra sớm, dù đau đã giảm. Đừng tiếp tục chờ tự khỏi. Cho biết ngày xuất hiện, vị trí và các thay đổi; chưa thể xác định nguyên nhân chỉ qua lời kể.",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0108_S06_T04",
+    "before": "Liên hệ nha sĩ để được hướng dẫn nếu triệu chứng tăng lên thay vì tự thêm thuốc súc miệng. Nếu sưng lan, sốt hoặc khó nuốt, hãy liên hệ cơ sở y tế ngay.",
+    "after": "Hãy liên hệ nha sĩ trong ngày vì nướu đang sưng đau hơn, thay vì tự thêm thuốc hoặc tiếp tục chờ. Báo cách điều trị tại nhà và diễn biến triệu chứng. Nếu sưng gây khó nuốt, khó thở hoặc lan quanh mắt, cần đến cấp cứu ngay.",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0120_S02_T04",
+    "before": "Nếu đau khi nhai kèm ê ở một răng, hãy nhờ nha sĩ kiểm tra, nên liên hệ nha sĩ thay vì chờ lâu hoặc chỉ đổi kem. Khi đặt lịch, nói rõ cả hai tác nhân và thời điểm bắt đầu.",
+    "after": "Hãy đặt lịch nha sĩ kiểm tra thay vì chờ vài tuần hoặc chỉ đổi kem. Khi liên hệ, nói rõ cùng một răng vừa ê với lạnh vừa đau khi nhai, thời điểm bắt đầu và mỗi cơn kéo dài bao lâu. Tạm tránh nhai thức ăn làm đau ở bên đó.",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  }
+]

@@ -97,6 +97,10 @@ def validate():
                 turns[tid] = turn
             previous_session_end = previous
 
+    for tid in ("VL500_U0063_S02_T04", "VL500_U0065_S03_T04", "VL500_U0080_S23_T04", "VL500_U0101_S10_T02", "VL500_U0108_S06_T04"):
+        text = turns.get(tid, {}).get("text", "")
+        check("khó thở" in text and "khó nuốt" in text and "cấp cứu ngay" in text, f"Missing explicit emergency action in reviewed swelling/pain advice: {tid}")
+
     event_lookup = {event["event_id"]: event for event in events}
     check(len(event_lookup) == len(events), "Duplicate event IDs")
     for event in events:

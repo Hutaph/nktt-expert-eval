@@ -16,3 +16,5 @@ Lượt kiểm tra cuối ngày 21/10/2026 sửa thêm 7 lượt thoại và 5 g
 Ngày 24/10/2026: rà lại 705 câu hỏi trong 300 phiên hiển thị, sửa 65 lượt thoại để bớt lặp ý và hỏi vòng vo; làm rõ 2 câu nguồn, trong đó bỏ chi tiết “răng đầu tiên” không khớp mạch kể về trẻ. Các đáp án tham chiếu giữ nguyên. Xem `docs/reviews/2026-10-24-dialogue-review.md`.
 
 Vòng 64 ngày 24/10/2026: sửa thêm 39 lượt thoại về ngữ pháp, câu hỏi vòng vo và lời đáp chưa khớp; giữ nguyên số người, số cặp và dẫn chứng nguồn. Bản tổng hiện tại là .54.
+
+Vòng 65 ngày 24/10/2026: sửa thêm 12 lượt thoại để diễn đạt và hướng dẫn rõ hơn; giữ nguyên số người, số cặp và dẫn chứng nguồn. Bản tổng hiện tại là 5.9.55.

@@ -14,3 +14,5 @@ Các tệp: `timelines.jsonl`, `benchmark_cases.jsonl`, `source_events.jsonl`, `
 Lượt kiểm tra cuối ngày 21/10/2026 sửa thêm 7 lượt thoại và 5 giá trị tham chiếu theo đúng câu nguồn, đồng thời cập nhật phiên bản tải trên web. Xem `docs/reviews/2026-10-21-final-check.md` và nhật ký đi kèm.
 
 Ngày 24/10/2026: rà lại 705 câu hỏi trong 300 phiên hiển thị, sửa 65 lượt thoại để bớt lặp ý và hỏi vòng vo; làm rõ 2 câu nguồn, trong đó bỏ chi tiết “răng đầu tiên” không khớp mạch kể về trẻ. Các đáp án tham chiếu giữ nguyên. Xem `docs/reviews/2026-10-24-dialogue-review.md`.
+
+Vòng 64 ngày 24/10/2026: sửa thêm 39 lượt thoại về ngữ pháp, câu hỏi vòng vo và lời đáp chưa khớp; giữ nguyên số người, số cặp và dẫn chứng nguồn. Bản tổng hiện tại là .54.

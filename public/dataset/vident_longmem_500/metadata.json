@@ -1,7 +1,7 @@
 {
   "dataset_name": "ViDent-LongMem-500",
-  "version": "5.9.52-round62-context-reviewed-20261024-preview",
-  "source_revision": "v5_9_52_round62_question_naturalization_candidate",
+  "version": "5.9.54-round64-wording-reviewed-20261024-preview",
+  "source_revision": "v5_9_54_round64_wording_repair_candidate",
   "updated_at": "2026-10-24",
   "description": "Bản xem thử cho chuyên gia: 100 hồ sơ từ 26–125, mỗi hồ sơ hiển thị 3 lần hỏi; mỗi lần có ít nhất 2 cặp hỏi–đáp. Mỗi hồ sơ giữ 3 câu đánh giá.",
   "selection": {
@@ -286,7 +286,7 @@
   "review_status": "Chưa được chuyên gia nha khoa và biên tập viên tiếng Việt duyệt độc lập; dùng cho bản xem thử trước lượt rà soát cuối.",
   "reliability_note": "Các số liệu đồng thuận từ bản trước chưa có dữ liệu gán nhãn độc lập để xác minh.",
   "files_checksum_sha256": {
-    "timelines.jsonl": "0a9f3831a69ddd91f2456c0e5b0e157c03ec540756dc0ea97fcde5fef91b57a5",
+    "timelines.jsonl": "a220cb256cf3d62e3aee1b452c9b0d2f1ca1804ed8eb48de559aa01eec1cacd8",
     "benchmark_cases.jsonl": "6bbda0306a46f5e2326c95335ba7348289c254203c4505f6ce1adf1015fe76f1",
     "source_events.jsonl": "6cfc788cf66909fc9de98f2edfad37c1825e0983aaed83bcb09f6ec3e7718e0c",
     "evidence_catalog.json": "d071c247c650d008be577c5a4c65e123d50ec05bd4612b9a6b31e4cb142cc704"
@@ -333,5 +333,10 @@
       "source_quotes_rephrased": 2,
       "source_revision_note": "Ở U0057, bỏ chi tiết răng đầu tiên gây lệch mạch với việc trẻ đã chải trước đó; giữ thông tin trẻ đang mọc răng, không tự thêm tuổi hoặc giả định có hai trẻ. U0055 viết rõ lo ngại nuốt vecni."
     }
+  },
+  "round64_wording_repair": {
+    "changed_turns": 39,
+    "ledger": "docs/reviews/2026-10-24-round64-wording.json",
+    "independent_review": "PENDING"
   }
 }

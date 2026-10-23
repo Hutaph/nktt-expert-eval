@@ -321,7 +321,7 @@ const TOTAL_CASES = 300;
 const CASES_PER_BATCH = 10;
 const TOTAL_BATCHES = Math.ceil(TOTAL_CASES / CASES_PER_BATCH);
 const VISIBLE_SESSIONS_PER_PROFILE = 3;
-const DATASET_VERSION_TAG = "5.9.52-round62-context-reviewed-20261024-preview";
+const DATASET_VERSION_TAG = "5.9.54-round64-wording-reviewed-20261024-preview";
 
 function getAssetBase(): string {
   if (typeof window === "undefined") return "";

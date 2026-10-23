@@ -85,6 +85,8 @@ def validate():
                 check(bool(turn["text"].strip()), f"Empty message: {tid}")
                 check(turn["text"] == turn["text"].strip(), f"Whitespace around message: {tid}")
                 check(not turn["text"] or not turn["text"][0].islower(), f"Lowercase start of message: {tid}")
+                malformed = re.search(r"^(?:Hãy súc(?: miệng)?(?: ngay)? có thể|Bạn hãy dùng[^,.!?]+ (?:có thể|là phù hợp|là bước chăm sóc))", turn["text"])
+                check(malformed is None, f"Malformed instruction mixed with explanation: {tid}")
                 if turn["speaker"] in seen_text:
                     previous_id = seen_text[turn["speaker"]].get(turn["text"])
                     check(previous_id is None, f"Duplicate message: {tid} and {previous_id}")

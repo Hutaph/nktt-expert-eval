@@ -1,0 +1,236 @@
+[
+  {
+    "turn_id": "VL500_U0026_S01_T01",
+    "before": "Tôi chảy máu nướu khi ăn táo cứng nhưng không chảy khi chải. Có cần xem đây là dấu hiệu để hỏi nha sĩ không?",
+    "after": "Tôi chảy máu nướu khi ăn táo cứng nhưng không chảy khi chải. Tình trạng này có cần khám nướu không, dù khi chải tôi không thấy máu?",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0026_S01_T02",
+    "before": "Có. Nếu nướu chảy máu khi ăn đồ cứng, hãy liên hệ nha sĩ để kiểm tra. Ghi vị trí và tần suất, đồng thời tiếp tục vệ sinh nhẹ nhàng.",
+    "after": "Bạn nên đặt lịch kiểm tra nướu nếu hiện tượng này lặp lại; việc không chảy máu khi chải chưa loại trừ vấn đề ở nướu. Tiếp tục làm sạch nhẹ nhàng, tránh cố cắn lại đồ cứng để thử xem có chảy máu không.",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0026_S11_T04",
+    "before": "Bạn hãy dùng một dụng cụ đúng cách mỗi ngày có thể đủ nếu nó tiếp cận được các vùng cần làm sạch. Chỉ thêm loại khác khi nha sĩ thấy có khoảng rộng, khí cụ hoặc vùng mà dụng cụ hiện tại không chạm tới.",
+    "after": "Dùng một dụng cụ đúng cách mỗi ngày có thể đủ nếu nó tiếp cận được các vùng cần làm sạch. Chỉ thêm loại khác khi nha sĩ thấy có khoảng rộng, khí cụ hoặc vùng mà dụng cụ hiện tại không chạm tới.",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0033_S03_T01",
+    "before": "Tôi thấy nướu sưng sát một chiếc răng vừa nhổ nhưng cơn đau giảm. Có nên hỏi lại nơi nhổ về vùng sưng không?",
+    "after": "Tôi thấy nướu sưng sát một chiếc răng vừa nhổ nhưng cơn đau giảm. Đau giảm có đủ để yên tâm rằng vùng sưng đang hồi phục bình thường không?",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0033_S03_T02",
+    "before": "Có. Hãy gọi nơi nhổ, mô tả sưng và ngày thủ thuật để họ so với tiến trình hồi phục dự kiến. Sốt, sưng tăng hoặc chảy máu kéo dài cần báo sớm.",
+    "after": "Chỉ riêng việc đau giảm chưa đủ để đánh giá vùng sưng. Liên hệ nơi nhổ và cho biết ngày thủ thuật, vị trí sưng cùng diễn biến tăng hay giảm để họ hướng dẫn. Sốt, sưng tăng hoặc chảy máu kéo dài cần báo sớm.",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0033_S03_T03",
+    "before": "Tôi nên mô tả vùng sưng sau nhổ răng ra sao khi gọi nơi điều trị?",
+    "after": "Trong lúc chờ nơi điều trị trả lời, dấu hiệu nào cần đi cấp cứu ngay?",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0033_S03_T04",
+    "before": "Nói rõ ngày nhổ, vị trí, sưng đang tăng hay giảm, mức đau, nhiệt độ và có dịch hoặc chảy máu không. Đau giảm một mình chưa đủ để kết luận vết thương ổn. Nếu khó thở, khó nuốt hoặc sưng quanh mắt, cần cấp cứu ngay.",
+    "after": "Nếu khó thở, khó nuốt hoặc sưng lan quanh mắt, hãy đến cấp cứu ngay, đừng chờ phòng khám phản hồi. Với sưng tăng, sốt hoặc đau nặng hơn, cần liên hệ để được khám nha khoa khẩn.",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0033_S07_T02",
+    "before": "Bạn hãy dùng đồ ngọt trong bữa có thể giảm việc ăn vặt lặp lại, nhưng không thay chải răng hai lần mỗi ngày bằng kem fluoride và làm sạch kẽ. Hỏi nha sĩ nếu bạn có nguy cơ sâu răng cao.",
+    "after": "Ăn đồ ngọt trong bữa chính có thể giảm việc ăn vặt lặp lại, nhưng không thay chải răng hai lần mỗi ngày bằng kem fluoride và làm sạch kẽ. Hỏi nha sĩ nếu bạn có nguy cơ sâu răng cao.",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0046_S01_T01",
+    "before": "Tôi bị chảy máu nướu khi chải nhưng xét nghiệm máu gần đây cũng bất thường. Có nên báo cả kết quả xét nghiệm cho nha sĩ không?",
+    "after": "Tôi bị chảy máu nướu khi chải nhưng xét nghiệm máu gần đây cũng bất thường. Tôi cần chuẩn bị kết quả xét nghiệm và thông tin thuốc thế nào trước khi khám nướu?",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0046_S01_T02",
+    "before": "Có. Hãy báo kết quả, bệnh lý và thuốc đang dùng, nhất là thuốc ảnh hưởng đông máu. Nha sĩ có thể phối hợp bác sĩ điều trị trước khi làm thủ thuật.",
+    "after": "Mang kết quả xét nghiệm kèm ngày làm và danh sách thuốc, liều đang dùng, kể cả thuốc mua ngoài. Nói rõ tình trạng chảy máu để nha sĩ xem có cần trao đổi với bác sĩ điều trị trước thủ thuật không. Không tự ngừng thuốc.",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0049_S04_T01",
+    "before": "Tôi chải răng rồi ngậm một viên ngậm ho không đường. Có nên hỏi dược sĩ về thành phần acid trước khi dùng thường xuyên?",
+    "after": "Tôi chải răng rồi ngậm một viên ngậm ho không đường. Không đường có đồng nghĩa với việc viên ngậm không gây hại men răng khi dùng thường xuyên không?",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0049_S04_T02",
+    "before": "Có. Hãy kiểm tra nhãn xem có axit hoặc thành phần gây khô miệng, và hỏi dược sĩ nếu dùng kéo dài. Tránh súc nước ngay sau chải để giữ fluoride.",
+    "after": "Không đường không có nghĩa là không chứa axit. Kiểm tra thành phần và hỏi dược sĩ nếu cần ngậm thường xuyên; dùng thuốc theo hướng dẫn, không tự bỏ liều. Nếu giờ dùng thuốc thường trùng ngay sau chải răng, hỏi cách sắp xếp phù hợp thay vì tự đổi lịch thuốc.",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0049_S04_T06",
+    "before": "Bạn hãy dùng ngay sau khi chải có thể rửa bớt fluoride đậm đặc từ kem. Chọn thời điểm khác trong ngày và làm theo nhãn sản phẩm hoặc hướng dẫn của nha sĩ.",
+    "after": "Dùng nước súc miệng ngay sau khi chải có thể rửa bớt fluoride đậm đặc từ kem. Chọn thời điểm khác trong ngày và làm theo nhãn sản phẩm hoặc hướng dẫn của nha sĩ.",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0049_S08_T01",
+    "before": "Tôi đang uống thuốc điều trị bệnh khác và chuẩn bị khám răng. Có cần báo nha sĩ dù thuốc không liên quan đến răng không?",
+    "after": "Tôi đang uống thuốc điều trị bệnh khác và chuẩn bị khám răng. Trước buổi khám, tôi cần chuẩn bị những thông tin nào về các thuốc đang dùng?",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0049_S08_T02",
+    "before": "Có. Hãy mang danh sách thuốc và thông tin sức khỏe hiện tại để nha sĩ cân nhắc khi khám hoặc đề xuất điều trị. Đừng tự ngừng thuốc trước buổi hẹn.",
+    "after": "Chuẩn bị tên thuốc, liều, số lần dùng và thời điểm bắt đầu; mang theo vỏ thuốc hoặc ảnh nhãn nếu không nhớ rõ. Kể cả thuốc mua ngoài và thực phẩm bổ sung cũng nên được liệt kê. Đừng tự ngừng thuốc trước buổi hẹn.",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0052_S02_T01",
+    "before": "Tôi có miếng trám mới và nướu cạnh đó bắt đầu sưng sau vài ngày. Có nên báo nha sĩ đã làm miếng trám trước lịch định kỳ không?",
+    "after": "Tôi có miếng trám mới và nướu cạnh đó bắt đầu sưng sau vài ngày. Tôi nên liên hệ nơi trám sớm hay chờ lịch khám định kỳ để kiểm tra vùng sưng?",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0052_S02_T02",
+    "before": "Có. Hãy gọi nơi điều trị, nói thời gian trám và vùng sưng để họ quyết định có cần kiểm tra sớm. Đừng tự chọc hoặc bôi thuốc vào nướu.",
+    "after": "Hãy liên hệ nơi trám sớm để kiểm tra vùng nướu mới sưng, thay vì mặc định chờ lịch định kỳ. Mô tả thời điểm trám, khi bắt đầu sưng và có đau hay chảy máu không. Đừng tự chọc hoặc bôi thuốc vào nướu.",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0059_S08_T02",
+    "before": "Hãy súc miệng có thể làm miệng sạch hơn nhưng không chắc loại bỏ vết ố bám lâu. Nha sĩ có thể xác định loại đổi màu và lựa chọn xử lý.",
+    "after": "Súc miệng có thể làm miệng sạch hơn nhưng không chắc loại bỏ vết ố bám lâu. Nha sĩ có thể xác định loại đổi màu và lựa chọn xử lý.",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0063_S08_T02",
+    "before": "Bạn hãy dùng ngay sau chải có thể rửa trôi fluoride từ kem đánh răng. Nếu bạn muốn dùng, hãy chuyển sang thời điểm khác trong ngày và chọn sản phẩm theo nhu cầu cụ thể, không xem đó là bước thay thế chải răng.",
+    "after": "Dùng nước súc miệng ngay sau chải có thể rửa trôi fluoride từ kem đánh răng. Nếu bạn muốn dùng, hãy chuyển sang thời điểm khác trong ngày và chọn sản phẩm theo nhu cầu cụ thể, không xem đó là bước thay thế chải răng.",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0068_S02_T05",
+    "before": "Tôi đang dùng kem đánh răng thảo mộc không fluoride vì thích vị nhẹ, nhưng gần đây sâu răng tái phát. Có nên hỏi nha sĩ về loại kem khác thay vì chỉ đổi hương vị không?",
+    "after": "Tôi đang dùng kem đánh răng thảo mộc không fluoride vì thích vị nhẹ, nhưng gần đây sâu răng tái phát. Tôi nên xem thành phần nào khi chọn lại kem đánh răng để phòng sâu răng?",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0068_S02_T06",
+    "before": "Có. Hãy hỏi nha sĩ về kem có fluoride phù hợp với nguy cơ sâu răng của bạn. Vị kem không quyết định khả năng bảo vệ. Mang theo tuýp đang dùng để họ xem thành phần và tư vấn lựa chọn cụ thể.",
+    "after": "Xem nhãn có fluoride và ghi nồng độ bao nhiêu; vị nhẹ hay thành phần thảo mộc không thay thế tác dụng phòng sâu răng của fluoride. Mang tuýp đang dùng đến nha sĩ để chọn sản phẩm phù hợp với tình trạng sâu răng tái phát. Không tự chuyển sang sản phẩm fluoride nồng độ cao.",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0072_S01_T01",
+    "before": "Tôi mới sinh con và nướu dễ chảy máu hơn trước. Có nên báo tình trạng này trong lần khám răng không?",
+    "after": "Tôi mới sinh con và nướu dễ chảy máu hơn trước. Trong lúc chờ khám, tôi nên vệ sinh vùng nướu dễ chảy máu thế nào?",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0072_S01_T02",
+    "before": "Có. Hãy báo bạn mới sinh, thời điểm nướu bắt đầu chảy máu và thuốc đang dùng. Tiếp tục làm sạch nhẹ và đặt lịch nha sĩ để kiểm tra, không tự quy triệu chứng chỉ cho việc mới sinh.",
+    "after": "Dùng bàn chải lông mềm, chải nhẹ và vẫn làm sạch kẽ răng hằng ngày; đừng bỏ hẳn vùng chảy máu hoặc tăng lực để chà sạch. Khi đặt lịch, báo bạn mới sinh, thời điểm bắt đầu chảy máu và thuốc đang dùng để nha sĩ kiểm tra.",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0074_S06_T02",
+    "before": "Hãy súc ngay có thể rửa trôi lượng fluoride còn lại từ kem đánh răng. Nếu dùng nước súc miệng, hãy chọn thời điểm khác trong ngày và làm theo hướng dẫn trên nhãn.",
+    "after": "Súc miệng ngay sau khi chải có thể rửa trôi lượng fluoride còn lại từ kem đánh răng. Nếu dùng nước súc miệng, hãy chọn thời điểm khác trong ngày và làm theo hướng dẫn trên nhãn.",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0079_S09_T01",
+    "before": "Tôi uống thuốc giảm đau mua ngoài mỗi tối vì răng âm ỉ. Có nên báo tên thuốc và số ngày đã dùng khi gọi nha sĩ không?",
+    "after": "Tôi uống thuốc giảm đau mua ngoài mỗi tối vì răng âm ỉ. Tôi có thể tiếp tục tự uống như vậy để chờ răng hết đau không?",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0079_S09_T02",
+    "before": "Có. Hãy ghi lại tên, liều trên nhãn và số ngày đã dùng rồi báo cho nha sĩ. Đừng vượt liều khuyến nghị hoặc phối hợp thuốc khi chưa hỏi dược sĩ hay nhân viên y tế.",
+    "after": "Đừng chỉ tiếp tục dùng thuốc mỗi tối để chờ tự hết đau; hãy đặt lịch nha sĩ tìm nguyên nhân. Khi liên hệ, báo tên thuốc, liều thực tế và số ngày đã dùng. Không vượt liều trên nhãn hoặc tự phối hợp thuốc khi chưa hỏi dược sĩ hay nhân viên y tế.",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0085_S02_T06",
+    "before": "Bạn hãy dùng bàn chải lông mềm là phù hợp. Hãy chải đủ khoảng 2 phút, lần lượt mặt ngoài, mặt trong và mặt nhai của mọi răng. Nếu nướu vẫn đau hoặc chảy máu khi chải, nên đặt lịch nha sĩ kiểm tra thay vì tiếp tục giảm lực đến mức lướt qua răng.",
+    "after": "Bàn chải lông mềm phù hợp để làm sạch nhẹ nhàng. Hãy chải đủ khoảng 2 phút, lần lượt mặt ngoài, mặt trong và mặt nhai của mọi răng. Nếu nướu vẫn đau hoặc chảy máu khi chải, nên đặt lịch nha sĩ kiểm tra thay vì tiếp tục giảm lực đến mức lướt qua răng.",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0085_S15_T01",
+    "before": "Tôi thấy đau tăng sau phẫu thuật nướu dù đã uống thuốc theo hướng dẫn. Có nên báo phòng khám trong ngày không?",
+    "after": "Tôi thấy đau tăng sau phẫu thuật nướu dù đã uống thuốc theo hướng dẫn. Tôi nên liên hệ nơi phẫu thuật trong ngày hay tiếp tục chờ thuốc có tác dụng?",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0085_S15_T02",
+    "before": "Có. Hãy gọi phòng khám mô tả mức đau, thuốc đã dùng và thời điểm tăng. Làm theo hướng dẫn sau thủ thuật và không tự tăng liều.",
+    "after": "Hãy liên hệ nơi phẫu thuật trong ngày vì đau đang tăng dù đã dùng thuốc theo hướng dẫn. Cho biết thời điểm đau tăng, mức đau và thuốc đã dùng. Không tự tăng liều; nếu khó thở hoặc khó nuốt, cần cấp cứu ngay.",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0096_S02_T04",
+    "before": "Bạn hãy dùng bàn chải mềm và lực nhẹ là bước chăm sóc hợp lý. Kem nhạy cảm có thể hữu ích nếu dùng đúng nhãn. Nhưng hai biểu hiện không tự chứng minh cùng nguyên nhân. Nếu kéo dài hoặc một răng đau rõ, hãy đi khám.",
+    "after": "Chải bằng bàn chải mềm với lực nhẹ là bước chăm sóc hợp lý. Kem nhạy cảm có thể hữu ích nếu dùng đúng nhãn. Nhưng hai biểu hiện không tự chứng minh cùng nguyên nhân. Nếu kéo dài hoặc một răng đau rõ, hãy đi khám.",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0098_S04_T01",
+    "before": "Tôi mất một răng hàm đã lâu nhưng vẫn nhai được bên kia. Có nên hỏi nha sĩ về lựa chọn phục hồi dù hiện chưa đau không?",
+    "after": "Tôi mất một răng hàm đã lâu nhưng vẫn nhai được bên kia. Nếu cân nhắc phục hồi răng mất, tôi cần được đánh giá những gì dù hiện chưa đau?",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0098_S04_T02",
+    "before": "Có thể hỏi về các lựa chọn, lợi ích, giới hạn, chi phí và việc theo dõi nếu chưa phục hồi. Nha sĩ cần khám để đánh giá ảnh hưởng lên ăn nhai và các răng lân cận.",
+    "after": "Nha sĩ cần kiểm tra khoảng mất răng, răng lân cận, khớp cắn, nướu và khả năng ăn nhai. Tùy kết quả khám, bạn có thể trao đổi về các cách phục hồi, lợi ích, giới hạn, chi phí và việc theo dõi nếu chưa điều trị.",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0104_S16_T03",
+    "before": "Tôi có lịch khám định kỳ nhưng hôm nay nướu bắt đầu sưng. Có nên báo phòng khám trước khi đến không?",
+    "after": "Tôi có lịch khám định kỳ nhưng hôm nay nướu bắt đầu sưng. Tôi nên xin khám sớm hay giữ lịch hẹn cũ khi xuất hiện vùng sưng mới?",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0104_S16_T04",
+    "before": "Có. Hãy gọi báo triệu chứng mới để phòng khám quyết định có cần đổi loại hẹn hoặc khám sớm hơn. Nêu vị trí sưng, mức đau và triệu chứng kèm theo.",
+    "after": "Gọi phòng khám báo vùng sưng mới để họ sắp xếp thời điểm khám phù hợp, đừng tự chờ đến lịch cũ. Nêu vị trí, mức đau, sưng tăng hay giảm và có sốt không. Nếu khó thở hoặc khó nuốt, cần cấp cứu ngay.",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0106_S08_T02",
+    "before": "Bạn hãy dùng nước súc miệng ngay sau chải có thể rửa bớt fluoride đậm đặc từ kem đánh răng. Nếu cần dùng, hãy chọn thời điểm khác và làm đúng hướng dẫn trên nhãn.",
+    "after": "Dùng nước súc miệng ngay sau chải có thể rửa bớt fluoride đậm đặc từ kem đánh răng. Nếu cần dùng, hãy chọn thời điểm khác và làm đúng hướng dẫn trên nhãn.",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0118_S01_T01",
+    "before": "Tôi có chảy máu nướu sau khi đánh răng nhưng đang mang thai. Có cần báo nha sĩ tuần thai khi đặt lịch kiểm tra nướu không?",
+    "after": "Tôi có chảy máu nướu sau khi đánh răng nhưng đang mang thai. Khi đặt lịch kiểm tra nướu, tôi nên cung cấp những thông tin nào về thai kỳ và sức khỏe?",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0118_S01_T02",
+    "before": "Có. Hãy báo tuần thai, triệu chứng và thuốc đang dùng khi đặt lịch. Nướu chảy máu cần được kiểm tra; nha sĩ sẽ cân nhắc tình trạng thai kỳ khi lập kế hoạch chăm sóc.",
+    "after": "Cho biết tuần thai, thời điểm nướu bắt đầu chảy máu, thuốc và thực phẩm bổ sung đang dùng, cùng bệnh hoặc vấn đề thai kỳ đang được theo dõi nếu có. Nha sĩ sẽ dùng thông tin này để chuẩn bị buổi khám và kế hoạch chăm sóc phù hợp.",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0123_S13_T03",
+    "before": "Tôi chải răng đều nhưng vẫn thấy mảng trắng gần mắc cài. Có cần báo bác sĩ chỉnh nha ở lần tái khám tới?",
+    "after": "Tôi chải răng đều nhưng vẫn thấy mảng trắng gần mắc cài. Làm sao biết đó là cặn bám hay vùng men răng đổi màu, và tôi nên xử lý thế nào?",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  },
+  {
+    "turn_id": "VL500_U0123_S13_T04",
+    "before": "Hãy báo vùng đổi màu để nha sĩ kiểm tra. Đây có thể là dấu hiệu men răng bị ảnh hưởng và không thể xác định chỉ qua lời kể. Tiếp tục làm sạch quanh mắc cài kỹ lưỡng.",
+    "after": "Chỉ qua lời kể chưa phân biệt được cặn bám với men răng đổi màu; nha sĩ cần kiểm tra trực tiếp. Tiếp tục chải nhẹ, kỹ quanh mắc cài và liên hệ bác sĩ chỉnh nha để kiểm tra vùng trắng. Đừng cố cạo hoặc tăng lực chải để làm mất màu.",
+    "reason": "Sửa câu sai ngữ pháp, hỏi vòng vo hoặc lời đáp chưa khớp câu hỏi trong cùng lần hỏi."
+  }
+]

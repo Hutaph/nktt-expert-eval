@@ -20,3 +20,5 @@ Vòng 64 ngày 24/10/2026: sửa thêm 39 lượt thoại về ngữ pháp, câu
 Vòng 65 ngày 24/10/2026: sửa thêm 27 lượt thoại để diễn đạt và hướng dẫn rõ hơn; giữ nguyên số người, số cặp và dẫn chứng nguồn. Bản tổng hiện tại là 5.9.55.
 
 Vòng 66 ngày 24/10/2026: sửa thêm 2133 lượt thoại để diễn đạt và hướng dẫn rõ hơn; giữ nguyên số người, số cặp và dẫn chứng nguồn. Bản tổng hiện tại là 5.9.56.
+
+Vòng 67 ngày 24/10/2026: sửa thêm 2128 lượt thoại để diễn đạt và hướng dẫn rõ hơn; giữ nguyên số người, số cặp và dẫn chứng nguồn. Bản tổng hiện tại là 5.9.57.

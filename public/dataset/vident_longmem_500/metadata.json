@@ -1,7 +1,7 @@
 {
   "dataset_name": "ViDent-LongMem-500",
-  "version": "5.9.55-round65-clarity-reviewed-20261024-preview-r2",
-  "source_revision": "v5_9_55_round65_clarity_repair_candidate",
+  "version": "5.9.56-round66-expanded-answers-20261024-preview",
+  "source_revision": "v5_9_56_round66_expanded_answers_candidate",
   "updated_at": "2026-10-24",
   "description": "Bản xem thử cho chuyên gia: 100 hồ sơ từ 26–125, mỗi hồ sơ hiển thị 3 lần hỏi; mỗi lần có ít nhất 2 cặp hỏi–đáp. Mỗi hồ sơ giữ 3 câu đánh giá.",
   "selection": {
@@ -286,7 +286,7 @@
   "review_status": "Chưa được chuyên gia nha khoa và biên tập viên tiếng Việt duyệt độc lập; dùng cho bản xem thử trước lượt rà soát cuối.",
   "reliability_note": "Các số liệu đồng thuận từ bản trước chưa có dữ liệu gán nhãn độc lập để xác minh.",
   "files_checksum_sha256": {
-    "timelines.jsonl": "f33421147f16fa492664b83a90867e4eb1255d3c03ac1cf6abfe8090a634c1f3",
+    "timelines.jsonl": "edb6274a74f25ebbfc3d096ade122cfb308a7122f049e4d753b1a896a1e6aa4f",
     "benchmark_cases.jsonl": "6bbda0306a46f5e2326c95335ba7348289c254203c4505f6ce1adf1015fe76f1",
     "source_events.jsonl": "6cfc788cf66909fc9de98f2edfad37c1825e0983aaed83bcb09f6ec3e7718e0c",
     "evidence_catalog.json": "d071c247c650d008be577c5a4c65e123d50ec05bd4612b9a6b31e4cb142cc704"
@@ -343,5 +343,76 @@
     "changed_turns": 27,
     "ledger": "docs/reviews/2026-10-24-round65-wording.json",
     "independent_review": "PENDING"
+  },
+  "round66_wording_repair": {
+    "changed_turns": 2133,
+    "ledger": "docs/reviews/2026-10-24-round66-wording.json",
+    "independent_review": "PENDING",
+    "answer_expansion": {
+      "answers": 2683,
+      "topics": {
+        "ulcer_pain": 330,
+        "sensitivity": 231,
+        "product_damage": 3,
+        "brush_pressure": 287,
+        "dry_mouth": 27,
+        "acid": 168,
+        "interdental": 234,
+        "routine_visit": 27,
+        "rinse_timing": 23,
+        "postoperative": 35,
+        "rinsing": 110,
+        "retainer_fit": 84,
+        "brush_coverage": 131,
+        "chlorhexidine_course": 27,
+        "fluoride_prescription": 141,
+        "whitening": 27,
+        "orthodontic_hygiene": 73,
+        "visit_support": 5,
+        "replace_brush": 39,
+        "history_update": 17,
+        "aligner": 85,
+        "allergy": 28,
+        "appointment": 23,
+        "implant_care": 80,
+        "medical_history": 39,
+        "orthodontic_breakage": 29,
+        "water_fluoride": 4,
+        "child": 66,
+        "pregnancy": 32,
+        "treatment_plan": 52,
+        "imaging": 16,
+        "denture": 16,
+        "retainer_cleaning": 28,
+        "cancer": 2,
+        "fluoride_professional": 22,
+        "jaw": 8,
+        "sugar": 35,
+        "smoking": 9,
+        "prescription_directions": 5,
+        "ulcer": 25,
+        "gastric_acid": 20,
+        "chlorhexidine_stain": 2,
+        "missed_dose": 7,
+        "assisted_brushing": 4,
+        "white_patch": 14,
+        "mouthguard": 5,
+        "bad_breath": 6,
+        "child_visit": 2
+      },
+      "before_words": {
+        "min": 19,
+        "median": 37,
+        "max": 90
+      },
+      "after_words": {
+        "min": 75,
+        "median": 92,
+        "max": 145
+      },
+      "all_answers_longer": true,
+      "method": "Original recommendation retained first; topic-specific explanatory sentences selected against the exact question and previous answer, with within-session repetition penalty. No invented patient facts.",
+      "independent_dentist_review": "PENDING"
+    }
   }
 }

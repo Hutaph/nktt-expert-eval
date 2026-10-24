@@ -321,7 +321,7 @@ const TOTAL_CASES = 300;
 const CASES_PER_BATCH = 10;
 const TOTAL_BATCHES = Math.ceil(TOTAL_CASES / CASES_PER_BATCH);
 const VISIBLE_SESSIONS_PER_PROFILE = 3;
-const DATASET_VERSION_TAG = "5.9.55-round65-clarity-reviewed-20261024-preview-r2";
+const DATASET_VERSION_TAG = "5.9.56-round66-expanded-answers-20261024-preview";
 
 function getAssetBase(): string {
   if (typeof window === "undefined") return "";

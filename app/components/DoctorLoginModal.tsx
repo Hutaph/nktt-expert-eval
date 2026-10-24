@@ -171,7 +171,7 @@ export default function DoctorLoginModal({
   };
 
   return (
-    <div className={styles.overlay} role="dialog" aria-modal="true" aria-labelledby="doctor-login-title">
+    <div className={styles.overlay}>
       <div className={styles.portalCard} style={{ maxWidth: "460px" }}>
         {/* Tiêu đề hộp thoại */}
         <div
@@ -184,11 +184,11 @@ export default function DoctorLoginModal({
         >
           <div className={styles.portalTitleRow}>
             <div>
-              <h2 id="doctor-login-title" className={styles.portalTitle} style={{ color: "#ffffff", fontSize: "1.15rem", fontWeight: 700, margin: 0 }}>
-                Duyệt hội thoại nha khoa
+              <h2 className={styles.portalTitle} style={{ color: "#ffffff", fontSize: "1.15rem", fontWeight: 700, margin: 0 }}>
+                Hệ thống Thẩm định Lâm sàng Chuyên khoa
               </h2>
               <p className={styles.portalSubtitle} style={{ color: "#bbf7d0", fontSize: "0.85rem", marginTop: "4px" }}>
-                100 người · Mỗi người 3 lần hỏi
+                Kho 100 hồ sơ bệnh nhân
               </p>
             </div>
           </div>
@@ -199,11 +199,10 @@ export default function DoctorLoginModal({
           {/* Form nhập họ tên Bác sĩ */}
           <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-              <label htmlFor="doctor-name" style={{ fontSize: "0.88rem", fontWeight: 700, color: "#0f172a" }}>
-                Tên bác sĩ
+              <label style={{ fontSize: "0.88rem", fontWeight: 700, color: "#0f172a" }}>
+                Họ và tên Bác sĩ:
               </label>
               <input
-                id="doctor-name"
                 type="text"
                 className={styles.passwordInput}
                 placeholder="Ví dụ: Nguyễn Văn A..."
@@ -258,7 +257,7 @@ export default function DoctorLoginModal({
                   boxShadow: "0 2px 8px rgba(22, 101, 52, 0.25)",
                 }}
               >
-                Bắt đầu duyệt
+                Vào thẩm định
               </button>
             </div>
           </form>

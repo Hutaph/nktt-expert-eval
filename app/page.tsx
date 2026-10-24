@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import styles from "./LabelData.module.css";
-import SimpleReview from "./components/SimpleReview";
 import ClinicalLikertEvalView from "./components/ClinicalLikertEvalView";
 import DoctorLoginModal, {
   DOCTORS_LIST,
@@ -10,6 +9,8 @@ import DoctorLoginModal, {
   DoctorProfile,
 } from "./components/DoctorLoginModal";
 import QualityWarningModal from "./components/QualityWarningModal";
+import ClinicalRulesModal from "./components/ClinicalRulesModal";
+import ExampleComparisonModal from "./components/ExampleComparisonModal";
 import {
   uploadToDrive,
   syncExpertAnnotationsToDrive,
@@ -470,7 +471,10 @@ export default function LabelDataPage() {
 
   // Doctor session & Protocol states
   const [activeDoctor, setActiveDoctor] = useState<DoctorProfile | null>(null);
+  const [pendingDoctor, setPendingDoctor] = useState<DoctorProfile | null>(null);
   const [showDoctorModal, setShowDoctorModal] = useState<boolean>(false);
+  const [showRulesModal, setShowRulesModal] = useState<boolean>(false);
+  const [showExampleModal, setShowExampleModal] = useState<boolean>(false);
 
   // Track explicit case confirmations made by the doctor
   const [confirmedCaseIds, setConfirmedCaseIds] = useState<Set<string>>(new Set());
@@ -790,13 +794,15 @@ export default function LabelDataPage() {
     if (typeof window === "undefined") return;
 
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      const hasUnsavedReview = Boolean(activeDoctor) &&
-        !confirmedSampleIds.has(currentSampleIndex) && !driveCompletedMap[currentSampleIndex] &&
-        (Object.keys(turnEvaluations).length > 0 || Object.keys(editedTurns).length > 0);
+      // Kích hoạt khi bác sĩ đang làm việc và chưa hoàn thành đủ 10 gói hoặc gói hiện tại chưa lưu
+      const hasUncompletedBatch =
+        Boolean(activeDoctor) &&
+        (!completedBatches.includes(currentBatchIndex) || completedBatches.length < 10);
 
-      if (hasUnsavedReview) {
+      if (hasUncompletedBatch) {
         e.preventDefault();
-        const warningMsg = "Đánh giá đang lưu nháp trên máy này. Bấm Lưu và tiếp để gửi đánh giá trước khi rời trang.";
+        const warningMsg =
+          "Lưu ý quan trọng: Bác sĩ cần hoàn thành đủ 10/10 ca trong gói và bấm nút Lưu Gói để dữ liệu được lưu an toàn lên Google Drive. Nếu thoát bây giờ, tiến độ dở dang chỉ lưu nháp trên trình duyệt này và không thể xem từ thiết bị khác.";
         e.returnValue = warningMsg;
         return warningMsg;
       }
@@ -806,7 +812,7 @@ export default function LabelDataPage() {
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
-  }, [activeDoctor, confirmedSampleIds, currentSampleIndex, driveCompletedMap, turnEvaluations, editedTurns]);
+  }, [activeDoctor, completedBatches, currentBatchIndex]);
 
   // When active doctor changes, load their confirmed cases and completed batches
   useEffect(() => {
@@ -1862,6 +1868,21 @@ export default function LabelDataPage() {
   const handleSelectSession = useCallback((idx: number) => {
     if (idx === activeSessionIndex) return;
 
+    // Kiểm tra: Đang có câu thoại mở ô sửa chưa nhấn Xong
+    const activeEditingId = Object.keys(editingTurnIds).find((id) => editingTurnIds[id]);
+    if (activeEditingId) {
+      alert("Bác sĩ vui lòng nhấn \"Xong\" ở câu thoại đang sửa trước khi chuyển sang lần hỏi khác.");
+      return;
+    }
+
+    // Kiểm tra: Phải tích hết các bubble (đánh giá câu thoại) ở lần hỏi hiện tại mới được chuyển
+    const curTurns = timeline?.sessions?.[activeSessionIndex]?.turns || [];
+    const unevaluatedTurns = curTurns.filter((t) => !turnEvaluations[t.turn_id]);
+    if (unevaluatedTurns.length > 0) {
+      alert(`Bác sĩ vui lòng đánh giá đầy đủ tất cả các câu thoại trong Lần hỏi hiện tại (còn ${unevaluatedTurns.length} câu chưa tích) trước khi chuyển sang lần hỏi khác.`);
+      return;
+    }
+
     setActiveSessionIndex(idx);
     if (timeline?.sessions?.[idx]) {
       const sNum = timeline.sessions[idx].session_number;
@@ -2340,7 +2361,7 @@ export default function LabelDataPage() {
       (driveCompletedMap[currentSampleIndex] && driveCompletedMap[currentSampleIndex].toUpperCase() !== myF)
     );
     if (isOther) {
-      alert("Một bác sĩ khác đang duyệt người này. Vui lòng chọn người khác.");
+      alert("Mẫu này đã được phân công độc quyền cho bác sĩ khác. Bạn không thể chỉnh sửa mẫu này!");
       return;
     }
 
@@ -2349,13 +2370,39 @@ export default function LabelDataPage() {
       ensureSampleClaimed(currentSampleIndex);
     }
 
-    setTurnEvaluations((prev) => {
-      const next = { ...prev };
-      if (next[turnId] === val) delete next[turnId];
-      else next[turnId] = val;
-      return next;
-    });
-    setEditingTurnIds({});
+    // Nếu đang có một câu thoại khác đang ở chế độ sửa chưa nhấn Xong, chặn lại!
+    const activeEditingId = Object.keys(editingTurnIds).find((id) => editingTurnIds[id]);
+    if (activeEditingId && activeEditingId !== turnId) {
+      alert("Bác sĩ vui lòng nhấn \"Xong\" ở câu thoại đang sửa trước khi chuyển qua câu thoại khác.");
+      return;
+    }
+
+    if (val === "x") {
+      // Bấm x thì mở ô cho sửa text luôn
+      setTurnEvaluations((prev) => ({
+        ...prev,
+        [turnId]: "x",
+      }));
+      setEditingTurnIds((prev) => ({
+        ...prev,
+        [turnId]: true,
+      }));
+    } else {
+      // val === "v": Đánh dấu chuẩn và đóng ô sửa
+      setTurnEvaluations((prev) => {
+        const next = { ...prev };
+        if (next[turnId] === "v") {
+          delete next[turnId];
+        } else {
+          next[turnId] = "v";
+        }
+        return next;
+      });
+      setEditingTurnIds((prev) => ({
+        ...prev,
+        [turnId]: false,
+      }));
+    }
   };
 
   // Thao tác bật/tắt ô chỉnh sửa câu thoại
@@ -2787,6 +2834,12 @@ export default function LabelDataPage() {
       Object.keys(editedTurns).length > 0;
 
     if (isMyCurrentClaim && !isCurrentCompleted && hasEdits) {
+      const confirmSwitch = window.confirm(
+        `Bạn đang có đánh giá dở dang ở Mẫu ${currentSampleIndex}.\n` +
+        `Bạn có muốn lưu nháp Mẫu ${currentSampleIndex} để chuyển sang Mẫu ${targetIdx} không?`
+      );
+      if (!confirmSwitch) return;
+
       // Lưu nháp mẫu hiện tại trước khi chuyển để bác sĩ không bao giờ bị mất đánh giá
       try {
         localStorage.setItem(
@@ -2952,14 +3005,15 @@ export default function LabelDataPage() {
 
     if (driveCompletedMap[currentSample.sampleIndex]) {
       alert(
-        `Người ${currentSample.sampleIndex} đã được lưu đánh giá. Bạn có thể xem lại hoặc chọn người khác.`
+        `Mẫu ${currentSample.sampleIndex} đã được Lưu hoàn tất lên hệ thống Google Drive. Theo quy chuẩn thẩm định, Bác sĩ cần đảm bảo chính xác trước khi bấm lưu và không được lưu đè để tránh sai lệch dữ liệu.`
       );
       return;
     }
 
     if (!hasEvaluatedAllTurns) {
       alert(
-        `Còn ${unevaluatedTurnsCount} câu chưa chọn Accept hoặc Reject. Vui lòng duyệt đủ trước khi lưu.`
+        `Cần chọn (v hoặc x) cho tất cả ${allVisibleTurns.length} câu thoại của Mẫu ${currentSample.sampleIndex} trước khi lưu!\n` +
+        `Hiện tại còn ${unevaluatedTurnsCount}/${allVisibleTurns.length} câu chưa chọn.`
       );
       return;
     }
@@ -2982,7 +3036,7 @@ export default function LabelDataPage() {
 
       const editedTurnsList: { turn_id: string; speaker: string; text: string; original_text: string }[] = [];
 
-      const sessionsPayload = visibleSessions.map((sess) => ({
+      const sessionsPayload = currentSample.timeline.sessions.map((sess) => ({
         session_id: sess.session_id,
         session_number: sess.session_number,
         session_timestamp: sess.session_timestamp || "",
@@ -3006,7 +3060,7 @@ export default function LabelDataPage() {
             speaker: t.speaker,
             original_text: origTxt,
             final_text: finalTxt,
-            evaluation: turnEvaluations[t.turn_id],
+            evaluation: turnEvaluations[t.turn_id] || "v",
             was_edited: wasEdited,
           };
         }),
@@ -3028,8 +3082,8 @@ export default function LabelDataPage() {
         doctor_name: activeDoctor.name,
         saved_at: new Date().toISOString(),
         file_name: fileName,
-        total_sessions: sessionsPayload.length,
-        total_turns: sessionsPayload.reduce((total, session) => total + session.turns.length, 0),
+        total_sessions: currentSample.totalSessions,
+        total_turns: currentSample.totalTurns,
         all_evaluated: true,
         edited_turns: editedTurnsList.length > 0 ? editedTurnsList : undefined,
         sessions: sessionsPayload,
@@ -3128,7 +3182,6 @@ export default function LabelDataPage() {
       setDriveSyncLoading(false);
     } finally {
       setSaving(false);
-      setDriveSyncLoading(false);
     }
   };
 
@@ -3511,17 +3564,42 @@ export default function LabelDataPage() {
 
   // Doctor profile badge click -> confirm if switching while current batch in progress
   const handleOpenDoctorModal = () => {
-    if (activeDoctor && !confirmedSampleIds.has(currentSampleIndex) &&
-        (Object.keys(turnEvaluations).length > 0 || Object.keys(editedTurns).length > 0)) {
-      if (!window.confirm("Đánh giá hiện tại đã lưu nháp trên máy này. Bạn muốn đổi bác sĩ?")) return;
+    if (activeDoctor && !completedBatches.includes(currentBatchIndex) && currentBatchConfirmedCount > 0) {
+      const confirmSwitch = window.confirm(
+        `Lưu ý quan trọng: Gói ${currentBatchIndex} đang thẩm định dở dang (${currentBatchConfirmedCount}/10 ca).\n\n` +
+        `Bác sĩ cần hoàn thành đủ 10/10 ca và bấm nút "Lưu Gói ${currentBatchIndex}" thì dữ liệu mới được đồng bộ lên Google Drive.\n\n` +
+        `Bác sĩ có chắc chắn muốn chuyển đổi tài khoản Bác sĩ không?`
+      );
+      if (!confirmSwitch) return;
     }
     setShowDoctorModal(true);
   };
 
+  // Doctor selection handler from login modal -> triggers Rules Modal
   const handleDoctorSelected = (doc: DoctorProfile) => {
-    setActiveDoctor(doc);
-    setAnnotator(doc.name);
+    setPendingDoctor(doc);
     setShowDoctorModal(false);
+    setShowRulesModal(true);
+  };
+
+  // Confirmation of Clinical Rules -> transitions to Example Comparison Modal
+  const handleAcceptRules = () => {
+    if (pendingDoctor) {
+      setActiveDoctor(pendingDoctor);
+      setAnnotator(pendingDoctor.name);
+      try {
+        sessionStorage.setItem(
+          "nktt_active_doctor_session",
+          JSON.stringify({
+            id: pendingDoctor.id,
+            name: pendingDoctor.name,
+            loggedInAt: new Date().toISOString(),
+          })
+        );
+      } catch {}
+    }
+    setShowRulesModal(false);
+    setShowExampleModal(true);
   };
 
   const currentSession =
@@ -3610,42 +3688,880 @@ export default function LabelDataPage() {
 
   return (
     <div className={styles.container}>
-      <SimpleReview
-        samples={allSamples.map(sample => {
-          const claim = claimsRegistry[sample.sampleIndex];
-          const mine = (activeDoctor?.folderCode || activeDoctor?.id || "").toUpperCase();
-          return {
-            sampleIndex: sample.sampleIndex,
-            saved: Boolean(driveCompletedMap[sample.sampleIndex]) || confirmedSampleIds.has(sample.sampleIndex) || claim?.status === "COMPLETED",
-            busy: Boolean(claim && !isClaimExpired(claim) && claim.doctorFolder?.toUpperCase() !== mine),
-          };
-        })}
-        sampleIndex={currentSampleIndex}
-        onSelectSample={handleSwitchToSample}
-        doctorName={activeDoctor?.name || ""}
-        onSelectDoctor={handleOpenDoctorModal}
-        sessions={visibleSessions}
-        currentSession={currentSession}
-        onSelectSession={session => {
-          const index = timeline?.sessions.findIndex(item => item.session_id === session.session_id) ?? -1;
-          if (index >= 0) handleSelectSession(index);
+      {/* Man hinh loading dong bo he thong */}
+      {driveSyncLoading && (() => {
+        const isCollision = driveSyncLoadingText.includes("đụng độ") || driveSyncLoadingText.includes("thuộc");
+        // Trich xuat ten bac si tu text loading: "Mau X thuoc Y. ..." hoac "Dung do Mau X..."
+        const matchDoctor = driveSyncLoadingText.match(/thu\u1ed9c\s+([^\s.]+)/);
+        const otherDrName = matchDoctor ? matchDoctor[1] : null;
+        const matchSample = driveSyncLoadingText.match(/M\u1eabu\s+(\d+)/);
+        const collidedSample = matchSample ? matchSample[1] : null;
+
+        return (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(15, 23, 42, 0.50)",
+              backdropFilter: "blur(4px)",
+              zIndex: 99999,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {isCollision ? (
+              /* Card UI khi dung do */
+              <div
+                style={{
+                  backgroundColor: "#fff",
+                  border: "2px solid #f59e0b",
+                  borderRadius: "16px",
+                  padding: "2rem 2.4rem",
+                  boxShadow: "0 24px 50px rgba(0,0,0,0.28)",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: "1rem",
+                  maxWidth: "400px",
+                  textAlign: "center",
+                }}
+              >
+                {/* Icon canh bao */}
+                <div
+                  style={{
+                    width: "56px",
+                    height: "56px",
+                    borderRadius: "50%",
+                    backgroundColor: "#fef3c7",
+                    border: "2px solid #f59e0b",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "1.6rem",
+                  }}
+                >
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                  </svg>
+                </div>
+
+                <div style={{ fontWeight: 700, fontSize: "1.05rem", color: "#92400e" }}>
+                  {otherDrName
+                    ? `BS ${otherDrName} đang làm mẫu này`
+                    : "Bác sĩ khác đang làm mẫu này"}
+                </div>
+
+                <div style={{ fontSize: "0.85rem", color: "#78350f", lineHeight: 1.6 }}>
+                  {collidedSample
+                    ? `Mẫu ${collidedSample} vừa được nhận bởi bác sĩ khác.`
+                    : driveSyncLoadingText}
+                  <br />
+                  <span style={{ color: "#92400e", fontWeight: 500 }}>Đang tự động tìm mẫu trống khác...</span>
+                </div>
+
+                {/* Progress bar dong tien */}
+                <div
+                  style={{
+                    width: "100%",
+                    height: "4px",
+                    backgroundColor: "#fde68a",
+                    borderRadius: "2px",
+                    overflow: "hidden",
+                  }}
+                >
+                  <div
+                    style={{
+                      height: "100%",
+                      backgroundColor: "#f59e0b",
+                      borderRadius: "2px",
+                      animation: "slideProgress 1.4s ease-in-out infinite",
+                    }}
+                  />
+                </div>
+              </div>
+            ) : (
+              /* Card loading binh thuong */
+              <div
+                style={{
+                  backgroundColor: "#ffffff",
+                  border: "1.5px solid #2563eb",
+                  borderRadius: "12px",
+                  padding: "1.6rem 2.2rem",
+                  boxShadow: "0 20px 45px rgba(0, 0, 0, 0.25)",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: "0.9rem",
+                  maxWidth: "430px",
+                  textAlign: "center",
+                }}
+              >
+                <div
+                  style={{
+                    width: "44px",
+                    height: "44px",
+                    border: "4px solid #f1f5f9",
+                    borderTopColor: "#2563eb",
+                    borderRadius: "50%",
+                    animation: "spin 0.8s linear infinite",
+                  }}
+                />
+                <div style={{ fontWeight: 700, fontSize: "1.05rem", color: "#0f172a" }}>
+                  {driveSyncLoadingText.includes("lưu") || driveSyncLoadingText.includes("Lưu")
+                    ? "Đang lưu dữ liệu"
+                    : driveSyncLoadingText.includes("Mẫu") || driveSyncLoadingText.includes("mẫu")
+                    ? "Đang chuyển mẫu"
+                    : "Đang đồng bộ hệ thống"}
+                </div>
+                <div style={{ fontSize: "0.88rem", color: "#475569", lineHeight: 1.55 }}>
+                  {driveSyncLoadingText || "Đang kết nối hệ thống. Vui lòng đợi..."}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
+
+      {/* Top Header - Minimal Single Line with 1 Box Only, No Loose Text */}
+      <header className={styles.topBarMinimal}>
+        <div className={styles.topBarMinimalLeft}>
+          {/* Doctor Profile Badge */}
+          <button
+            type="button"
+            className={styles.doctorNameMinimal}
+            onClick={handleOpenDoctorModal}
+            title="Bấm để chuyển đổi Bác sĩ chuyên khoa"
+          >
+            {activeDoctor?.name || "Bác sĩ thẩm định"}
+          </button>
+
+          <div className={styles.batchDivider} />
+
+          {/* Điều hướng hồ sơ: chỉ giữ một hộp chọn */}
+          <div className={styles.batchControlsMinimal}>
+
+            {/* 1 BOX DUY NHẤT */}
+            <select
+              className={styles.sampleSelectMinimal}
+              value={currentSampleIndex}
+              onChange={(e) => handleSwitchToSample(Number(e.target.value))}
+              title={`Chọn mẫu bệnh nhân (1 - ${allSamples.length || TOTAL_PROFILES})`}
+            >
+              {allSamples.map((s) => {
+                const claim = claimsRegistry[s.sampleIndex];
+                const isConfirmedHere = confirmedSampleIds.has(s.sampleIndex);
+                const myFolder = (activeDoctor?.folderCode || activeDoctor?.id || "").toUpperCase();
+                let tag = "[Chưa có ai nhận]";
+
+                if (claim) {
+                  const isMine = claim.doctorFolder && claim.doctorFolder.toUpperCase() === myFolder;
+                  if (claim.status === "COMPLETED" || isConfirmedHere) {
+                    tag = isMine ? `[Đã xong - Của bạn]` : `[Đã xong - ${claim.doctorFolder}]`;
+                  } else if (isClaimExpired(claim)) {
+                    tag = `[Chưa có ai nhận]`;
+                  } else {
+                    tag = isMine ? `[ĐANG LÀM DỞ DANG - Cần hoàn thành]` : `[Đã giao ${claim.doctorFolder} - Đã khóa]`;
+                  }
+                } else if (driveCompletedMap[s.sampleIndex]) {
+                  const isMine = driveCompletedMap[s.sampleIndex].toUpperCase() === myFolder;
+                  tag = isMine ? `[Đã xong - Của bạn]` : `[Đã xong - ${driveCompletedMap[s.sampleIndex]}]`;
+                } else if (isConfirmedHere) {
+                  tag = `[Đã xong - Của bạn]`;
+                }
+
+                return (
+                  <option key={s.sampleIndex} value={s.sampleIndex}>
+                    Mẫu {s.sampleIndex}/{allSamples.length || TOTAL_PROFILES} {tag}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+        </div>
+
+        <div className={styles.topBarMinimalRight}>
+          {/* Nút Quy định */}
+          <button
+            type="button"
+            className={styles.rulesBtn}
+            onClick={() => setShowRulesModal(true)}
+            title="Xem lại 5 nguyên tắc và cam kết thẩm định lâm sàng"
+          >
+            Quy định
+          </button>
+
+          {/* Nút Ví dụ */}
+          <button
+            type="button"
+            className={styles.exampleModalBtn}
+            onClick={() => setShowExampleModal(true)}
+            title="Xem bảng mẫu đối chiếu hồ sơ trước và sau khi thẩm định"
+          >
+            Ví dụ
+          </button>
+
+
+
+          {/* Nút Save (Lưu) */}
+          {(() => {
+            const curClaim = claimsRegistry[currentSampleIndex];
+            const myF = (activeDoctor?.folderCode || activeDoctor?.id || "").toUpperCase();
+            const isOther = Boolean(
+              (curClaim && curClaim.doctorFolder && curClaim.doctorFolder.toUpperCase() !== myF && !isClaimExpired(curClaim)) ||
+              (driveCompletedMap[currentSampleIndex] && driveCompletedMap[currentSampleIndex].toUpperCase() !== myF)
+            );
+            const otherCode = curClaim?.doctorFolder || driveCompletedMap[currentSampleIndex] || "Bác sĩ khác";
+
+            return (
+              <button
+                type="button"
+                className={[
+                  styles.saveMainBtn,
+                  hasEvaluatedAllTurns && !saving && !driveCompletedMap[currentSampleIndex] && !isOther
+                    ? styles.saveMainBtnReady
+                    : styles.saveMainBtnLocked,
+                ].join(" ")}
+                onClick={handleSaveSample}
+                disabled={saving || isOther || Boolean(driveCompletedMap[currentSampleIndex])}
+                style={{ padding: "0.25rem 0.65rem", fontSize: "0.75rem" }}
+                title={
+                  isOther
+                    ? `Mẫu này đã thuộc ${otherCode}`
+                    : driveCompletedMap[currentSampleIndex]
+                    ? `Mẫu ${currentSampleIndex} đã lưu bởi ${driveCompletedMap[currentSampleIndex]}`
+                    : saving
+                    ? "Đang lưu..."
+                    : !hasEvaluatedAllTurns
+                    ? `Cần đánh giá đủ ${allVisibleTurns.length} câu thoại (đã làm ${evaluatedTurnsCount}/${allVisibleTurns.length})`
+                    : `Lưu Mẫu ${currentSampleIndex}`
+                }
+              >
+                <svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  {confirmedSampleIds.has(currentSampleIndex) || driveCompletedMap[currentSampleIndex] ? (
+                    <polyline points="20 6 9 17 4 12" />
+                  ) : (
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                  )}
+                </svg>
+                <span>
+                  {isOther
+                    ? `Khóa (${otherCode})`
+                    : driveCompletedMap[currentSampleIndex]
+                    ? `Đã lưu (${driveCompletedMap[currentSampleIndex]})`
+                    : saving
+                    ? "Đang lưu..."
+                    : hasEvaluatedAllTurns
+                    ? `Lưu Mẫu ${currentSampleIndex}`
+                    : `Lưu (${evaluatedTurnsCount}/${allVisibleTurns.length})`}
+                </span>
+              </button>
+            );
+          })()}
+        </div>
+      </header>
+
+      {/* Cảnh báo nếu mẫu đã lưu hoặc đang làm trên Drive bởi bác sĩ khác */}
+      {(() => {
+        const curClaim = claimsRegistry[currentSampleIndex];
+        const myF = (activeDoctor?.folderCode || activeDoctor?.id || "").toUpperCase();
+        const isOther = Boolean(
+          (curClaim && curClaim.doctorFolder && curClaim.doctorFolder.toUpperCase() !== myF && !isClaimExpired(curClaim)) ||
+          (driveCompletedMap[currentSampleIndex] && driveCompletedMap[currentSampleIndex].toUpperCase() !== myF)
+        );
+        if (!isOther) return null;
+
+        const otherCode = curClaim?.doctorFolder || driveCompletedMap[currentSampleIndex] || "Bác sĩ khác";
+        const isCompleted = curClaim?.status === "COMPLETED" || Boolean(driveCompletedMap[currentSampleIndex]);
+
+        return (
+          <div
+            className={styles.batchDriveLockedAlert}
+            style={{
+              padding: "0.35rem 0.75rem",
+              fontSize: "0.8rem",
+              backgroundColor: "#fef2f2",
+              border: "1px solid #fca5a5",
+              color: "#991b1b",
+            }}
+          >
+            <div className={styles.batchDriveLockedAlertText}>
+              <span style={{ fontWeight: 600 }}>
+                {isCompleted
+                  ? `Mẫu ${currentSampleIndex} đã hoàn tất bởi ${otherCode}.`
+                  : `Mẫu ${currentSampleIndex} đã được phân công cho ${otherCode}.`}
+              </span>
+            </div>
+            <div style={{ display: "flex", gap: "0.35rem", alignItems: "center" }}>
+              <button
+                type="button"
+                className={styles.batchNavAutoBtn}
+                onClick={() => {
+                  setDriveSyncLoading(true);
+                  setDriveSyncLoadingText("Đang tìm mẫu trống tiếp theo...");
+                  handleClaimEmptySample(1, false);
+                }}
+                style={{
+                  padding: "0.2rem 0.65rem",
+                  fontSize: "0.75rem",
+                  backgroundColor: "#2563eb",
+                  color: "#ffffff",
+                  borderColor: "#1d4ed8",
+                }}
+              >
+                Chuyển sang mẫu chưa làm
+              </button>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Thong bao neu mau tung duoc giu cho nhung da het han giu cho (qua 30 phut khong hoat dong) */}
+      {(() => {
+        const curClaim = claimsRegistry[currentSampleIndex];
+        const myF = (activeDoctor?.folderCode || activeDoctor?.id || "").toUpperCase();
+        const isAbandoned = Boolean(
+          curClaim &&
+          curClaim.doctorFolder &&
+          curClaim.doctorFolder.toUpperCase() !== myF &&
+          curClaim.status !== "COMPLETED" &&
+          isClaimExpired(curClaim) &&
+          !driveCompletedMap[currentSampleIndex]
+        );
+        if (!isAbandoned) return null;
+
+        return (
+          <div
+            className={styles.batchDriveLockedAlert}
+            style={{
+              padding: "0.35rem 0.75rem",
+              fontSize: "0.8rem",
+              backgroundColor: "#fffbeb",
+              border: "1px solid #fcd34d",
+              color: "#92400e",
+            }}
+          >
+            <div className={styles.batchDriveLockedAlertText}>
+              <span style={{ fontWeight: 600 }}>
+                {`Mẫu ${currentSampleIndex} chưa có ai nhận. Bạn có thể tiếp nhận và bắt đầu thẩm định.`}
+              </span>
+            </div>
+            <div style={{ display: "flex", gap: "0.35rem", alignItems: "center" }}>
+              <button
+                type="button"
+                className={styles.batchNavAutoBtn}
+                onClick={async () => {
+                  setDriveSyncLoading(true);
+                  setDriveSyncLoadingText(`Đang tiếp quản Mẫu ${currentSampleIndex}...`);
+                  const sampleItem = allSamples.find((s) => s.sampleIndex === currentSampleIndex);
+                  if (sampleItem && activeDoctor) {
+                    const claimRes = await claimSampleOnDrive(currentSampleIndex, sampleItem.userId, activeDoctor);
+                    if (claimRes.ok) {
+                      const now = new Date().toISOString();
+                      setClaimsRegistry((prev) => ({
+                        ...prev,
+                        [currentSampleIndex]: {
+                          sampleIndex: currentSampleIndex,
+                          userId: sampleItem.userId,
+                          doctorFolder: myF,
+                          doctorId: activeDoctor.id,
+                          doctorName: activeDoctor.name,
+                          status: "IN_PROGRESS",
+                          claimedAt: now,
+                          updatedAt: now,
+                        },
+                      }));
+                    }
+                  }
+                  setDriveSyncLoading(false);
+                }}
+                style={{
+                  padding: "0.2rem 0.65rem",
+                  fontSize: "0.75rem",
+                  backgroundColor: "#d97706",
+                  color: "#ffffff",
+                  borderColor: "#b45309",
+                }}
+              >
+                Tiếp quản mẫu này
+              </button>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Main Workspace: 100% Focused on Clinical Chat Review */}
+      <div
+        ref={workspaceRef}
+        className={styles.workspace}
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          width: "100%",
         }}
-        evaluations={turnEvaluations}
-        editedTurns={editedTurns}
-        onEvaluate={handleToggleTurnEval}
-        lockedMessage={(() => {
-          const claim = claimsRegistry[currentSampleIndex];
-          const mine = (activeDoctor?.folderCode || activeDoctor?.id || "").toUpperCase();
-          if (driveCompletedMap[currentSampleIndex] || confirmedSampleIds.has(currentSampleIndex) || claim?.status === "COMPLETED") return "Người này đã được lưu đánh giá. Bạn có thể xem lại.";
-          if (claim && !isClaimExpired(claim) && claim.doctorFolder?.toUpperCase() !== mine) return "Một bác sĩ khác đang duyệt người này. Vui lòng chọn người khác.";
-          return "";
-        })()}
-        loading={loadingList || loadingDetail}
-        saving={saving}
-        busyMessage={driveSyncLoading ? (saving ? "Đang lưu đánh giá…" : "Đang tải người được chọn…") : ""}
-        onSave={handleSaveSample}
-        saveMessage={saveMessage?.isError || saveMessage?.text.startsWith("Đã lưu") ? saveMessage : null}
-      />
+      >
+
+            {/* Center Column: Query Editor & Dialogue Timeline */}
+            <section className={styles.mainContent} aria-label="Nội dung hội thoại">
+              {loadingList ? (
+                <div className={styles.emptyPlaceholder}>Đang nạp dữ liệu {TOTAL_PROFILES} hồ sơ...</div>
+              ) : !currentSample ? (
+                <div className={styles.emptyPlaceholder}>Vui lòng chọn một mẫu bệnh nhân ở thanh trên để thẩm định</div>
+              ) : (
+                <>
+                  {/* Dialogue Timeline */}
+                  <div key={`sample-timeline-${currentSampleIndex}`} className={styles.timelineCard}>
+                    <div className={styles.timelineHeader}>
+                      <div className={styles.timelineTitleGroup}>
+                        <h2 className={styles.sectionTitle}>
+                          Lịch sử cuộc trò chuyện:
+                        </h2>
+                      </div>
+                      <div className={styles.sessionPills}>
+                        {visibleSessions && visibleSessions.length > 0 ? (
+                          visibleSessions.map((s) => {
+                            const actualIdx = timeline?.sessions?.findIndex(
+                              (sess) => sess.session_id === s.session_id
+                            ) ?? -1;
+                            const isSelected = actualIdx === activeSessionIndex;
+                            const isInspected = inspectedSessions.has(s.session_number);
+                            const sTurns = s.turns || [];
+                            const sEvalCount = sTurns.filter((t) => Boolean(turnEvaluations[t.turn_id])).length;
+                            const isSessTurnsDone = sTurns.length === 0 || sEvalCount === sTurns.length;
+                            const curTurns = currentSession?.turns || [];
+                            const curUnselected = curTurns.filter((t) => !turnEvaluations[t.turn_id]).length;
+                            const isCurrentDone = curTurns.length === 0 || curUnselected === 0;
+
+                            return (
+                              <button
+                                key={s.session_id}
+                                type="button"
+                                className={[
+                                  styles.sessionPill,
+                                  isSelected ? styles.sessionPillActive : "",
+                                  isSessTurnsDone && !isSelected ? styles.sessionPillCompleted : "",
+                                  !isSessTurnsDone && !isSelected ? styles.sessionPillUnread : "",
+                                ]
+                                  .filter(Boolean)
+                                  .join(" ")}
+                                onClick={() => {
+                                  if (!isSelected && !isCurrentDone) {
+                                    alert(`Bác sĩ vui lòng đánh giá đầy đủ tất cả các câu thoại trong Lần hỏi hiện tại (còn ${curUnselected} câu chưa chọn) trước khi chuyển sang lần hỏi khác.`);
+                                    return;
+                                  }
+                                  if (actualIdx >= 0) handleSelectSession(actualIdx);
+                                }}
+                                style={{
+                                  cursor: isSelected || isCurrentDone ? "pointer" : "not-allowed",
+                                  opacity: !isSelected && !isCurrentDone ? 0.65 : 1,
+                                }}
+                                title={
+                                  !isSelected && !isCurrentDone
+                                    ? `Cần tích đủ các câu thoại ở Lần hỏi hiện tại (còn ${curUnselected} câu) trước khi chuyển`
+                                    : `Lần hỏi ${s.session_number}: ${
+                                        sTurns.length > 0
+                                          ? `Đã chọn ${sEvalCount}/${sTurns.length} câu thoại`
+                                          : "Không có câu thoại"
+                                      }`
+                                }
+                              >
+                                <span>Lần hỏi {s.session_number}</span>
+                                <span style={{ fontSize: "0.65rem", marginLeft: "2px", opacity: 0.85 }}>
+                                  {sTurns.length > 0
+                                    ? isSessTurnsDone
+                                      ? "(Đã chọn đủ)"
+                                      : `(${sEvalCount}/${sTurns.length})`
+                                    : isInspected ? "(Đã xem)" : "(Chưa xem)"}
+                                </span>
+                              </button>
+                            );
+                          })
+                        ) : (
+                          <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>
+                            Ca độc lập, không có hồ sơ khám trước đó
+                          </span>
+                        )}
+
+                      </div>
+                    </div>
+
+                    <div id="clinical-chat-area" className={styles.chatArea}>
+                      {!currentSession ? (
+                        <div className={styles.emptyPlaceholder}>
+                          Ca bệnh này là câu hỏi độc lập, chưa ghi nhận hồ sơ khám trước đó
+                        </div>
+                      ) : (
+                        <div className={styles.sessionChatContainer}>
+                          <div className={styles.sessionChatHeader}>
+                            <span>
+                              Chi tiết Lần hỏi {currentSession.session_number}
+                              {currentSession.session_timestamp &&
+                                ` - Ngày: ${new Date(currentSession.session_timestamp).toLocaleDateString("vi-VN")}`}
+                            </span>
+                            <span style={{ fontWeight: "normal", color: "var(--color-text-muted)" }}>
+                              (Gồm {currentSession.turns.length / 2} cặp hỏi–đáp)
+                            </span>
+                          </div>
+
+                          <div className={styles.turnsList}>
+                            {(() => {
+                              const activeEditingId = Object.keys(editingTurnIds).find((id) => editingTurnIds[id]) || null;
+                              return currentSession.turns.map((turn) => {
+                                const isDoctor =
+                                  turn.speaker?.toLowerCase().includes("doctor") ||
+                                  turn.speaker?.toLowerCase().includes("assistant");
+                                const origTurnText = (turn.text !== undefined ? turn.text : ((turn as any).original_text || "")).toString();
+                                const currentTurnText =
+                                  editedTurns[turn.turn_id] !== undefined
+                                    ? editedTurns[turn.turn_id]
+                                    : origTurnText;
+                                const isModified =
+                                  editedTurns[turn.turn_id] !== undefined &&
+                                  editedTurns[turn.turn_id].trim() !== origTurnText.trim();
+                                const isEditing = Boolean(editingTurnIds[turn.turn_id]);
+                                const isOtherEditing = Boolean(activeEditingId && activeEditingId !== turn.turn_id);
+                                const currentEval = turnEvaluations[turn.turn_id];
+                                const isV = currentEval === "v";
+                                const isX = currentEval === "x";
+
+                                return (
+                                  <div
+                                    key={turn.turn_id}
+                                    className={[
+                                      styles.chatBubbleWrapper,
+                                      isDoctor ? styles.bubbleWrapperRight : styles.bubbleWrapperLeft,
+                                    ].join(" ")}
+                                  >
+                                    <div
+                                      className={[
+                                        styles.chatBubble,
+                                        isDoctor ? styles.bubbleDoctor : styles.bubblePatient,
+                                        isModified ? styles.chatBubbleEdited : "",
+                                      ]
+                                        .filter(Boolean)
+                                        .join(" ")}
+                                    >
+                                      <div className={styles.bubbleHeader}>
+                                        <div className={styles.bubbleSpeakerRow}>
+                                          <span className={styles.bubbleSpeaker}>
+                                            {isDoctor ? "Bác sĩ" : "Người hỏi"}
+                                          </span>
+                                          {isModified && (
+                                            <span
+                                              className={styles.modifiedTag}
+                                              title="Nội dung đã được chỉnh sửa"
+                                            >
+                                              Đã sửa
+                                            </span>
+                                          )}
+                                        </div>
+                                        <div className={styles.bubbleHeaderRight}>
+                                          {/* Nút x hoặc v: bấm x thì mở ô sửa text luôn, bắt buộc nhấn xong để chuyển qua bubble khác */}
+                                          <div
+                                            className={[
+                                              styles.bubbleActionGroup,
+                                              !currentEval ? styles.bubbleActionGroupUnselected : "",
+                                              isOtherEditing ? styles.bubbleActionGroupBlocked : "",
+                                            ]
+                                              .filter(Boolean)
+                                              .join(" ")}
+                                          >
+                                            <button
+                                              type="button"
+                                              className={[
+                                                styles.bubbleBtnV,
+                                                isV ? styles.bubbleBtnVActive : "",
+                                              ].filter(Boolean).join(" ")}
+                                              onClick={() => handleToggleTurnEval(turn.turn_id, "v")}
+                                              title={
+                                                isOtherEditing
+                                                  ? "Vui lòng nhấn Xong ở câu thoại đang sửa trước khi chuyển qua câu khác"
+                                                  : isV
+                                                  ? "Đã chọn: v (Chuẩn rồi) - Bấm lại để bỏ chọn"
+                                                  : "v: Chuẩn rồi - Đạt chuẩn lâm sàng"
+                                              }
+                                            >
+                                              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12" /></svg>
+                                            </button>
+                                            <button
+                                              type="button"
+                                              className={[
+                                                styles.bubbleBtnX,
+                                                isX ? styles.bubbleBtnXActive : "",
+                                              ].filter(Boolean).join(" ")}
+                                              onClick={() => handleToggleTurnEval(turn.turn_id, "x")}
+                                              title={
+                                                isOtherEditing
+                                                  ? "Vui lòng nhấn Xong ở câu thoại đang sửa trước khi chuyển qua câu khác"
+                                                  : isX && isEditing
+                                                  ? "Đang mở ô chỉnh sửa"
+                                                  : isX
+                                                  ? "Đã chọn: x (Chưa chuẩn) - Bấm để mở lại ô sửa"
+                                                  : "x: Chưa chuẩn - Bấm để mở ô sửa text"
+                                              }
+                                            >
+                                              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                                            </button>
+                                          </div>
+
+                                          {isX && !isEditing && (
+                                            <button
+                                              type="button"
+                                              className={styles.bubbleEditToggleBtn}
+                                              onClick={() => handleToggleTurnEdit(turn.turn_id)}
+                                              title={isOtherEditing ? "Vui lòng nhấn Xong ở câu thoại đang sửa" : "Mở lại ô chỉnh sửa nội dung"}
+                                            >
+                                              <span>Sửa lại</span>
+                                            </button>
+                                          )}
+
+                                          {isModified && (
+                                            <button
+                                              type="button"
+                                              className={styles.bubbleRevertBtn}
+                                              onClick={() => handleRevertTurn(turn.turn_id, origTurnText)}
+                                              title="Khôi phục nguyên văn ban đầu"
+                                            >
+                                              Khôi phục
+                                            </button>
+                                          )}
+                                          {turn.turn_timestamp ? (
+                                            <span className={styles.turnBadgeSubtle}>
+                                              {new Date(turn.turn_timestamp).toLocaleTimeString("vi-VN", {
+                                                hour: "2-digit",
+                                                minute: "2-digit",
+                                              })}
+                                            </span>
+                                          ) : null}
+                                        </div>
+                                      </div>
+
+                                      {isEditing ? (
+                                        <div className={styles.bubbleEditWrapper}>
+                                          <AutoExpandingTextarea
+                                            value={currentTurnText}
+                                            onChange={(e) => handleTurnChange(turn.turn_id, e.target.value)}
+                                            className={styles.bubbleTextarea}
+                                            placeholder="Nội dung câu thoại..."
+                                            title="Đang chỉnh sửa nội dung lượt thoại này"
+                                          />
+                                          <div className={styles.bubbleEditFooter}>
+                                            <span className={styles.bubbleEditStatus}>
+                                              Đang sửa câu thoại (Bắt buộc nhấn Xong để hoàn tất)
+                                            </span>
+                                            <button
+                                              type="button"
+                                              className={styles.bubbleCloseEditBtn}
+                                              onClick={() => handleCloseTurnEdit(turn.turn_id)}
+                                              title="Nhấn Xong để hoàn tất chỉnh sửa và tiếp tục câu khác"
+                                            >
+                                              <span>Xong</span>
+                                            </button>
+                                          </div>
+                                        </div>
+                                      ) : (
+                                        <p className={styles.bubbleTextReadonly}>{currentTurnText}</p>
+                                      )}
+                                    </div>
+                                  </div>
+                                );
+                              });
+                            })()}
+                          </div>
+                        </div>
+                      )}
+
+                      {visibleSessions.length > 1 && (
+                        <div className={styles.chatSessionNav}>
+                          <div>
+                            {(() => {
+                              const curVisIdx = visibleSessions.findIndex(
+                                (s) => s.session_id === currentSession?.session_id
+                              );
+                              if (curVisIdx > 0) {
+                                const prevSess = visibleSessions[curVisIdx - 1];
+                                const prevActualIdx = timeline?.sessions?.findIndex(
+                                  (sess) => sess.session_id === prevSess.session_id
+                                ) ?? -1;
+                                const curTurns = currentSession?.turns || [];
+                                const curUnselected = curTurns.filter((t) => !turnEvaluations[t.turn_id]).length;
+                                const isCurDone = curTurns.length === 0 || curUnselected === 0;
+
+                                return (
+                                  <button
+                                    type="button"
+                                    className={styles.chatSessionNavBtn}
+                                    onClick={() => {
+                                      if (!isCurDone) {
+                                        alert(`Bác sĩ vui lòng đánh giá đầy đủ tất cả các câu thoại trong Lần hỏi hiện tại (còn ${curUnselected} câu chưa chọn) trước khi chuyển về Lần hỏi ${prevSess.session_number}.`);
+                                        return;
+                                      }
+                                      if (prevActualIdx >= 0) handleSelectSession(prevActualIdx);
+                                    }}
+                                    disabled={!isCurDone}
+                                    style={{
+                                      opacity: isCurDone ? 1 : 0.55,
+                                      cursor: isCurDone ? "pointer" : "not-allowed",
+                                    }}
+                                    title={
+                                      isCurDone
+                                        ? `Chuyển về xem Lần hỏi ${prevSess.session_number}`
+                                        : `Cần tích đủ các câu thoại ở Lần hỏi hiện tại (còn ${curUnselected} câu) để chuyển về Lần hỏi ${prevSess.session_number}`
+                                    }
+                                  >
+                                    <span>&larr; Xem Lần hỏi {prevSess.session_number}</span>
+                                  </button>
+                                );
+                              }
+                              return null;
+                            })()}
+                          </div>
+
+
+                          <div>
+                            {(() => {
+                              const curVisIdx = visibleSessions.findIndex(
+                                (s) => s.session_id === currentSession?.session_id
+                              );
+                              if (curVisIdx >= 0 && curVisIdx < visibleSessions.length - 1) {
+                                const nextSess = visibleSessions[curVisIdx + 1];
+                                const nextActualIdx = timeline?.sessions?.findIndex(
+                                  (sess) => sess.session_id === nextSess.session_id
+                                ) ?? -1;
+                                const curTurns = currentSession?.turns || [];
+                                const curUnselected = curTurns.filter((t) => !turnEvaluations[t.turn_id]).length;
+                                const isCurDone = curTurns.length === 0 || curUnselected === 0;
+
+                                return (
+                                  <button
+                                    type="button"
+                                    className={[
+                                      styles.chatSessionNavBtn,
+                                      styles.chatSessionNavNext,
+                                    ]
+                                      .filter(Boolean)
+                                      .join(" ")}
+                                    onClick={() => {
+                                      if (!isCurDone) {
+                                        alert(`Bác sĩ vui lòng đánh giá đầy đủ tất cả các câu thoại trong Lần hỏi hiện tại (còn ${curUnselected} câu chưa chọn) trước khi chuyển sang Lần hỏi ${nextSess.session_number}.`);
+                                        return;
+                                      }
+                                      if (nextActualIdx >= 0) handleSelectSession(nextActualIdx);
+                                    }}
+                                    disabled={!isCurDone}
+                                    style={{
+                                      opacity: isCurDone ? 1 : 0.55,
+                                      cursor: isCurDone ? "pointer" : "not-allowed",
+                                    }}
+                                    title={
+                                      isCurDone
+                                        ? `Chuyển sang xem tiếp Lần hỏi ${nextSess.session_number}`
+                                        : `Cần tích đủ các câu thoại ở Lần hỏi hiện tại (còn ${curUnselected} câu) để chuyển sang Lần hỏi ${nextSess.session_number}`
+                                    }
+                                  >
+                                    <span>
+                                      {isCurDone
+                                        ? `Tiếp theo: Xem Lần hỏi ${nextSess.session_number} →`
+                                        : `Hoàn tất lần hỏi này để tiếp →`}
+                                    </span>
+                                  </button>
+                                );
+                              }
+                              return null;
+                            })()}
+                          </div>
+                        </div>
+                      )}
+                      {/* Chat Action Bar with Evaluation Status & Confirm Button */}
+                      <div className={styles.chatActionBar}>
+                        <div className={styles.chatActionBarLeft}>
+
+                          {saveMessage && (
+                            <span
+                              style={{
+                                fontSize: "0.75rem",
+                                color: saveMessage.isError ? "#dc2626" : "#059669",
+                                marginLeft: "0.5rem",
+                                fontWeight: 600,
+                              }}
+                            >
+                              {saveMessage.text}
+                            </span>
+                          )}
+                        </div>
+
+                        <button
+                          type="button"
+                          className={[
+                            styles.saveBtn,
+                            confirmedSampleIds.has(currentSampleIndex) || driveCompletedMap[currentSampleIndex]
+                              ? styles.saveBtnConfirmed
+                              : hasEvaluatedAllTurns && (hasInspectedAllSessions || visibleSessions.length <= 1)
+                              ? styles.saveBtnReady
+                              : styles.saveBtnDisabled,
+                          ]
+                            .filter(Boolean)
+                            .join(" ")}
+                          disabled={saving || !hasEvaluatedAllTurns || (!hasInspectedAllSessions && visibleSessions.length > 1)}
+                          onClick={handleSaveSample}
+                          title={
+                            !hasEvaluatedAllTurns
+                              ? `Cần chọn (v hoặc x) cho tất cả ${allVisibleTurns.length} câu thoại trước khi lưu (Đã chọn: ${evaluatedTurnsCount}/${allVisibleTurns.length})`
+                              : !hasInspectedAllSessions && visibleSessions.length > 1
+                              ? `Cần xem hết ${visibleSessions.length} lần khám trước khi lưu (${inspectedCount}/${visibleSessions.length})`
+                              : `Xác nhận & Lưu Mẫu ${currentSampleIndex} lên Google Drive`
+                          }
+                        >
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                          <span>
+                            {saving
+                              ? "Đang lưu..."
+                              : !hasEvaluatedAllTurns
+                              ? `Đánh giá đủ câu thoại (${evaluatedTurnsCount}/${allVisibleTurns.length})`
+                              : !hasInspectedAllSessions && visibleSessions.length > 1
+                              ? `Xem đủ ${visibleSessions.length} lần khám (${inspectedCount}/${visibleSessions.length})`
+                              : confirmedSampleIds.has(currentSampleIndex) || driveCompletedMap[currentSampleIndex]
+                              ? `Đã lưu Mẫu ${currentSampleIndex} (Bấm để lưu lại)`
+                              : `Xác nhận & Lưu Mẫu ${currentSampleIndex}`}
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </section>
+          </div>
+
+
+
 
           {/* Doctor Selection & Authentication Portal */}
           <DoctorLoginModal
@@ -3654,6 +4570,19 @@ export default function LabelDataPage() {
             onClose={() => setShowDoctorModal(false)}
             onSelectDoctor={handleDoctorSelected}
             activeDoctorId={activeDoctor?.id}
+          />
+
+          {/* Clinical Rules & Agreement Modal - Displays right after password */}
+          <ClinicalRulesModal
+            isOpen={showRulesModal}
+            doctorName={pendingDoctor?.name || activeDoctor?.name}
+            canDismiss={Boolean(activeDoctor && !pendingDoctor)}
+            onClose={() => {
+              setShowRulesModal(false);
+              setPendingDoctor(null);
+            }}
+            onAccept={handleAcceptRules}
+            acceptButtonText={pendingDoctor ? "Tiếp tục: Xem bảng ví dụ mẫu" : "Xem bảng ví dụ mẫu"}
           />
 
           {/* Quality Warning Modal for Superficial Evaluation */}
@@ -3665,6 +4594,15 @@ export default function LabelDataPage() {
             onConfirmSave={executeBatchSaveAndUnlock}
           />
 
+          {/* Example Comparison Modal - Before and After Evaluation Tabs */}
+          <ExampleComparisonModal
+            isOpen={showExampleModal}
+            onClose={() => {
+              setShowExampleModal(false);
+              setPendingDoctor(null);
+            }}
+            dismissText={pendingDoctor ? "Bắt đầu thẩm định" : "Đóng cửa sổ"}
+          />
 
 
     </div>

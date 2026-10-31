@@ -1,0 +1,91 @@
+{
+  "dialogue_changes": [
+    {
+      "turn_id": "VL500_U0089_S03_T02",
+      "before": "Hãy báo tiền sử xạ trị, thuốc và mức khô miệng cho nhóm ung bướu lẫn nha sĩ. Họ có thể đánh giá nguy cơ răng miệng và đề xuất cách giảm triệu chứng phù hợp.",
+      "after": "Có. Hãy tìm nha sĩ có kinh nghiệm chăm sóc người đã điều trị ung thư vùng đầu cổ và phối hợp với nhóm ung bướu. Báo các phương pháp điều trị đã nhận, thuốc đang dùng, mức khô miệng và việc ăn, nói hoặc nuốt có bị ảnh hưởng không."
+    },
+    {
+      "turn_id": "VL500_U0105_S12_T01",
+      "before": "Nướu tôi đang sưng nề và chảy máu nhiều khi chạm hoặc chải răng. Tôi đang băn khoăn: ba dụng cụ này khác nhau thế nào khi làm sạch kẽ?",
+      "after": "Nướu tôi đang sưng nề và chảy máu nhiều khi chạm hoặc chải răng. Chỉ nha khoa, bàn chải kẽ và tăm nước khác nhau thế nào khi làm sạch kẽ?"
+    },
+    {
+      "turn_id": "VL500_U0105_S12_T02",
+      "before": "Với tình trạng nướu đang sưng và chảy máu nhiều, hãy đặt lịch nha sĩ kiểm tra sớm. Đừng chỉ đổi dụng cụ để xử lý. Chỉ nha khoa làm sạch bằng tiếp xúc trực tiếp với bề mặt răng ở kẽ, còn tăm nước dùng dòng nước. Nha sĩ có thể giúp chọn dụng cụ theo vùng cần làm sạch.",
+      "after": "Vì nướu đang sưng và chảy máu nhiều, hãy liên hệ nha sĩ để kiểm tra sớm. Chỉ nha khoa ôm theo mặt răng ở kẽ khít; bàn chải kẽ làm sạch bằng lông chải ở khoảng đủ rộng; tăm nước dùng dòng nước. Chọn loại vừa khoảng răng và dùng nhẹ theo hướng dẫn, không chỉ đổi dụng cụ để bỏ qua triệu chứng. Nếu máu chảy nhiều không cầm được, cần trợ giúp y tế khẩn."
+    },
+    {
+      "turn_id": "VL500_U0060_S17_T01",
+      "before": "Tôi chỉ muốn mua một dụng cụ trước. Loại nào tiếp cận được những mặt mà hai loại còn lại khó làm sạch?",
+      "after": "Tôi chỉ muốn mua một dụng cụ trước. Giữa chỉ nha khoa, bàn chải kẽ và tăm nước, mỗi loại phù hợp với những vùng nào?"
+    },
+    {
+      "turn_id": "VL500_U0041_S02_T02",
+      "before": "Hãy súc nhẹ bằng nước lọc là đủ để rửa bớt axit. Không cần dùng dung dịch mạnh. Đợi khoảng một giờ trước khi chải.",
+      "after": "Súc nhẹ bằng nước lọc giúp rửa bớt axit, không cần dung dịch mạnh. Đợi khoảng một giờ sau nước chanh trước khi chải nhẹ."
+    },
+    {
+      "turn_id": "VL500_U0122_S03_T02",
+      "before": "Bạn nên đặt lịch nha sĩ sớm để kiểm tra cả vết loét và nguyên nhân cọ xát. Không tự mài răng. Nếu vết loét kéo dài hơn ba tuần, hãy đặt lịch khám trực tiếp.",
+      "after": "Vết loét đã hơn ba tuần nên cần đặt lịch nha sĩ kiểm tra sớm cả tổn thương lẫn cạnh răng gây cọ xát. Không tự mài răng hoặc chỉ xử lý cạnh sắc rồi bỏ qua vết loét. Báo lúc đặt hẹn nếu vết loét lớn lên, chảy máu hoặc đau tăng."
+    },
+    {
+      "turn_id": "VL500_U0081_S03_T02",
+      "before": "Bạn có thể hỏi nha sĩ chọn lượng phù hợp với tuổi và khả năng nhổ. Người lớn nên giám sát trẻ. Đừng tự bỏ fluoride lâu dài nếu chưa trao đổi nguy cơ sâu răng.",
+      "after": "Cho nha sĩ biết tuổi, loại kem, lượng đang lấy và việc thường nuốt kem để được hướng dẫn cách chải an toàn. Dùng lượng phù hợp theo nhãn hoặc chỉ dẫn riêng, nhổ phần thừa và không cố ngậm kem lâu. Nếu thường khó nhổ, cần hỏi cách hỗ trợ trước khi tự đổi sản phẩm; không nuốt kem để giữ fluoride."
+    }
+  ],
+  "reference_value_changes": [
+    {
+      "case_id": "VL500_U0050_Q4",
+      "factor_id": "F_RETAINER_TYPE",
+      "before": "đang dùng hàm duy trì cố định mặt trong",
+      "after": "đang dùng hàm duy trì cố định",
+      "fields": [
+        "targets.state_snapshots.value",
+        "targets.factors.expected_value"
+      ]
+    },
+    {
+      "case_id": "VL500_U0056_Q4",
+      "factor_id": "F_HYGIENE_HABIT",
+      "before": "Cũng trong tuần này có nhiều hôm tôi chỉ dùng bàn chải lông mềm và chải rất nhẹ ở sát viền nướu, nên thói quen thực tế của tôi không ổn định.",
+      "after": "Riêng tôi, tuần này có hôm chỉ dùng bàn chải lông mềm và chải rất nhẹ sát viền nướu nên lực chải chưa đều.",
+      "fields": [
+        "targets.state_snapshots.value",
+        "targets.factors.expected_value"
+      ]
+    },
+    {
+      "case_id": "VL500_U0061_Q4",
+      "factor_id": "F_RETAINER_RELAPSE_STATUS",
+      "before": "Bác sĩ chỉnh nha từng dặn tôi mang hàm duy trì lại khi răng dịch nhẹ gần đây tôi nhận ra dấu hiệu đó.",
+      "after": "Bác sĩ chỉnh nha từng dặn tôi mang hàm duy trì lại khi răng dịch nhẹ; gần đây tôi nhận ra dấu hiệu đó.",
+      "fields": [
+        "targets.state_snapshots.value",
+        "targets.factors.expected_value"
+      ]
+    },
+    {
+      "case_id": "VL500_U0079_Q4",
+      "factor_id": "F_RETAINER_RELAPSE_STATUS",
+      "before": "Răng trước thay đổi nhẹ nha sĩ dặn dùng lại hàm duy trì",
+      "after": "Răng trước thay đổi nhẹ và nha sĩ dặn dùng lại hàm duy trì.",
+      "fields": [
+        "targets.state_snapshots.value",
+        "targets.factors.expected_value"
+      ]
+    },
+    {
+      "case_id": "VL500_U0086_Q2",
+      "factor_id": "F_FLUORIDE_REGIMEN",
+      "before": "Nha sĩ dặn dùng kem fluoride 1450 ppm tôi đã thay tuýp theo hướng dẫn đó.",
+      "after": "Nha sĩ dặn dùng kem fluoride 1450 ppm và tôi đã thay tuýp theo hướng dẫn đó.",
+      "fields": [
+        "targets.state_snapshots.value",
+        "targets.factors.expected_value"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,392 @@
+[
+  {
+    "turn_id": "VL500_U0026_S02_T01",
+    "before": "Tôi vừa được làm sạch sâu dưới nướu và chưa rõ nên chải thế nào tối nay. Có nên làm đúng theo tờ hướng dẫn sau thủ thuật không?",
+    "after": "Tôi vừa được làm sạch sâu dưới nướu và chưa rõ nên chải thế nào tối nay. Tối nay tôi nên làm sạch những vùng nào, và nếu giấy dặn chưa rõ chỗ được chải thì xử lý ra sao?",
+    "reason": "Thay câu hỏi hiển nhiên về tuân thủ bằng vướng mắc cụ thể sau thủ thuật"
+  },
+  {
+    "turn_id": "VL500_U0026_S02_T02",
+    "before": "Có. Ưu tiên hướng dẫn riêng của phòng khám vì chăm sóc tùy thủ thuật và tình trạng của bạn. Gọi nơi điều trị nếu hướng dẫn không rõ hoặc chảy máu tăng.",
+    "after": "Làm theo hướng dẫn riêng cho vùng vừa điều trị; các vùng còn lại làm sạch nhẹ bằng dụng cụ được phép dùng. Nếu giấy dặn không rõ vùng nào được chải hoặc khi nào dùng chỉ, gọi nơi điều trị để xác nhận trước khi chạm vào vùng đó. Báo nếu chảy máu hoặc đau tăng.",
+    "reason": "Thay câu hỏi hiển nhiên về tuân thủ bằng vướng mắc cụ thể sau thủ thuật"
+  },
+  {
+    "turn_id": "VL500_U0027_S02_T01",
+    "before": "Tôi có trẻ dưới ba tuổi và không chắc lượng kem cỡ hạt gạo ra sao. Nha sĩ có thể chỉ lượng kem trực tiếp không?",
+    "after": "Tôi có trẻ dưới ba tuổi và không chắc lượng kem cỡ hạt gạo ra sao. Lớp kem cỡ hạt gạo nên mỏng đến mức nào, và tôi cần giúp trẻ ra sao khi chải?",
+    "reason": "Hỏi trực tiếp lượng kem và cách giám sát thay vì hỏi nha sĩ có thể chỉ không"
+  },
+  {
+    "turn_id": "VL500_U0027_S02_T02",
+    "before": "Có. ADA mô tả lượng nhỏ như vệt mỏng cỡ hạt gạo cho trẻ dưới ba tuổi. Nhờ nha sĩ chỉ trực tiếp và giám sát để trẻ không nuốt kem.",
+    "after": "Lấy một vệt kem có fluoride mỏng cỡ hạt gạo, không phủ kín đầu bàn chải. Người lớn lấy kem và trực tiếp chải hoặc hỗ trợ, không để trẻ tự bóp thêm hay ăn kem từ tuýp. Có thể nhờ nha sĩ làm mẫu lượng kem trên bàn chải của bé.",
+    "reason": "Hỏi trực tiếp lượng kem và cách giám sát thay vì hỏi nha sĩ có thể chỉ không"
+  },
+  {
+    "turn_id": "VL500_U0039_S01_T01",
+    "before": "Tôi sống ở nơi nước máy có fluoride nhưng vẫn được đề nghị bổ sung. Có thể hỏi nha sĩ tính tổng lượng fluoride từ các nguồn không?",
+    "after": "Tôi sống ở nơi nước máy có fluoride nhưng vẫn được đề nghị bổ sung. Tôi cần cung cấp những thông tin gì để nha sĩ cân nhắc có cần bổ sung fluoride?",
+    "reason": "Bỏ câu hỏi xin phép hỏi chuyên gia, giữ nguyên tình huống"
+  },
+  {
+    "turn_id": "VL500_U0039_S01_T02",
+    "before": "Có. Cho nha sĩ biết nguồn nước, kem đánh răng và các sản phẩm bổ sung đang dùng để họ cân nhắc lượng fluoride từ từng nguồn cùng nguy cơ sâu răng. Đừng tự thêm viên fluoride.",
+    "after": "Cho biết nguồn nước uống, kem đánh răng, nước súc miệng và sản phẩm bổ sung đang dùng, kèm nhãn hoặc nồng độ nếu biết. Nha sĩ sẽ cân nhắc các nguồn fluoride cùng nguy cơ sâu răng trước khi hướng dẫn bổ sung; đừng tự thêm viên fluoride.",
+    "reason": "Bỏ câu hỏi xin phép hỏi chuyên gia, giữ nguyên tình huống"
+  },
+  {
+    "turn_id": "VL500_U0046_S01_T03",
+    "before": "Khi mang kết quả xét nghiệm máu đi khám nướu, tôi cần chuẩn bị thêm thông tin gì?",
+    "after": "Nếu không rõ kết quả xét nghiệm hiện có còn dùng được cho buổi khám nướu, tôi có cần tự đi xét nghiệm lại không?",
+    "reason": "Cặp trước đã yêu cầu mang kết quả và thuốc; chuyển sang bước tiếp theo thực tế"
+  },
+  {
+    "turn_id": "VL500_U0046_S01_T04",
+    "before": "Mang kết quả có ngày làm xét nghiệm, danh sách thuốc và thông tin liên hệ của bác sĩ đang điều trị nếu có. Nha sĩ sẽ cân nhắc có cần trao đổi với bác sĩ đó trước thủ thuật; bạn không tự ngưng thuốc.",
+    "after": "Đừng tự làm lại chỉ để chuẩn bị buổi khám. Gửi kết quả kèm ngày xét nghiệm, lý do làm và danh sách thuốc cho nha sĩ; họ sẽ trao đổi với bác sĩ điều trị nếu cần thêm xét nghiệm trước thủ thuật. Không tự ngừng thuốc.",
+    "reason": "Cặp trước đã yêu cầu mang kết quả và thuốc; chuyển sang bước tiếp theo thực tế"
+  },
+  {
+    "turn_id": "VL500_U0055_S02_T05",
+    "before": "Nha sĩ đề nghị bôi varnish cho răng sữa của con tôi nhưng tôi muốn biết sản phẩm có nuốt không. Nên hỏi về cách bôi và hướng dẫn sau buổi điều trị chứ?",
+    "after": "Nha sĩ đề nghị bôi vecni fluoride cho răng sữa của con tôi; tôi lo bé nuốt phải khi bôi. Tôi cần hỏi rõ điều gì về cách bôi và chăm sóc con sau đó?",
+    "reason": "Thay câu hỏi vòng vo về việc có nên hỏi bằng hướng dẫn sau bôi cụ thể"
+  },
+  {
+    "turn_id": "VL500_U0055_S02_T06",
+    "before": "Có. Hãy hỏi lượng dùng, cách hạn chế trẻ nuốt và thời gian ăn uống sau bôi theo đúng sản phẩm. Nha sĩ sẽ giải thích lợi ích và lịch lặp lại dựa trên nguy cơ sâu răng.",
+    "after": "Báo bác sĩ rằng bạn lo bé nuốt để họ giải thích lượng dùng, cách bôi và điều cần theo dõi với đúng sản phẩm. Xin hướng dẫn về ăn uống và chải răng trước khi rời phòng khám; thời gian có thể khác giữa các loại vecni, không tự áp dụng quy tắc sau kem đánh răng.",
+    "reason": "Thay câu hỏi vòng vo về việc có nên hỏi bằng hướng dẫn sau bôi cụ thể"
+  },
+  {
+    "turn_id": "VL500_U0057_S02_T03",
+    "before": "Con tôi trước đây vẫn cần người lớn giúp chải răng và nhắc nhổ kem. Tôi cũng từng bị sưng đỏ, chảy máu nướu khi chải. Khi làm sạch kẽ, tôi nên tự chọn bàn chải kẽ lớn hơn hay nhờ nha sĩ chọn cỡ phù hợp?",
+    "after": "Con tôi trước đây vẫn cần người lớn giúp chải răng và nhắc nhổ kem. Tôi cũng từng bị sưng đỏ, chảy máu nướu khi chải. Với khoảng hẹp đang sưng đau, tôi nên vệ sinh thế nào trong lúc chờ chọn được dụng cụ vừa cỡ?",
+    "reason": "Không hỏi lại chuyện chọn cỡ đã được giải đáp ở cặp trước"
+  },
+  {
+    "turn_id": "VL500_U0057_S02_T04",
+    "before": "Nhờ nha sĩ chọn cỡ phù hợp thay vì tự tăng cỡ. Bàn chải kẽ cần đi qua nhẹ nhàng; ép loại quá lớn có thể làm đau hoặc tổn thương nướu. Triệu chứng cũ của bạn cần được phân biệt với việc hướng dẫn chải răng cho con.",
+    "after": "Làm sạch nhẹ các mặt răng bằng bàn chải mềm, không ép bàn chải kẽ đang gây đau vào khoảng hẹp. Nếu đã được hướng dẫn dùng chỉ và luồn được nhẹ, có thể dùng theo cách đó. Vì vùng này đang sưng đau, cần nha sĩ kiểm tra và chọn dụng cụ, không chỉ tự đổi sang cỡ lớn hơn.",
+    "reason": "Không hỏi lại chuyện chọn cỡ đã được giải đáp ở cặp trước"
+  },
+  {
+    "turn_id": "VL500_U0058_S03_T07",
+    "before": "Tôi dùng tăm nước mỗi tối nhưng bỏ qua chỉ nha khoa. Tăm nước có thay hoàn toàn việc làm sạch kẽ bằng chỉ được không?",
+    "after": "Tôi dùng tăm nước mỗi tối nhưng bỏ qua chỉ nha khoa. Khi dùng tăm nước, tôi nên chọn mức nước và hướng đầu phun thế nào ở gần vùng nướu đang sưng?",
+    "reason": "Cặp trước đã giải thích khả năng thay thế dụng cụ; chuyển sang cách dùng an toàn"
+  },
+  {
+    "turn_id": "VL500_U0058_S03_T08",
+    "before": "Tăm nước có thể là một cách làm sạch kẽ cho một số người, tùy khoảng răng và cách dùng; không mặc định luôn phải thêm chỉ hoặc luôn có thể bỏ chỉ. Nhờ nha sĩ kiểm tra các vùng bạn làm sạch, nhất là chỗ nướu đang sưng đau, rồi chọn cách phù hợp.",
+    "after": "Xem hướng dẫn của máy và bắt đầu ở mức nhẹ bạn kiểm soát được, không tăng áp lực để đẩy qua chỗ đau hoặc cố đưa đầu phun vào nướu. Vùng đang sưng đau cần nha sĩ kiểm tra và hướng dẫn riêng; tăm nước không thay việc tìm nguyên nhân.",
+    "reason": "Cặp trước đã giải thích khả năng thay thế dụng cụ; chuyển sang cách dùng an toàn"
+  },
+  {
+    "turn_id": "VL500_U0061_S03_T03",
+    "before": "Tôi có cần mang theo kem đánh răng để lần chải ở công ty cũng có fluoride không?",
+    "after": "Tôi nên bảo quản bàn chải mang đến công ty thế nào sau khi dùng?",
+    "reason": "Bỏ câu hỏi lặp về việc mang kem đã được gợi ý, hỏi tiếp về bộ vệ sinh đi làm"
+  },
+  {
+    "turn_id": "VL500_U0061_S03_T04",
+    "before": "Mang tuýp kem có fluoride loại dùng được và bàn chải sạch sẽ giúp thuận tiện hơn. Chải không kem có thể lấy bớt mảng bám nhưng không cung cấp fluoride từ kem. Vẫn ưu tiên đủ hai lần chải có fluoride mỗi ngày, đặc biệt trước khi ngủ; không tăng lực cho lần chải trưa.",
+    "after": "Rửa sạch bàn chải và để khô ở nơi thoáng trước khi cất mang đi, tránh giữ lâu trong hộp kín khi còn ướt. Không dùng chung bàn chải. Với bàn chải điện, vệ sinh đầu và thân theo hướng dẫn của hãng.",
+    "reason": "Bỏ câu hỏi lặp về việc mang kem đã được gợi ý, hỏi tiếp về bộ vệ sinh đi làm"
+  },
+  {
+    "turn_id": "VL500_U0062_S02_T03",
+    "before": "Một thời gian trước, tôi đeo khay duy trì trong suốt nhưng không nhớ đã vệ sinh nó bằng bàn chải hay dung dịch nào. Tôi nên tránh dùng lại sản phẩm vệ sinh cũ nào không rõ tên không?",
+    "after": "Một thời gian trước, tôi đeo khay duy trì trong suốt nhưng không nhớ đã vệ sinh nó bằng bàn chải hay dung dịch nào. Khi vệ sinh máng trong suốt, tôi có thể dùng kem đánh răng như chải răng hay cần cách khác?",
+    "reason": "Bỏ cấu trúc câu hỏi khó hiểu về sản phẩm cũ không rõ tên"
+  },
+  {
+    "turn_id": "VL500_U0062_S02_T04",
+    "before": "Đúng. Đừng dùng hóa chất không rõ loại lên khí cụ. Nếu bạn vẫn còn khay, mang theo hoặc chụp nhãn sản phẩm để hỏi bác sĩ. Làm theo hướng dẫn cụ thể cho vật liệu đó.",
+    "after": "Vật liệu máng quyết định cách làm sạch. Kem đánh răng có thể làm xước một số loại nhựa; không dùng nước nóng hoặc hóa chất không rõ loại. Nếu còn máng, mang đến để bác sĩ xác định loại và chỉ cách vệ sinh; đừng suy từ sản phẩm cũ mà bạn không nhớ tên.",
+    "reason": "Bỏ cấu trúc câu hỏi khó hiểu về sản phẩm cũ không rõ tên"
+  },
+  {
+    "turn_id": "VL500_U0063_S02_T05",
+    "before": "Tôi bị sâu răng tái phát dù dùng kem fluoride mỗi ngày. Có thể hỏi liệu bôi fluoride tại phòng khám có phù hợp không?",
+    "after": "Tôi bị sâu răng tái phát dù dùng kem fluoride mỗi ngày. Bôi fluoride ở phòng khám giúp thêm gì, và có thay việc chải răng hoặc làm sạch kẽ hằng ngày không?",
+    "reason": "Hỏi lợi ích và giới hạn của biện pháp thay vì hỏi có thể hỏi nha sĩ không"
+  },
+  {
+    "turn_id": "VL500_U0063_S02_T06",
+    "before": "Có. Hãy hỏi nha sĩ đánh giá yếu tố nguy cơ nào còn tồn tại và liệu varnish hoặc sản phẩm kê đơn có phù hợp. Không tự tăng nồng độ hoặc số lần dùng.",
+    "after": "Vecni fluoride là biện pháp bổ sung giúp phòng sâu răng khi phù hợp với nguy cơ của bạn, không thay chải bằng kem fluoride và làm sạch kẽ. Vì sâu răng vẫn tái phát, nha sĩ cần xem cả chế độ ăn, cách vệ sinh và các yếu tố khác trước khi chọn sản phẩm hoặc lịch bôi; không tự tăng nồng độ kem.",
+    "reason": "Hỏi lợi ích và giới hạn của biện pháp thay vì hỏi có thể hỏi nha sĩ không"
+  },
+  {
+    "turn_id": "VL500_U0070_S02_T03",
+    "before": "Răng số 6 của tôi mất đã hơn một năm; tôi thường nhai một bên vì vùng đó không nghiền thức ăn tốt. Tôi nên hỏi nha sĩ xem cần chụp phim gì không?",
+    "after": "Răng số 6 của tôi mất đã hơn một năm; tôi thường nhai một bên vì vùng đó không nghiền thức ăn tốt. Trước khi thay răng, nha sĩ cần đánh giá gì và phim chụp giúp làm rõ phần nào?",
+    "reason": "Chuyển câu hỏi về việc nên hỏi phim sang nội dung đánh giá thực tế"
+  },
+  {
+    "turn_id": "VL500_U0070_S02_T04",
+    "before": "Hãy kể khó khăn khi nhai và hỏi việc thăm khám có cần hình ảnh để đánh giá xương, chân răng lân cận hay không. Bác sĩ chọn loại phim theo thông tin cần biết để điều trị. Không phải ai cũng cần cùng một loại chụp.",
+    "after": "Nha sĩ cần khám khoảng mất răng, răng bên cạnh, khớp cắn, nướu, sức khỏe chung và khó khăn khi nhai. Phim được chọn để xem những cấu trúc cần cho kế hoạch, chẳng hạn xương hoặc chân răng lân cận; không phải ai cũng cần cùng loại phim hay chụp ba chiều.",
+    "reason": "Chuyển câu hỏi về việc nên hỏi phim sang nội dung đánh giá thực tế"
+  },
+  {
+    "turn_id": "VL500_U0071_S03_T07",
+    "before": "Tôi vừa hoàn tất điều trị và không biết có cần tái khám kiểm tra kết quả. Câu hỏi nào giúp làm rõ kế hoạch theo dõi?",
+    "after": "Tôi vừa hoàn tất điều trị và không biết có cần tái khám kiểm tra kết quả. Tôi cần xác nhận những gì về lịch tái khám và việc theo dõi sau điều trị?",
+    "reason": "Bỏ kiểu hỏi câu hỏi nào nên hỏi"
+  },
+  {
+    "turn_id": "VL500_U0071_S03_T08",
+    "before": "Bạn có thể hỏi có cần buổi tái khám hay không, dấu hiệu nào cần liên hệ lại và khi nào nên kiểm tra định kỳ tiếp theo. Xin hướng dẫn bằng văn bản nếu cần theo dõi tại nhà.",
+    "after": "Xác nhận ngày hẹn, mục đích kiểm tra và những dấu hiệu cần gọi lại trước ngày đó. Xin hướng dẫn theo dõi tại nhà phù hợp với điều trị vừa hoàn tất; không tự bỏ buổi tái khám chỉ vì đã hết đau.",
+    "reason": "Bỏ kiểu hỏi câu hỏi nào nên hỏi"
+  },
+  {
+    "turn_id": "VL500_U0072_S03_T01",
+    "before": "Tôi thường dùng bàn chải khô rồi mới cho kem sau khi chải xong. Kem fluoride cần được đưa lên răng trong lúc chải phải không?",
+    "after": "Tôi thường dùng bàn chải khô rồi mới cho kem sau khi chải xong. Dùng kem sau khi chải xong khác gì với dùng ngay từ đầu, và tôi nên đổi thứ tự ra sao?",
+    "reason": "Giải thích cách thực hiện thay vì câu hỏi xác nhận hiển nhiên"
+  },
+  {
+    "turn_id": "VL500_U0072_S03_T02",
+    "before": "Bạn hãy dùng kem fluoride ngay từ đầu để phân bố lên các mặt răng, sau đó nhổ bọt. Làm theo nhãn sản phẩm và hỏi nha sĩ nếu đang dùng kem kê đơn.",
+    "after": "Cho kem có fluoride lên bàn chải ngay từ đầu để kem được đưa tới các mặt răng trong lúc chải. Chải đủ mặt ngoài, trong và nhai, rồi nhổ phần thừa; không cần chải khô một lượt rồi mới bôi kem. Theo hướng dẫn riêng nếu đang dùng kem kê đơn.",
+    "reason": "Giải thích cách thực hiện thay vì câu hỏi xác nhận hiển nhiên"
+  },
+  {
+    "turn_id": "VL500_U0075_S02_T01",
+    "before": "Tôi đánh răng ngay sau khi ăn bưởi vì nha sĩ dặn vệ sinh kỹ. Có thể hỏi lại nha sĩ về khoảng chờ thay vì bỏ chải không?",
+    "after": "Tôi đánh răng ngay sau khi ăn bưởi vì nha sĩ dặn vệ sinh kỹ. Nếu buổi sáng không đủ thời gian chờ sau khi ăn bưởi, tôi có thể sắp lần chải trước bữa ăn không?",
+    "reason": "Thay câu hỏi xin phép hỏi bằng cách sắp lịch cụ thể"
+  },
+  {
+    "turn_id": "VL500_U0075_S02_T02",
+    "before": "Có. Hãy súc nước sau bưởi và chờ khoảng một giờ rồi chải nhẹ. Nếu nha sĩ đã đưa hướng dẫn riêng vì tình trạng của bạn, xác nhận lại thời điểm với họ.",
+    "after": "Có thể sắp lần chải trước bữa sáng để tránh chải ngay sau bưởi; sau ăn súc nhẹ bằng nước. Nếu chải sau đồ chua, nên chờ khoảng một giờ. Nếu đang có hướng dẫn riêng sau điều trị, xác nhận lại lịch với nha sĩ thay vì tự bỏ lần chải.",
+    "reason": "Thay câu hỏi xin phép hỏi bằng cách sắp lịch cụ thể"
+  },
+  {
+    "turn_id": "VL500_U0078_S03_T03",
+    "before": "Sau khi làm sạch riêng răng và khay, tôi có cần đợi thật lâu mới đeo khay lại không?",
+    "after": "Tôi nên sắp việc vệ sinh quanh các bữa ăn thế nào để không tháo khay quá lâu?",
+    "reason": "Bỏ tình huống đợi thật lâu sau vệ sinh không có lý do trong phiên"
+  },
+  {
+    "turn_id": "VL500_U0078_S03_T04",
+    "before": "Không tự kéo dài thời gian tháo khay. Sau khi làm sạch răng và vệ sinh khay theo hướng dẫn, đeo lại đúng lịch bác sĩ giao. Nếu khay còn cặn, hỏng hoặc cấn đau, liên hệ phòng khám thay vì tự dùng chất tẩy mạnh hay chỉnh khay.",
+    "after": "Tháo khay khi ăn theo hướng dẫn chỉnh nha, rồi làm sạch răng và khay riêng trước khi đeo lại. Chuẩn bị bộ vệ sinh nhỏ khi ra ngoài để thuận tiện giữ lịch đeo bác sĩ đã giao. Không tự kéo dài thời gian tháo hoặc bù bằng cách chuyển khay sớm.",
+    "reason": "Bỏ tình huống đợi thật lâu sau vệ sinh không có lý do trong phiên"
+  },
+  {
+    "turn_id": "VL500_U0079_S02_T05",
+    "before": "Tôi chải răng xong rồi nhổ bọt nhưng vẫn súc một ngụm nước. Có nên bỏ hẳn bước súc sau khi chải không?",
+    "after": "Tôi chải răng xong rồi nhổ bọt nhưng vẫn súc một ngụm nước. Nếu đã lỡ súc nước sau chải, tôi có cần lấy thêm kem hoặc chải lại để bù không?",
+    "reason": "Câu cũ hỏi lại nguyên ý đã được trả lời ở đầu phiên"
+  },
+  {
+    "turn_id": "VL500_U0079_S02_T06",
+    "before": "Có thể nhổ bọt mà không súc ngay để giữ fluoride còn lại trên răng. Nếu nha sĩ dặn khác cho sản phẩm kê đơn, theo chỉ dẫn đó.",
+    "after": "Không cần tự lấy thêm kem hoặc chải lại chỉ để bù một lần lỡ súc. Ở những lần sau, nhổ phần thừa rồi tránh súc ngay; có thể làm sạch kẽ trước chải để bớt nhu cầu súc lại. Với kem kê đơn, làm đúng hướng dẫn riêng.",
+    "reason": "Câu cũ hỏi lại nguyên ý đã được trả lời ở đầu phiên"
+  },
+  {
+    "turn_id": "VL500_U0080_S03_T01",
+    "before": "Tôi thức dậy giữa đêm để uống nước vì miệng khô. Thói quen này có cần báo trong lần khám răng sắp tới không?",
+    "after": "Tôi thức dậy giữa đêm để uống nước vì miệng khô. Tôi có thể giảm khô miệng ban đêm thế nào, và khi nào cần đi khám?",
+    "reason": "Cặp sau đã hỏi thông tin cần ghi; cặp đầu chuyển sang chăm sóc và lúc cần khám"
+  },
+  {
+    "turn_id": "VL500_U0080_S03_T02",
+    "before": "Có. Hãy ghi tần suất thức dậy, thuốc và triệu chứng ban ngày rồi báo nha sĩ hoặc bác sĩ. Nhấp nước và hỏi dược sĩ về sản phẩm giữ ẩm phù hợp. Đừng tự ngưng thuốc.",
+    "after": "Nếu nuốt an toàn và không được dặn hạn chế dịch, có thể để nước lọc cạnh giường và nhấp ít nước khi cần. Hỏi dược sĩ về sản phẩm giữ ẩm phù hợp. Khô miệng kéo dài, ảnh hưởng ăn nói, kèm đau hoặc tổn thương trong miệng cần khám; báo thuốc đang dùng và không tự ngừng thuốc kê đơn.",
+    "reason": "Cặp sau đã hỏi thông tin cần ghi; cặp đầu chuyển sang chăm sóc và lúc cần khám"
+  },
+  {
+    "turn_id": "VL500_U0086_S01_T03",
+    "before": "Tôi có nên cố hít khí lạnh nhiều lần để kiểm tra kem nhạy cảm đã có tác dụng chưa?",
+    "after": "Tôi nên theo dõi gì trong thời gian dùng kem giảm ê để biết có cần đi khám sớm?",
+    "reason": "Bỏ tình huống cố hít lạnh nhiều lần thiếu tự nhiên"
+  },
+  {
+    "turn_id": "VL500_U0086_S01_T04",
+    "before": "Không cần cố gây lại cơn ê. Dùng kem theo nhãn và theo dõi những lần ê xảy ra trong sinh hoạt; nếu tăng, kéo dài hoặc khu trú ở một răng, đặt lịch nha sĩ.",
+    "after": "Theo dõi cơn ê tự xuất hiện trong sinh hoạt: vùng răng, tác nhân, mức độ và thời gian kéo dài. Dùng kem theo nhãn, không tăng lượng để mong tác dụng nhanh. Nếu ê tăng, đau tự phát, đau khi cắn hoặc chỉ ở một răng, liên hệ nha sĩ sớm thay vì tiếp tục thử sản phẩm.",
+    "reason": "Bỏ tình huống cố hít lạnh nhiều lần thiếu tự nhiên"
+  },
+  {
+    "turn_id": "VL500_U0094_S03_T03",
+    "before": "Sau khi nhai kẹo cao su không đường, tôi có thể bỏ bước làm sạch kẽ buổi tối không?",
+    "after": "Nếu nhai kẹo không đường làm mỏi hàm, tôi có cần cố nhai tiếp để có lợi cho răng không?",
+    "reason": "Không hỏi lại việc thay chải và làm sạch kẽ đã được trả lời"
+  },
+  {
+    "turn_id": "VL500_U0094_S03_T04",
+    "before": "Không. Kẹo không đường không lấy hết mảng bám giữa các răng và không thay kem fluoride. Vẫn chải hai lần mỗi ngày và làm sạch kẽ bằng dụng cụ phù hợp; nếu nhai gây đau hàm hoặc có hướng dẫn hạn chế, không cố dùng.",
+    "after": "Không cần cố nhai khi mỏi hoặc đau hàm; giảm hoặc ngừng nhai và hỏi nha sĩ nếu triệu chứng lặp lại. Kẹo cao su không đường chỉ là lựa chọn hỗ trợ tiết nước bọt, không phải bước bắt buộc trong vệ sinh răng.",
+    "reason": "Không hỏi lại việc thay chải và làm sạch kẽ đã được trả lời"
+  },
+  {
+    "turn_id": "VL500_U0094_S03_T02",
+    "before": "Không. Kẹo cao su không thay chải răng và làm sạch kẽ. Loại không đường giảm lượng đường trong kẹo nhưng không giải quyết nguyên nhân vết ố hoặc mảng bám.",
+    "after": "Kẹo không đường có thể hỗ trợ tiết nước bọt nhưng không thay chải bằng kem fluoride hoặc làm sạch kẽ hằng ngày. Đổi từ kẹo có đường giúp tránh lượng đường trong kẹo; vẫn giữ lịch vệ sinh răng bình thường.",
+    "reason": "Bỏ giả định về vết ố mà người dùng không nêu"
+  },
+  {
+    "turn_id": "VL500_U0096_S03_T03",
+    "before": "Nếu chưa kịp sạc bàn chải điện buổi tối, tôi nên chải tay hay chờ tới sáng?",
+    "after": "Khi chuyển sang bàn chải tay dự phòng, tôi cần thao tác khác bàn chải điện thế nào?",
+    "reason": "Cặp trước đã hướng dẫn dùng bàn chải dự phòng, cặp sau cần hỏi thêm thao tác"
+  },
+  {
+    "turn_id": "VL500_U0096_S03_T04",
+    "before": "Dùng bàn chải tay lông mềm với kem fluoride để hoàn thành lần chải tối, đi đủ mặt ngoài, trong và nhai, gồm răng hàm sau. Không cần chờ máy sạc hay ấn mạnh để bù pin yếu; sạc lại theo hướng dẫn để dùng lần sau.",
+    "after": "Với bàn chải tay lông mềm, chủ động chải những nét ngắn, nhẹ ở từng nhóm răng; đặt lông hướng về viền nướu và đi đủ mặt ngoài, trong, nhai. Dành khoảng hai phút cho cả miệng, không quét mạnh để bù máy yếu pin. Cách di chuyển bàn chải điện thì theo thiết kế và hướng dẫn của máy.",
+    "reason": "Cặp trước đã hướng dẫn dùng bàn chải dự phòng, cặp sau cần hỏi thêm thao tác"
+  },
+  {
+    "turn_id": "VL500_U0103_S03_T03",
+    "before": "Nếu chỉ khâu vướng lưỡi nhưng chưa đau, tôi có thể tự cắt phần thừa không?",
+    "after": "Khi liên hệ nơi phẫu thuật vì chỉ còn vướng, tôi cần mô tả gì để họ quyết định có cần kiểm tra?",
+    "reason": "Không hỏi lại một biến thể của tự kéo hoặc cắt chỉ đã được ngăn ở cặp trước"
+  },
+  {
+    "turn_id": "VL500_U0103_S03_T04",
+    "before": "Không tự cắt hoặc kéo chỉ. Liên hệ nơi phẫu thuật và báo ngày làm thủ thuật, loại chỉ nếu biết, cùng vị trí vướng. Họ sẽ quyết định cần kiểm tra hay xử lý phần chỉ; báo ngay nếu có đau tăng, sưng, mủ hoặc chảy máu.",
+    "after": "Báo ngày phẫu thuật, mốc bác sĩ dự kiến chỉ tiêu, vị trí vướng và có đau, sưng, chảy máu hay dịch không. Có thể gửi ảnh nếu nơi điều trị yêu cầu. Đừng tự kéo hoặc cắt chỉ; họ sẽ hướng dẫn chờ tiếp hay đến kiểm tra.",
+    "reason": "Không hỏi lại một biến thể của tự kéo hoặc cắt chỉ đã được ngăn ở cặp trước"
+  },
+  {
+    "turn_id": "VL500_U0108_S01_T01",
+    "before": "Tôi thường để bàn chải điện chạy khi đưa ra khỏi miệng để rửa đầu. Có cần tắt máy trước khi vệ sinh đầu chải không?",
+    "after": "Tôi thường để bàn chải điện chạy khi đưa ra khỏi miệng để rửa đầu. Tôi nên vệ sinh đầu chải và thân máy khác nhau thế nào để không làm hỏng phần điện?",
+    "reason": "Thay câu hỏi chỉ cần xác nhận tắt máy bằng cách vệ sinh hai bộ phận"
+  },
+  {
+    "turn_id": "VL500_U0108_S01_T02",
+    "before": "Tắt máy rồi rửa đầu theo hướng dẫn để tránh bắn nước và bảo vệ thiết bị. Rửa sạch, để khô và không ngâm thân máy nếu hãng không cho phép.",
+    "after": "Tắt máy trước khi vệ sinh. Rửa đầu chải để loại kem và cặn; phần thân, chỗ nối và khả năng ngâm nước phải theo hướng dẫn của đúng mẫu máy. Không mặc định toàn bộ máy có thể ngâm chỉ vì đầu chải được rửa bằng nước.",
+    "reason": "Thay câu hỏi chỉ cần xác nhận tắt máy bằng cách vệ sinh hai bộ phận"
+  },
+  {
+    "turn_id": "VL500_U0108_S03_T03",
+    "before": "Nếu vùng đổi màu không đau, tôi có cần mang thông tin loại thuốc lá không khói đang dùng không?",
+    "after": "Tôi nên làm gì với việc dùng thuốc lá không khói trong lúc chờ khám vùng niêm mạc đổi màu?",
+    "reason": "Cặp đầu đã yêu cầu báo loại thuốc lá; cặp sau hỏi bước xử lý có ích hơn"
+  },
+  {
+    "turn_id": "VL500_U0108_S03_T04",
+    "before": "Có. Mang bao bì hoặc ghi tên, cách dùng, lượng và thời gian sử dụng; nói vùng đổi màu xuất hiện lúc nào. Không đau không phải lý do trì hoãn khám vài tháng. Đừng tự cạo hoặc bôi thuốc lên vùng đó để thử nguyên nhân.",
+    "after": "Ngừng dùng thuốc lá và nhờ bác sĩ, nha sĩ hoặc dịch vụ cai thuốc hỗ trợ nếu khó bỏ. Vẫn giữ lịch kiểm tra tổn thương, kể cả khi đổi màu giảm; không tự cạo, bôi thuốc hoặc đổi nhãn thuốc lá để thử nguyên nhân.",
+    "reason": "Cặp đầu đã yêu cầu báo loại thuốc lá; cặp sau hỏi bước xử lý có ích hơn"
+  },
+  {
+    "turn_id": "VL500_U0111_S02_T03",
+    "before": "Chỉ nha khoa thường làm một vùng lợi của tôi rướm máu dù tôi cố thao tác chậm. Nha sĩ có thể xem giúp tôi đang dùng sai kỹ thuật hay không?",
+    "after": "Chỉ nha khoa thường làm một vùng lợi của tôi rướm máu dù tôi cố thao tác chậm. Tôi nên luồn chỉ thế nào để tránh bật xuống lợi, và khi nào cần kiểm tra vùng hay chảy máu?",
+    "reason": "Hỏi thao tác và cách xử lý triệu chứng thay vì xin phép nhờ xem kỹ thuật"
+  },
+  {
+    "turn_id": "VL500_U0111_S02_T04",
+    "before": "Có. Hãy mang chỉ đến buổi khám để họ xem thao tác và đánh giá vùng lợi. Chảy máu lặp lại cũng có thể cần kiểm tra nguyên nhân khác ngoài kỹ thuật.",
+    "after": "Đưa chỉ chậm qua điểm tiếp xúc, ôm theo cạnh từng răng rồi trượt nhẹ lên xuống, không bật sợi chỉ vào nướu. Vì cùng một vùng vẫn hay rướm máu dù đã thao tác chậm, hãy nhờ nha sĩ kiểm tra cả nướu lẫn cách dùng, không tự quy hết cho kỹ thuật.",
+    "reason": "Hỏi thao tác và cách xử lý triệu chứng thay vì xin phép nhờ xem kỹ thuật"
+  },
+  {
+    "turn_id": "VL500_U0112_S01_T03",
+    "before": "Bột chua rắc thêm lên trái cây có cần được tính là một nguồn axit nữa không?",
+    "after": "Trong lúc chờ chải sau món trái cây rắc bột chua, tôi nên làm gì để bớt vị chua trong miệng?",
+    "reason": "Không hỏi lại điều hiển nhiên rằng bột chua cũng có thể góp axit"
+  },
+  {
+    "turn_id": "VL500_U0112_S01_T04",
+    "before": "Có thể. Thành phần trái cây và bột chua đều cần xem xét; đừng dựa vào vị để ước lượng mức ảnh hưởng lên răng. Hạn chế dùng kéo dài, súc bằng nước rồi chờ trước khi chải.",
+    "after": "Súc nhẹ bằng nước lọc để rửa bớt phần còn lại, không cần chà răng hoặc dùng dung dịch mạnh cho hết vị chua. Hết vị không có nghĩa là có thể chải ngay; vẫn chờ khoảng một giờ sau món chua rồi chải nhẹ.",
+    "reason": "Không hỏi lại điều hiển nhiên rằng bột chua cũng có thể góp axit"
+  },
+  {
+    "turn_id": "VL500_U0114_S03_T03",
+    "before": "Tôi có nên hỏi nha sĩ về chỗ từng sâu trước khi mua kem fluoride nồng độ cao không?",
+    "after": "Khi đi khám để chọn kem, tôi cần mang thông tin gì về tuýp đang dùng và vùng răng từng bị sâu?",
+    "reason": "Cặp đầu đã yêu cầu hỏi người kê; cặp sau chuyển sang chuẩn bị thông tin cụ thể"
+  },
+  {
+    "turn_id": "VL500_U0114_S03_T04",
+    "before": "Có. Nha sĩ cần đánh giá tình trạng hiện tại và nguy cơ sâu răng để quyết định có cần kem kê đơn hay không. Mang tên kem đang dùng; không tự bôi thêm kem nồng độ cao lên một chỗ hoặc tăng lượng. Vùng từng sâu cũng có thể cần điều trị khác ngoài kem.",
+    "after": "Mang tên hoặc ảnh nhãn cả kem thường lẫn kem nồng độ cao, cách bạn đang dùng và thông tin có sẵn về vùng từng sâu. Báo ê, đau hoặc hay mắc thức ăn nếu có. Nha sĩ cần khám để chọn cách phòng ngừa hoặc điều trị, không chỉ quyết định bôi thêm kem.",
+    "reason": "Cặp đầu đã yêu cầu hỏi người kê; cặp sau chuyển sang chuẩn bị thông tin cụ thể"
+  },
+  {
+    "turn_id": "VL500_U0118_S02_T01",
+    "before": "Tôi đang dùng loại nước súc miệng được kê sau điều trị. Tôi nên tự quyết định dùng bao lâu hay cần làm theo chỉ định?",
+    "after": "Tôi đang dùng loại nước súc miệng được kê sau điều trị. Nếu toa hoặc nhãn chưa rõ số lần dùng và ngày dừng, tôi cần xác nhận những gì?",
+    "reason": "Bỏ lựa chọn hiển nhiên tự quyết định hay làm theo chỉ định"
+  },
+  {
+    "turn_id": "VL500_U0118_S02_T02",
+    "before": "Hãy làm theo đúng thời gian và hướng dẫn của nha sĩ kê sản phẩm. Đừng tự kéo dài hoặc lặp lại liệu trình. Nếu gây kích ứng hay có thắc mắc, liên hệ phòng khám để được điều chỉnh.",
+    "after": "Liên hệ nha sĩ kê hoặc dược sĩ, cung cấp tên và nồng độ sản phẩm rồi hỏi lượng mỗi lần, số lần mỗi ngày, cách sắp với giờ chải và ngày kết thúc. Không tự chọn ngày dừng, kéo dài hoặc ghép hướng dẫn của một loại nước súc khác.",
+    "reason": "Bỏ lựa chọn hiển nhiên tự quyết định hay làm theo chỉ định"
+  },
+  {
+    "turn_id": "VL500_U0124_S01_T03",
+    "before": "Tôi cần xem thông tin gì của máy trước khi biết bàn chải người lớn có dùng được cho bé sáu tuổi không?",
+    "after": "Nếu máy được xác nhận phù hợp tuổi, tôi nên hỗ trợ bé chải răng hàm phía sau thế nào?",
+    "reason": "Cặp đầu đã liệt kê thông tin tương thích; cặp sau hỏi cách dùng cho bé"
+  },
+  {
+    "turn_id": "VL500_U0124_S01_T04",
+    "before": "Xem độ tuổi hãng cho phép, đầu chải tương thích và vừa miệng, cùng cách trẻ kiểm soát máy. Không mặc định lắp đầu nhỏ là đủ phù hợp; người lớn vẫn hỗ trợ, và có thể dùng bàn chải tay mềm nếu cần.",
+    "after": "Dùng đầu mềm vừa miệng và chế độ trẻ kiểm soát được theo hướng dẫn máy, đưa nhẹ tới mặt ngoài, trong và nhai của răng hàm. Người lớn hỗ trợ những chỗ bé bỏ sót; dừng khi đau hoặc sợ, đổi tư thế và thử lại bình tĩnh. Nếu vẫn khó dùng, bàn chải tay mềm phù hợp tuổi là lựa chọn khác.",
+    "reason": "Cặp đầu đã liệt kê thông tin tương thích; cặp sau hỏi cách dùng cho bé"
+  },
+  {
+    "turn_id": "VL500_U0124_S03_T03",
+    "before": "Bỏ muối ớt nhưng vẫn ăn xoài xanh thì răng còn tiếp xúc axit không?",
+    "after": "Nếu vẫn muốn ăn xoài xanh, tôi nên sắp vào bữa và giờ chải răng thế nào?",
+    "reason": "Không hỏi lại liệu bỏ muối ớt có làm xoài hết axit"
+  },
+  {
+    "turn_id": "VL500_U0124_S03_T04",
+    "before": "Có. Xoài xanh vẫn có vị chua do axit; bỏ muối ớt không loại bỏ phần đó. Dùng cùng bữa, tránh nhâm nhi kéo dài, súc nhẹ bằng nước rồi chờ khoảng một giờ trước khi chải. Nếu ê kéo dài hoặc đau một răng, nhờ nha sĩ kiểm tra.",
+    "after": "Dùng gọn trong bữa thay vì nhâm nhi cả buổi chiều, sau đó súc nhẹ bằng nước. Nếu đến giờ chải, chờ khoảng một giờ sau món chua rồi chải nhẹ. Không cần loại bỏ trái cây khỏi chế độ ăn, nhưng nên tránh ăn kéo dài hoặc sát lần chải tối.",
+    "reason": "Không hỏi lại liệu bỏ muối ớt có làm xoài hết axit"
+  },
+  {
+    "turn_id": "VL500_U0057_S02_T05",
+    "before": "Con tôi mới mọc răng đầu tiên và tôi chưa đưa đi nha sĩ. Có cần hỏi về fluoride varnish ở lần khám đầu không?",
+    "after": "Con tôi đang mọc răng và tôi chưa đưa bé đi nha sĩ. Ở lần khám đầu, việc bôi vecni fluoride cho trẻ được cân nhắc theo những gì?",
+    "reason": "Làm rõ câu nguồn và mạch hỏi về chăm sóc răng cho trẻ"
+  },
+  {
+    "turn_id": "VL500_U0057_S02_T06",
+    "before": "Có thể hỏi nha sĩ về đánh giá nguy cơ sâu răng và liệu varnish có phù hợp theo tuổi. Lịch và lựa chọn phòng ngừa phụ thuộc tình trạng răng của trẻ.",
+    "after": "Nha sĩ cần biết tuổi, các răng đã mọc, khả năng hợp tác, loại kem đang dùng và nguy cơ sâu răng để chọn cách phòng ngừa, gồm vecni fluoride khi phù hợp. Chỉ việc trẻ đang mọc răng chưa đủ để chốt lịch bôi hoặc loại sản phẩm.",
+    "reason": "Làm rõ câu nguồn và mạch hỏi về chăm sóc răng cho trẻ"
+  },
+  {
+    "turn_id": "VL500_U0083_S03_T07",
+    "before": "Tôi dùng tăm chọc vào chỗ thức ăn mắc và nướu thường đau sau đó. Nên đổi sang dụng cụ nào để tránh làm tổn thương nướu?",
+    "after": "Tôi dùng tăm chọc vào chỗ thức ăn mắc và nướu thường đau sau đó. Sau khi được cấp cứu đánh giá và đã an toàn, tôi nên hỏi nha sĩ về cách làm sạch kẽ thay cho tăm ra sao?",
+    "reason": "Nối rõ câu hỏi kế tiếp với việc cần khám khẩn hoặc cấp cứu trước đó"
+  },
+  {
+    "turn_id": "VL500_U0083_S03_T08",
+    "before": "Trước hết, bạn vừa nói miệng sưng và khó nuốt nước bọt. Nếu chưa được cấp cứu đánh giá, hãy tìm trợ giúp cấp cứu ngay, đừng tự xử lý ở nhà. Về thức ăn mắc kẽ, không dùng tăm nhọn chọc sâu. Sau khi được đánh giá và an toàn, hãy hỏi nha sĩ chọn chỉ nha khoa hoặc bàn chải kẽ phù hợp.",
+    "after": "Trước hết, bạn vừa báo miệng sưng và khó nuốt nước bọt: cần tìm trợ giúp cấp cứu ngay nếu chưa được đánh giá, đừng tiếp tục tự xử lý ở nhà. Chuyện làm sạch kẽ có thể trao đổi sau khi đã an toàn; khi đó nhờ nha sĩ chọn chỉ hoặc bàn chải kẽ phù hợp, không dùng tăm nhọn chọc sâu.",
+    "reason": "Nối rõ câu hỏi kế tiếp với việc cần khám khẩn hoặc cấp cứu trước đó"
+  },
+  {
+    "turn_id": "VL500_U0095_S03_T07",
+    "before": "Nha sĩ đề nghị theo dõi một vùng nghi sâu răng thay vì trám ngay. Tôi có thể hỏi dấu hiệu nào sẽ khiến kế hoạch thay đổi không?",
+    "after": "Nha sĩ đề nghị theo dõi một vùng nghi sâu răng thay vì trám ngay. Sau khi khám các triệu chứng vừa tái phát, tôi nên hỏi gì về lịch theo dõi vùng nghi sâu này?",
+    "reason": "Nối rõ câu hỏi kế tiếp với việc cần khám khẩn hoặc cấp cứu trước đó"
+  },
+  {
+    "turn_id": "VL500_U0095_S03_T08",
+    "before": "Bạn có thể hỏi nha sĩ vùng đó thay đổi thế nào thì cần điều trị, lịch kiểm tra và cách chăm sóc tại nhà. Tuy nhiên, trước hết hãy liên hệ nha sĩ trong ngày về triệu chứng vừa tái phát có tiền sử sưng má hoặc sốt; không chờ lịch theo dõi sâu răng để xử lý vấn đề đó.",
+    "after": "Trước hết hãy liên hệ nha sĩ trong ngày về triệu chứng vừa tái phát có tiền sử sưng má hoặc sốt. Sau khi vấn đề đó được đánh giá, hỏi vùng nghi sâu cần kiểm tra lại khi nào, thay đổi nào cần báo sớm và cách chăm sóc tại nhà; đừng đợi lịch theo dõi sâu răng để xử lý triệu chứng cấp.",
+    "reason": "Nối rõ câu hỏi kế tiếp với việc cần khám khẩn hoặc cấp cứu trước đó"
+  }
+]

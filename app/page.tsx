@@ -3864,17 +3864,16 @@ export default function LabelDataPage() {
                 if (claim) {
                   const isMine = claim.doctorFolder && claim.doctorFolder.toUpperCase() === myFolder;
                   if (claim.status === "COMPLETED" || isConfirmedHere) {
-                    tag = isMine ? `[Đã xong - Của bạn]` : `[Đã xong - ${claim.doctorFolder}]`;
+                    tag = `[Đã xong]`;
                   } else if (isClaimExpired(claim)) {
                     tag = `[Chưa có ai nhận]`;
                   } else {
-                    tag = isMine ? `[ĐANG LÀM DỞ DANG - Cần hoàn thành]` : `[Đã giao ${claim.doctorFolder} - Đã khóa]`;
+                    tag = isMine ? `[ĐANG LÀM DỞ DANG - Cần hoàn thành]` : `[Đã giao - Đã khóa]`;
                   }
                 } else if (driveCompletedMap[s.sampleIndex]) {
-                  const isMine = driveCompletedMap[s.sampleIndex].toUpperCase() === myFolder;
-                  tag = isMine ? `[Đã xong - Của bạn]` : `[Đã xong - ${driveCompletedMap[s.sampleIndex]}]`;
+                  tag = `[Đã xong]`;
                 } else if (isConfirmedHere) {
-                  tag = `[Đã xong - Của bạn]`;
+                  tag = `[Đã xong]`;
                 }
 
                 return (

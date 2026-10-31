@@ -321,7 +321,12 @@ const TOTAL_CASES = 300;
 const CASES_PER_BATCH = 10;
 const TOTAL_BATCHES = Math.ceil(TOTAL_CASES / CASES_PER_BATCH);
 const VISIBLE_SESSIONS_PER_PROFILE = 3;
+const MANUALLY_COMPLETED_SAMPLE_COUNT = 78;
 const DATASET_VERSION_TAG = "5.9.57-round67-context-repair-20261024-preview";
+
+function isManuallyCompletedSample(sampleIndex: number): boolean {
+  return sampleIndex >= 1 && sampleIndex <= MANUALLY_COMPLETED_SAMPLE_COUNT;
+}
 
 function getAssetBase(): string {
   if (typeof window === "undefined") return "";
@@ -664,6 +669,7 @@ export default function LabelDataPage() {
       const myInProgress = Object.values(latestRegistry).find(
         (c) =>
           c &&
+          !isManuallyCompletedSample(c.sampleIndex) &&
           c.status === "IN_PROGRESS" &&
           !isClaimExpired(c) &&
           !confirmedSampleIds.has(c.sampleIndex) &&
@@ -681,6 +687,7 @@ export default function LabelDataPage() {
       try {
         // Tìm mẫu trống trong danh sách hồ sơ mà CHƯA CÓ BẤT KỲ AI NHẬN (hoặc đã hết hạn TTL)
         const isAvailable = (idx: number) => {
+          if (isManuallyCompletedSample(idx)) return false;
           if (excludeIndex && idx === excludeIndex) return false;
           if (confirmedSampleIds.has(idx)) return false;
           if (driveCompletedMap[idx]) return false;
@@ -2280,7 +2287,7 @@ export default function LabelDataPage() {
       (curClaim && curClaim.doctorFolder && curClaim.doctorFolder.toUpperCase() !== myF && !isClaimExpired(curClaim)) ||
       (driveCompletedMap[currentSampleIndex] && driveCompletedMap[currentSampleIndex].toUpperCase() !== myF)
     );
-    if (isOther) return;
+    if (isManuallyCompletedSample(currentSampleIndex) || isOther) return;
 
     // 1. Cập nhật phản hồi ngay trên giao diện mượt mà 60fps
     const nextEditedTurns = { ...editedTurns, [turnId]: text };
@@ -2360,6 +2367,10 @@ export default function LabelDataPage() {
       (curClaim && curClaim.doctorFolder && curClaim.doctorFolder.toUpperCase() !== myF && !isClaimExpired(curClaim)) ||
       (driveCompletedMap[currentSampleIndex] && driveCompletedMap[currentSampleIndex].toUpperCase() !== myF)
     );
+    if (isManuallyCompletedSample(currentSampleIndex)) {
+      alert("Mẫu này đã hoàn tất. Bác sĩ chỉ cần thẩm định các mẫu từ 79 trở đi.");
+      return;
+    }
     if (isOther) {
       alert("Mẫu này đã được phân công độc quyền cho bác sĩ khác. Bạn không thể chỉnh sửa mẫu này!");
       return;
@@ -2414,6 +2425,10 @@ export default function LabelDataPage() {
       (curClaim && curClaim.doctorFolder && curClaim.doctorFolder.toUpperCase() !== myF && !isClaimExpired(curClaim)) ||
       (driveCompletedMap[currentSampleIndex] && driveCompletedMap[currentSampleIndex].toUpperCase() !== myF)
     );
+    if (isManuallyCompletedSample(currentSampleIndex)) {
+      alert("Mẫu này đã hoàn tất. Bác sĩ chỉ cần thẩm định các mẫu từ 79 trở đi.");
+      return;
+    }
     if (isOther) {
       alert("Mẫu này đã được phân công độc quyền cho bác sĩ khác. Bạn không thể chỉnh sửa mẫu này!");
       return;
@@ -2451,6 +2466,7 @@ export default function LabelDataPage() {
   };
 
   const handleRevertTurn = (turnId: string, originalText: string) => {
+    if (isManuallyCompletedSample(currentSampleIndex)) return;
     setEditedTurns((prev) => {
       const next = { ...prev };
       delete next[turnId];
@@ -2710,6 +2726,7 @@ export default function LabelDataPage() {
   // Đảm bảo mẫu hiện tại đã được giữ chỗ độc quyền thành công trước khi thao tác
   const ensureSampleClaimed = async (sampleIndex: number): Promise<boolean> => {
     if (!activeDoctor || allSamples.length === 0) return false;
+    if (isManuallyCompletedSample(sampleIndex)) return false;
     const myFolder = (activeDoctor.folderCode || activeDoctor.id || "BS01").toUpperCase();
     const curClaim = claimsRegistry[sampleIndex];
 
@@ -2821,6 +2838,7 @@ export default function LabelDataPage() {
     const myFolder = (activeDoctor.folderCode || activeDoctor.id || "").toUpperCase();
 
     const isCurrentCompleted =
+      isManuallyCompletedSample(currentSampleIndex) ||
       confirmedSampleIds.has(currentSampleIndex) ||
       Boolean(driveCompletedMap[currentSampleIndex]) ||
       claimsRegistry[currentSampleIndex]?.status === "COMPLETED";
@@ -2873,6 +2891,7 @@ export default function LabelDataPage() {
 
     const curClaim = claimsRegistry[targetIdx];
     const isCompleted =
+      isManuallyCompletedSample(targetIdx) ||
       confirmedSampleIds.has(targetIdx) ||
       Boolean(driveCompletedMap[targetIdx]) ||
       curClaim?.status === "COMPLETED";
@@ -2927,6 +2946,7 @@ export default function LabelDataPage() {
   const handleResetCurrentSample = () => {
     if (!currentSample || !activeDoctor) return;
     const isConfirmed =
+      isManuallyCompletedSample(currentSample.sampleIndex) ||
       confirmedSampleIds.has(currentSample.sampleIndex) ||
       Boolean(driveCompletedMap[currentSample.sampleIndex]);
     if (isConfirmed) {
@@ -2956,6 +2976,7 @@ export default function LabelDataPage() {
   // Bác sĩ chủ động nhả mẫu hiện tại (chỉ chính bác sĩ đó mới có quyền nhả)
   const handleReleaseCurrentSample = async () => {
     if (!currentSample || !activeDoctor) return;
+    if (isManuallyCompletedSample(currentSample.sampleIndex)) return;
     const myFolder = (activeDoctor.folderCode || activeDoctor.id || "BS01").toUpperCase();
     const curClaim = claimsRegistry[currentSample.sampleIndex];
     if (curClaim && curClaim.doctorFolder && curClaim.doctorFolder.toUpperCase() !== myFolder) {
@@ -2994,6 +3015,10 @@ export default function LabelDataPage() {
   // Lưu thẩm định Mẫu bệnh nhân hiện tại lên Google Drive và máy
   const handleSaveSample = async () => {
     if (!currentSample || !activeDoctor || saving) return;
+    if (isManuallyCompletedSample(currentSample.sampleIndex)) {
+      alert(`Mẫu ${currentSample.sampleIndex} đã hoàn tất. Bác sĩ chỉ cần thẩm định các mẫu từ 79 trở đi.`);
+      return;
+    }
 
     // Kiểm tra quyền sở hữu độc quyền (chặn nếu đang thuộc bác sĩ khác và chưa hết hạn TTL)
     const docFolder = (activeDoctor.folderCode || activeDoctor.id || "BS01").toUpperCase();
@@ -3861,7 +3886,9 @@ export default function LabelDataPage() {
                 const myFolder = (activeDoctor?.folderCode || activeDoctor?.id || "").toUpperCase();
                 let tag = "[Chưa có ai nhận]";
 
-                if (claim) {
+                if (isManuallyCompletedSample(s.sampleIndex)) {
+                  tag = `[Đã xong]`;
+                } else if (claim) {
                   const isMine = claim.doctorFolder && claim.doctorFolder.toUpperCase() === myFolder;
                   if (claim.status === "COMPLETED" || isConfirmedHere) {
                     tag = `[Đã xong]`;
@@ -3913,6 +3940,7 @@ export default function LabelDataPage() {
           {(() => {
             const curClaim = claimsRegistry[currentSampleIndex];
             const myF = (activeDoctor?.folderCode || activeDoctor?.id || "").toUpperCase();
+            const isManuallyCompleted = isManuallyCompletedSample(currentSampleIndex);
             const isOther = Boolean(
               (curClaim && curClaim.doctorFolder && curClaim.doctorFolder.toUpperCase() !== myF && !isClaimExpired(curClaim)) ||
               (driveCompletedMap[currentSampleIndex] && driveCompletedMap[currentSampleIndex].toUpperCase() !== myF)
@@ -3924,15 +3952,17 @@ export default function LabelDataPage() {
                 type="button"
                 className={[
                   styles.saveMainBtn,
-                  hasEvaluatedAllTurns && !saving && !driveCompletedMap[currentSampleIndex] && !isOther
+                  !isManuallyCompleted && hasEvaluatedAllTurns && !saving && !driveCompletedMap[currentSampleIndex] && !isOther
                     ? styles.saveMainBtnReady
                     : styles.saveMainBtnLocked,
                 ].join(" ")}
                 onClick={handleSaveSample}
-                disabled={saving || isOther || Boolean(driveCompletedMap[currentSampleIndex])}
+                disabled={saving || isManuallyCompleted || isOther || Boolean(driveCompletedMap[currentSampleIndex])}
                 style={{ padding: "0.25rem 0.65rem", fontSize: "0.75rem" }}
                 title={
-                  isOther
+                  isManuallyCompleted
+                    ? `Mẫu ${currentSampleIndex} đã hoàn tất`
+                    : isOther
                     ? `Mẫu này đã thuộc ${otherCode}`
                     : driveCompletedMap[currentSampleIndex]
                     ? `Mẫu ${currentSampleIndex} đã lưu bởi ${driveCompletedMap[currentSampleIndex]}`
@@ -3960,7 +3990,9 @@ export default function LabelDataPage() {
                   )}
                 </svg>
                 <span>
-                  {isOther
+                  {isManuallyCompleted
+                    ? "Đã xong"
+                    : isOther
                     ? `Khóa (${otherCode})`
                     : driveCompletedMap[currentSampleIndex]
                     ? `Đã lưu (${driveCompletedMap[currentSampleIndex]})`
@@ -4287,6 +4319,7 @@ export default function LabelDataPage() {
                                                 styles.bubbleBtnV,
                                                 isV ? styles.bubbleBtnVActive : "",
                                               ].filter(Boolean).join(" ")}
+                                              disabled={isManuallyCompletedSample(currentSampleIndex)}
                                               onClick={() => handleToggleTurnEval(turn.turn_id, "v")}
                                               title={
                                                 isOtherEditing
@@ -4304,6 +4337,7 @@ export default function LabelDataPage() {
                                                 styles.bubbleBtnX,
                                                 isX ? styles.bubbleBtnXActive : "",
                                               ].filter(Boolean).join(" ")}
+                                              disabled={isManuallyCompletedSample(currentSampleIndex)}
                                               onClick={() => handleToggleTurnEval(turn.turn_id, "x")}
                                               title={
                                                 isOtherEditing
@@ -4323,6 +4357,7 @@ export default function LabelDataPage() {
                                             <button
                                               type="button"
                                               className={styles.bubbleEditToggleBtn}
+                                              disabled={isManuallyCompletedSample(currentSampleIndex)}
                                               onClick={() => handleToggleTurnEdit(turn.turn_id)}
                                               title={isOtherEditing ? "Vui lòng nhấn Xong ở câu thoại đang sửa" : "Mở lại ô chỉnh sửa nội dung"}
                                             >
@@ -4334,6 +4369,7 @@ export default function LabelDataPage() {
                                             <button
                                               type="button"
                                               className={styles.bubbleRevertBtn}
+                                              disabled={isManuallyCompletedSample(currentSampleIndex)}
                                               onClick={() => handleRevertTurn(turn.turn_id, origTurnText)}
                                               title="Khôi phục nguyên văn ban đầu"
                                             >
@@ -4358,6 +4394,7 @@ export default function LabelDataPage() {
                                             onChange={(e) => handleTurnChange(turn.turn_id, e.target.value)}
                                             className={styles.bubbleTextarea}
                                             placeholder="Nội dung câu thoại..."
+                                            readOnly={isManuallyCompletedSample(currentSampleIndex)}
                                             title="Đang chỉnh sửa nội dung lượt thoại này"
                                           />
                                           <div className={styles.bubbleEditFooter}>
@@ -4517,10 +4554,12 @@ export default function LabelDataPage() {
                           ]
                             .filter(Boolean)
                             .join(" ")}
-                          disabled={saving || !hasEvaluatedAllTurns || (!hasInspectedAllSessions && visibleSessions.length > 1)}
+                          disabled={saving || isManuallyCompletedSample(currentSampleIndex) || !hasEvaluatedAllTurns || (!hasInspectedAllSessions && visibleSessions.length > 1)}
                           onClick={handleSaveSample}
                           title={
-                            !hasEvaluatedAllTurns
+                            isManuallyCompletedSample(currentSampleIndex)
+                              ? `Mẫu ${currentSampleIndex} đã hoàn tất`
+                              : !hasEvaluatedAllTurns
                               ? `Cần chọn (v hoặc x) cho tất cả ${allVisibleTurns.length} câu thoại trước khi lưu (Đã chọn: ${evaluatedTurnsCount}/${allVisibleTurns.length})`
                               : !hasInspectedAllSessions && visibleSessions.length > 1
                               ? `Cần xem hết ${visibleSessions.length} lần khám trước khi lưu (${inspectedCount}/${visibleSessions.length})`
@@ -4540,7 +4579,9 @@ export default function LabelDataPage() {
                             <polyline points="20 6 9 17 4 12" />
                           </svg>
                           <span>
-                            {saving
+                            {isManuallyCompletedSample(currentSampleIndex)
+                              ? `Mẫu ${currentSampleIndex} đã hoàn tất`
+                              : saving
                               ? "Đang lưu..."
                               : !hasEvaluatedAllTurns
                               ? `Đánh giá đủ câu thoại (${evaluatedTurnsCount}/${allVisibleTurns.length})`
